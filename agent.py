@@ -10,6 +10,14 @@ import os, json, sqlite3, re
 from typing import Literal
 from dotenv import load_dotenv
 load_dotenv()
+
+# Support Streamlit Cloud secrets
+try:
+    import streamlit as st
+    if "OPENAI_API_KEY" in st.secrets:
+        os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+except Exception:
+    pass
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.prebuilt import create_react_agent

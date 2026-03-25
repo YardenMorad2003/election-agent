@@ -1,5 +1,5 @@
 .env
 __pycache__/
 *.pyc
-elections.db
 .chromadb/
+.streamlit/secrets.toml
