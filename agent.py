@@ -24,6 +24,7 @@ from langgraph.prebuilt import create_react_agent
 
 from tools.data_query import make_data_query_tool, SCHEMA
 from tools.coalition import coalition_calculator
+from tools.web_search import web_search
 
 # ── Shared LLM ──
 def get_llm(model: str = "gpt-4o-mini", temperature: float = 0):
@@ -38,8 +39,24 @@ When answering questions:
 - Be precise with numbers — use the tools to look up exact figures.
 - Cite which Knesset/year you're referencing.
 - For coalition questions, use the coalition calculator.
-- For data lookups, use the data query tool.
-- Show your reasoning step by step.
+- For data lookups about the election database, use the data query tool.
+- For current events, external background, or facts outside the database, use web search.
+- The database only covers election data through 2022. Do not use the data query tool for current office holders, biographies, general background, or news.
+- If a tool has already returned useful information, trust that tool output instead of falling back to training knowledge.
+- Never say you cannot browse the web or mention a knowledge cutoff after using a tool.
+- Do not call the same tool repeatedly with the exact same query unless the previous call returned an error or no results.
+- Give concise answers.
+"""
+
+
+WEB_SYNTHESIS_PROMPT = """You are writing the final answer from a web-search tool output.
+
+Rules:
+- Use ONLY the tool output provided.
+- If the tool output starts with STATUS: OK, answer directly from those results.
+- If the tool output starts with STATUS: NO_RESULTS or STATUS: ERROR, say the web search tool did not return usable results.
+- Do NOT mention training data, knowledge cutoffs, or lack of internet access.
+- Keep the answer concise and cite the source names or URLs when available.
 """
 
 
@@ -163,8 +180,15 @@ def _classify_question(question: str) -> str:
     q = question.lower()
     coalition_kw = ["coalition", "government", "majority", "61 seats", "form a",
                     "combine", "party combination", "קואליציה"]
+    web_kw = [
+        "current", "currently", "latest", "recent", "today", "news", "search",
+        "web", "wikipedia", "who is", "prime minister", "background", "history",
+        "outside the database", "not in the database",
+    ]
     if any(kw in q for kw in coalition_kw):
         return "coalition"
+    if any(kw in q for kw in web_kw):
+        return "web_search"
     return "data_query"
 
 
@@ -176,13 +200,17 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     if route == "coalition":
         tool_result = coalition_calculator.invoke(question)
         tool_name = "coalition_calculator"
+    elif route == "web_search":
+        tool_result = web_search.invoke(question)
+        tool_name = "web_search"
     else:
         tool_result = data_query_tool.invoke(question)
         tool_name = "data_query"
 
     # synthesize final answer
+    synthesis_prompt = WEB_SYNTHESIS_PROMPT if tool_name == "web_search" else SYSTEM_PROMPT
     resp = llm.invoke([
-        SystemMessage(content=SYSTEM_PROMPT),
+        SystemMessage(content=synthesis_prompt),
         HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
                      "Provide a clear, well-formatted answer based on the tool output."),
     ])
@@ -202,7 +230,7 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
 def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
     data_query_tool = make_data_query_tool(llm)
-    tools = [data_query_tool, coalition_calculator]
+    tools = [data_query_tool, coalition_calculator, web_search]
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
@@ -226,7 +254,7 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     return {
         "answer": final_answer,
         "config": "dynamic_routing",
-        "tools_used": tools_used,
+        "tools_used": list(dict.fromkeys(tools_used)),
         "trace": trace,
     }
 
