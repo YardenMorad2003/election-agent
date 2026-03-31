@@ -24,6 +24,7 @@ from langgraph.prebuilt import create_react_agent
 
 from tools.data_query import make_data_query_tool, SCHEMA
 from tools.coalition import coalition_calculator
+from tools.web_search import web_search
 
 # ── Shared LLM ──
 def get_llm(model: str = "gpt-4o-mini", temperature: float = 0):
@@ -39,6 +40,7 @@ When answering questions:
 - Cite which Knesset/year you're referencing.
 - For coalition questions, use the coalition calculator.
 - For data lookups, use the data query tool.
+- For current events, external background, or facts outside the database, use web search.
 - Show your reasoning step by step.
 """
 
@@ -163,8 +165,15 @@ def _classify_question(question: str) -> str:
     q = question.lower()
     coalition_kw = ["coalition", "government", "majority", "61 seats", "form a",
                     "combine", "party combination", "קואליציה"]
+    web_kw = [
+        "current", "currently", "latest", "recent", "today", "news", "search",
+        "web", "wikipedia", "who is", "prime minister", "background", "history",
+        "outside the database", "not in the database",
+    ]
     if any(kw in q for kw in coalition_kw):
         return "coalition"
+    if any(kw in q for kw in web_kw):
+        return "web_search"
     return "data_query"
 
 
@@ -176,6 +185,9 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     if route == "coalition":
         tool_result = coalition_calculator.invoke(question)
         tool_name = "coalition_calculator"
+    elif route == "web_search":
+        tool_result = web_search.invoke(question)
+        tool_name = "web_search"
     else:
         tool_result = data_query_tool.invoke(question)
         tool_name = "data_query"
@@ -202,7 +214,7 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
 def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
     data_query_tool = make_data_query_tool(llm)
-    tools = [data_query_tool, coalition_calculator]
+    tools = [data_query_tool, coalition_calculator, web_search]
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 

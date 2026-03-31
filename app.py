@@ -68,6 +68,8 @@ with st.sidebar:
         "What is the correlation between academic degree % and left-bloc voting?",
         "Compare Likud seats in K24 vs K25",
         "Which locality had the highest turnout in K25?",
+        "Who is the current Prime Minister of Israel?",
+        "Give me background on the Joint List party from the web",
     ]
     for ex in examples:
         if st.button(ex, key=ex, use_container_width=True):

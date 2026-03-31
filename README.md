@@ -25,6 +25,7 @@ This project explores how different levels of tool access and routing logic affe
 
 - **Data Query** — Translates natural language questions into SQL and executes them against the election database. Handles factual lookups, aggregations, correlations, and comparisons.
 - **Coalition Calculator** — Brute-force search over party combinations to find coalitions reaching 61+ seats. Supports filters for must-include parties, max coalition size, and bloc constraints.
+- **Web Search** — Searches public web endpoints for current events and background facts that are outside the local election database.
 
 ## Project Structure
 
@@ -37,7 +38,8 @@ election-agent/
 ├── requirements.txt
 └── tools/
     ├── data_query.py # NL → SQL tool
-    └── coalition.py  # Coalition calculator tool
+    ├── coalition.py  # Coalition calculator tool
+    └── web_search.py # Public web search tool
 ```
 
 ## Database Schema
@@ -87,3 +89,4 @@ The UI provides:
 - "List all possible 3-party coalitions reaching 61 seats in K25"
 - "What is the correlation between academic degree % and left-bloc voting?"
 - "Which locality had the highest turnout in K25?"
+- "Who is the current Prime Minister of Israel?"
