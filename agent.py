@@ -39,9 +39,24 @@ When answering questions:
 - Be precise with numbers — use the tools to look up exact figures.
 - Cite which Knesset/year you're referencing.
 - For coalition questions, use the coalition calculator.
-- For data lookups, use the data query tool.
+- For data lookups about the election database, use the data query tool.
 - For current events, external background, or facts outside the database, use web search.
-- Show your reasoning step by step.
+- The database only covers election data through 2022. Do not use the data query tool for current office holders, biographies, general background, or news.
+- If a tool has already returned useful information, trust that tool output instead of falling back to training knowledge.
+- Never say you cannot browse the web or mention a knowledge cutoff after using a tool.
+- Do not call the same tool repeatedly with the exact same query unless the previous call returned an error or no results.
+- Give concise answers.
+"""
+
+
+WEB_SYNTHESIS_PROMPT = """You are writing the final answer from a web-search tool output.
+
+Rules:
+- Use ONLY the tool output provided.
+- If the tool output starts with STATUS: OK, answer directly from those results.
+- If the tool output starts with STATUS: NO_RESULTS or STATUS: ERROR, say the web search tool did not return usable results.
+- Do NOT mention training data, knowledge cutoffs, or lack of internet access.
+- Keep the answer concise and cite the source names or URLs when available.
 """
 
 
@@ -193,8 +208,9 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
         tool_name = "data_query"
 
     # synthesize final answer
+    synthesis_prompt = WEB_SYNTHESIS_PROMPT if tool_name == "web_search" else SYSTEM_PROMPT
     resp = llm.invoke([
-        SystemMessage(content=SYSTEM_PROMPT),
+        SystemMessage(content=synthesis_prompt),
         HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
                      "Provide a clear, well-formatted answer based on the tool output."),
     ])
@@ -238,7 +254,7 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     return {
         "answer": final_answer,
         "config": "dynamic_routing",
-        "tools_used": tools_used,
+        "tools_used": list(dict.fromkeys(tools_used)),
         "trace": trace,
     }
 

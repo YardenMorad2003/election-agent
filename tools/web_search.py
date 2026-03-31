@@ -4,13 +4,31 @@ Web Search Tool — fetches concise external context from public web endpoints.
 import json
 from html import unescape
 from html.parser import HTMLParser
-from urllib.parse import quote, urlencode
+from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 from langchain_core.tools import tool
 
 
 USER_AGENT = "Mozilla/5.0 (compatible; ElectionAgent/1.0)"
+
+
+def _normalize_url(raw_url: str) -> str:
+    if raw_url.startswith("http://") or raw_url.startswith("https://"):
+        return raw_url
+
+    parsed = urlparse(raw_url)
+    params = parse_qs(parsed.query)
+    if "uddg" in params and params["uddg"]:
+        return unquote(params["uddg"][0])
+
+    if raw_url.startswith("//"):
+        return f"https:{raw_url}"
+
+    if raw_url.startswith("/"):
+        return f"https://lite.duckduckgo.com{raw_url}"
+
+    return raw_url
 
 
 def _http_get(url: str, timeout: int = 10) -> str:
@@ -65,9 +83,10 @@ class _DuckDuckGoLiteParser(HTMLParser):
         if tag != "a":
             return
         href = dict(attrs).get("href", "")
-        if href.startswith("http"):
+        normalized_href = _normalize_url(href)
+        if normalized_href.startswith("http"):
             self.in_link = True
-            self.current_href = href
+            self.current_href = normalized_href
             self.current_text = []
 
     def handle_endtag(self, tag):
@@ -121,11 +140,35 @@ def _search_wikipedia(query: str) -> list[dict]:
     ]
 
 
+def _search_wikipedia_summary(query: str) -> list[dict]:
+    seed_results = _search_wikipedia(query)
+    if not seed_results:
+        return []
+
+    top = seed_results[0]
+    title = top["title"].replace(" ", "_")
+    summary_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{quote(title)}"
+    payload = json.loads(_http_get(summary_url))
+
+    extract = payload.get("extract")
+    page_url = payload.get("content_urls", {}).get("desktop", {}).get("page", top["url"])
+    if not extract:
+        return seed_results
+
+    return [{
+        "title": payload.get("title", top["title"]),
+        "snippet": extract,
+        "url": page_url,
+        "source": "Wikipedia Summary",
+    }]
+
+
 def _format_results(results: list[dict]) -> str:
     if not results:
-        return "No web results found."
+        return "STATUS: NO_RESULTS\nNo web results found."
 
     lines = []
+    lines.append("STATUS: OK")
     for i, item in enumerate(results[:5], 1):
         lines.append(f"{i}. {item['title']}")
         lines.append(f"   Source: {item['source']}")
@@ -146,7 +189,14 @@ def web_search(query: str) -> str:
         if not results:
             results = _search_duckduckgo_lite(query)
         if not results:
+            results = _search_wikipedia_summary(query)
+        if not results:
             results = _search_wikipedia(query)
+        if not results and any(token in query.lower() for token in ["current", "currently", "latest", "today"]):
+            stripped_query = query
+            for token in [" current", " currently", " latest", " today", " 2023", " 2024", " 2025", " 2026"]:
+                stripped_query = stripped_query.replace(token, "")
+            results = _search_wikipedia_summary(stripped_query.strip())
         return _format_results(results)
     except Exception as e:
-        return f"Web search is currently unavailable. Error: {e}"
+        return f"STATUS: ERROR\nWeb search is currently unavailable. Error: {e}"
