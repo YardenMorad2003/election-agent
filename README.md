@@ -401,7 +401,26 @@ OPENAI_API_KEY=your-key-here
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/election_agent
 ```
 
-### 3. Install and set up PostgreSQL
+### 3. Download pre-built databases
+
+Download the pre-built database files from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0):
+
+- **`elections.db`** (1.2 GB) — SQLite database with all election data (source for PostgreSQL migration)
+- **`chroma_db.tar.gz`** (47 MB) — ChromaDB vector store with 22,799 embedded chunks
+
+Place `elections.db` in the project root and extract ChromaDB:
+```bash
+tar -xzf chroma_db.tar.gz
+```
+
+Alternatively, build them from source CSVs (see `data/` directory):
+```bash
+python build_db.py          # Israeli tables
+python build_us_db.py       # U.S. tables
+python build_vectorstore.py # ChromaDB (~5 min)
+```
+
+### 4. Set up PostgreSQL
 
 The app uses **PostgreSQL** as its primary database — a real database server with enforced read-only connections, rather than a flat SQLite file. This prevents any LLM-generated SQL from modifying or destroying data.
 
@@ -440,7 +459,7 @@ App starts → db.py checks: is DATABASE_URL set in .env?
 
 All database connections are read-only. SQL queries are validated before execution — any `DROP`, `DELETE`, `INSERT`, `UPDATE`, or `ALTER` statements are blocked. A `LIMIT 50` clause is automatically appended to queries that don't include one.
 
-### 4. Build the vector store
+### 5. Build the vector store (if not downloaded)
 
 ```bash
 python build_vectorstore.py
