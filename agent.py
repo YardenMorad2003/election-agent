@@ -146,13 +146,16 @@ def _build_rag_chunks():
 
 
 def _keyword_retrieve(question: str, top_k: int = 15) -> list[str]:
-    """Keyword-based retrieval fallback (no embeddings needed — fast and deterministic)."""
+    """Keyword-based retrieval (no embeddings — used for ablation comparison only).
+
+    Counts keyword overlaps between the question and each chunk.
+    Kept as a named retrieval method for the ablation study:
+    "keyword RAG vs. embedding RAG" comparison in the evaluation section.
+    """
     chunks = _build_rag_chunks()
     q_lower = question.lower()
 
-    # extract keywords
     keywords = set(re.findall(r'[a-zA-Z\u0590-\u05FF]{2,}', q_lower))
-    # also match knesset numbers
     knums = re.findall(r'[kK](\d{2})', question)
     keywords.update(knums)
 
@@ -167,24 +170,42 @@ def _keyword_retrieve(question: str, top_k: int = 15) -> list[str]:
     return [c for _, c in scored[:top_k]]
 
 
-def _vector_retrieve(question: str, top_k: int = 15) -> list[str]:
-    """Retrieve relevant chunks using ChromaDB vector similarity."""
-    try:
-        from langchain_community.vectorstores import Chroma
-        chroma_dir = os.path.join(os.path.dirname(__file__), "chroma_db")
-        if not os.path.exists(chroma_dir):
-            raise FileNotFoundError("ChromaDB not built yet")
-        embedding_fn = LocalEmbeddings()
-        vectorstore = Chroma(
-            collection_name="election_data",
-            embedding_function=embedding_fn,
-            persist_directory=chroma_dir,
+def _vector_retrieve(question: str, top_k: int = 15,
+                     embedding_model: str = "minilm") -> list[str]:
+    """Retrieve relevant chunks from ChromaDB using embedding similarity.
+
+    Args:
+        embedding_model: "minilm" (local all-MiniLM-L6-v2) or "openai" (text-embedding-3-small)
+
+    Raises FileNotFoundError if ChromaDB is not built — no silent fallback.
+    """
+    from langchain_community.vectorstores import Chroma
+    chroma_dir = os.path.join(os.path.dirname(__file__), "chroma_db")
+    if not os.path.exists(chroma_dir):
+        raise FileNotFoundError(
+            "ChromaDB not built. Run 'python build_vectorstore.py' first, "
+            "or download from https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0"
         )
-        results = vectorstore.similarity_search(question, k=top_k)
-        return [doc.page_content for doc in results]
-    except Exception:
-        # Fall back to keyword retrieval if ChromaDB isn't available
-        return _keyword_retrieve(question, top_k)
+
+    if embedding_model == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        embedding_fn = OpenAIEmbeddings(model="text-embedding-3-small")
+        collection = "election_data_openai"
+    elif embedding_model == "mpnet":
+        from embeddings import MPNetEmbeddings
+        embedding_fn = MPNetEmbeddings()
+        collection = "election_data_mpnet"
+    else:
+        embedding_fn = LocalEmbeddings()
+        collection = "election_data"
+
+    vectorstore = Chroma(
+        collection_name=collection,
+        embedding_function=embedding_fn,
+        persist_directory=chroma_dir,
+    )
+    results = vectorstore.similarity_search(question, k=top_k)
+    return [doc.page_content for doc in results]
 
 
 # ── Cross-encoder reranker ──
@@ -213,9 +234,10 @@ def _rerank(question: str, chunks: list[str], top_k: int = 10) -> list[str]:
         return chunks[:top_k]
 
 
-def _vector_retrieve_and_rerank(question: str, retrieve_k: int = 25, final_k: int = 10) -> list[str]:
+def _vector_retrieve_and_rerank(question: str, retrieve_k: int = 25, final_k: int = 10,
+                                embedding_model: str = "minilm") -> list[str]:
     """Retrieve from ChromaDB then rerank with cross-encoder."""
-    raw_chunks = _vector_retrieve(question, top_k=retrieve_k)
+    raw_chunks = _vector_retrieve(question, top_k=retrieve_k, embedding_model=embedding_model)
     return _rerank(question, raw_chunks, top_k=final_k)
 
 
@@ -303,11 +325,44 @@ def _classify_question_embedding(question: str) -> str:
         return _classify_question(question)
 
 
-def run_rag_only(question: str, llm: ChatOpenAI | None = None) -> dict:
-    llm = llm or get_llm()
-    retrieved = _vector_retrieve_and_rerank(question, retrieve_k=25, final_k=10)
-    context = "\n".join(retrieved)
+def run_rag_only(question: str, llm: ChatOpenAI | None = None,
+                 retrieval_method: str = "minilm") -> dict:
+    """Config 2: RAG-Only with configurable retrieval method.
 
+    retrieval_method:
+        "minilm"  — local all-MiniLM-L6-v2 embeddings + cross-encoder reranking (default)
+        "mpnet"   — local all-mpnet-base-v2 embeddings + cross-encoder reranking (higher quality)
+        "openai"  — OpenAI text-embedding-3-small embeddings + cross-encoder reranking
+        "keyword" — keyword overlap matching, no embeddings (ablation baseline)
+    """
+    llm = llm or get_llm()
+
+    if retrieval_method == "keyword":
+        retrieved = _keyword_retrieve(question, top_k=10)
+        trace = [
+            "Keyword-based retrieval (ablation baseline — no embeddings)",
+            f"Retrieved {len(retrieved)} chunks by keyword overlap",
+            "LLM synthesized answer from keyword-matched context",
+        ]
+        tools_used = ["keyword_retrieval"]
+    else:
+        retrieved = _vector_retrieve_and_rerank(
+            question, retrieve_k=25, final_k=10, embedding_model=retrieval_method
+        )
+        model_names = {
+            "minilm": "all-MiniLM-L6-v2 (local, 384-dim)",
+            "mpnet": "all-mpnet-base-v2 (local, 768-dim)",
+            "openai": "text-embedding-3-small (OpenAI, 1536-dim)",
+        }
+        model_name = model_names.get(retrieval_method, retrieval_method)
+        trace = [
+            f"Retrieved 25 chunks from ChromaDB using {model_name}",
+            "Reranked to top 10 with cross-encoder (ms-marco-MiniLM-L-6-v2)",
+            "LLM synthesized answer from reranked context",
+        ]
+        tools_used = ["rag_retrieval", "cross_encoder_reranker"]
+
+    context = "\n".join(retrieved)
     resp = llm.invoke([
         SystemMessage(content="You are an expert on U.S. federal elections and Israeli Knesset elections. "
                       "Answer the question using ONLY the retrieved context below. "
@@ -318,12 +373,9 @@ def run_rag_only(question: str, llm: ChatOpenAI | None = None) -> dict:
     return {
         "answer": resp.content,
         "config": "rag_only",
-        "tools_used": ["rag_retrieval", "cross_encoder_reranker"],
-        "trace": [
-            "Retrieved 25 chunks from ChromaDB",
-            "Reranked to top 10 with cross-encoder (ms-marco-MiniLM-L-6-v2)",
-            "LLM synthesized answer from reranked context",
-        ],
+        "retrieval_method": retrieval_method,
+        "tools_used": tools_used,
+        "trace": trace,
         "retrieved_chunks": retrieved,
     }
 

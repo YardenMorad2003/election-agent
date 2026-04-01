@@ -332,7 +332,7 @@ def build():
     conn.close()
     print(f"  Total chunks: {len(all_chunks)}")
 
-    # ── Step 2: Embed and store ──
+    # ── Step 2: Embed and store with local MiniLM ──
     print(f"\n[2/2] Embedding {len(all_chunks)} chunks into ChromaDB...")
 
     embedding_fn = LocalEmbeddings()
@@ -349,11 +349,55 @@ def build():
         batch_chunks = all_chunks[i:i + batch_size]
         batch_meta = all_metadatas[i:i + batch_size]
         vectorstore.add_texts(texts=batch_chunks, metadatas=batch_meta)
-        _progress_bar(min(i + batch_size, total_chunks), total_chunks, label="Embed")
+        _progress_bar(min(i + batch_size, total_chunks), total_chunks, label="MiniLM")
 
     elapsed = time.time() - t0
     print(f"\nChromaDB saved to {CHROMA_DIR}")
-    print(f"Done! ({elapsed:.1f}s)")
+    print(f"Local embeddings done! ({elapsed:.1f}s)")
+
+    # ── Step 3 (optional): Also embed with OpenAI for comparison ──
+    if "--with-openai" in sys.argv:
+        print(f"\n[3/3] Embedding {len(all_chunks)} chunks with OpenAI text-embedding-3-small...")
+        from langchain_openai import OpenAIEmbeddings
+        openai_fn = OpenAIEmbeddings(model="text-embedding-3-small")
+
+        openai_store = Chroma(
+            collection_name="election_data_openai",
+            embedding_function=openai_fn,
+            persist_directory=CHROMA_DIR,
+        )
+
+        for i in range(0, total_chunks, batch_size):
+            batch_chunks = all_chunks[i:i + batch_size]
+            batch_meta = all_metadatas[i:i + batch_size]
+            openai_store.add_texts(texts=batch_chunks, metadatas=batch_meta)
+            _progress_bar(min(i + batch_size, total_chunks), total_chunks, label="OpenAI")
+
+        elapsed = time.time() - t0
+        print(f"\nOpenAI embeddings done! ({elapsed:.1f}s total)")
+    # ── Step 4 (optional): Also embed with MPNet for comparison ──
+    if "--with-mpnet" in sys.argv or "--with-all" in sys.argv:
+        print(f"\nEmbedding {len(all_chunks)} chunks with all-mpnet-base-v2...")
+        from embeddings import MPNetEmbeddings
+        mpnet_fn = MPNetEmbeddings()
+
+        mpnet_store = Chroma(
+            collection_name="election_data_mpnet",
+            embedding_function=mpnet_fn,
+            persist_directory=CHROMA_DIR,
+        )
+
+        for i in range(0, total_chunks, batch_size):
+            batch_chunks = all_chunks[i:i + batch_size]
+            batch_meta = all_metadatas[i:i + batch_size]
+            mpnet_store.add_texts(texts=batch_chunks, metadatas=batch_meta)
+            _progress_bar(min(i + batch_size, total_chunks), total_chunks, label="MPNet")
+
+        elapsed = time.time() - t0
+        print(f"\nMPNet embeddings done! ({elapsed:.1f}s total)")
+
+    if not any(f in sys.argv for f in ["--with-openai", "--with-mpnet", "--with-all"]):
+        print("Tip: run with --with-openai / --with-mpnet / --with-all for embedding comparison collections")
 
 
 if __name__ == "__main__":
