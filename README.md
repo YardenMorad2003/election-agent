@@ -390,27 +390,55 @@ election-agent/
 pip install -r requirements.txt
 ```
 
-Dependencies: `langgraph`, `langchain`, `langchain-openai`, `langchain-community`, `chromadb`, `openai`, `streamlit`, `pandas`, `python-dotenv`, `sentence-transformers`, `numpy`, `transformers`, `torch`
+Dependencies: `langgraph`, `langchain`, `langchain-openai`, `langchain-community`, `chromadb`, `openai`, `streamlit`, `pandas`, `python-dotenv`, `sentence-transformers`, `numpy`, `transformers`, `torch`, `psycopg2-binary`
 
-### 2. Set OpenAI API key
+### 2. Set up environment variables
 
 Create a `.env` file in the project root:
 
 ```
 OPENAI_API_KEY=your-key-here
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/election_agent
 ```
 
-### 3. Build the database
+### 3. Install and set up PostgreSQL
 
-The Israeli data is pre-built in `elections.db`. To add U.S. data:
+The app uses **PostgreSQL** as its primary database — a real database server with enforced read-only connections, rather than a flat SQLite file. This prevents any LLM-generated SQL from modifying or destroying data.
 
-```bash
-# Load all U.S. tables (county + precinct, ~900MB CSV -> ~1.2GB DB)
-python build_us_db.py
+1. **Install PostgreSQL** from [postgresql.org/download](https://www.postgresql.org/download/). Remember the password you set for the `postgres` user.
 
-# Or load only the county table (fast, ~8MB CSV)
-python build_us_db.py --county-only
+2. **Create the database:**
+   ```bash
+   psql -U postgres -c "CREATE DATABASE election_agent;"
+   ```
+
+3. **Build the SQLite source** (temporary — used only for migration):
+   ```bash
+   # Build Israeli tables
+   python build_db.py
+
+   # Build U.S. tables (county + precinct, ~900MB CSV -> ~1.2GB DB)
+   python build_us_db.py
+
+   # Or county-only for a quick setup (~8MB CSV)
+   python build_us_db.py --county-only
+   ```
+
+4. **Migrate data from SQLite to PostgreSQL:**
+   ```bash
+   python migrate_to_postgres.py
+   ```
+   This copies all 7.5M rows from `elections.db` into PostgreSQL (~5-10 minutes). Once complete, the SQLite file is no longer used by the app.
+
+**How the database connection works:**
+
 ```
+App starts → db.py checks: is DATABASE_URL set in .env?
+    → YES → connects to PostgreSQL (read-only, secure)
+    → NO  → falls back to SQLite file (elections.db, read-only)
+```
+
+All database connections are read-only. SQL queries are validated before execution — any `DROP`, `DELETE`, `INSERT`, `UPDATE`, or `ALTER` statements are blocked. A `LIMIT 50` clause is automatically appended to queries that don't include one.
 
 ### 4. Build the vector store
 
