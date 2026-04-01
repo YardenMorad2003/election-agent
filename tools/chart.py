@@ -187,16 +187,12 @@ def _translate_hebrew(text: str) -> str:
 
 
 def _run_chart_query(sql: str) -> list[dict]:
-    """Run SQL and return list of row dicts."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    try:
-        rows = conn.execute(sql).fetchall()
-        return [dict(row) for row in rows]
-    except Exception as e:
-        raise ValueError(f"SQL Error: {e}\nQuery: {sql}")
-    finally:
-        conn.close()
+    """Run SQL and return list of row dicts.
+    Uses PostgreSQL if DATABASE_URL is set, otherwise SQLite (read-only).
+    """
+    from db import execute_query
+    rows, cols = execute_query(sql)
+    return rows
 
 
 def _build_chart(data: list[dict], config: dict) -> str:

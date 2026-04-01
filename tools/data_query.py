@@ -1,13 +1,12 @@
 """
 Data Query Tool — translates natural language questions into SQL,
-executes against the election SQLite database, returns results.
+executes against the election database (PostgreSQL or SQLite), returns results.
 """
-import sqlite3, os
+import os
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from tools.chart import HEBREW_TO_ENGLISH, _translate_hebrew, _preprocess_israeli_question
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "elections.db")
+from db import execute_query
 
 SCHEMA = """
 Tables in the database:
@@ -136,15 +135,13 @@ def _run_query(sql: str) -> tuple[str, bool, str]:
     """Execute SQL and return (result_text, success, error_type).
 
     error_type is one of: None, "empty", "sql_error"
+    Uses PostgreSQL if DATABASE_URL is set, otherwise SQLite (read-only).
     """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
     try:
-        rows = conn.execute(sql).fetchall()
+        rows, cols = execute_query(sql)
         if not rows:
             return "Query returned no results.", False, "empty"
         # format as markdown table, translating Hebrew party names to English
-        cols = rows[0].keys()
         header = " | ".join(cols)
         sep = " | ".join(["---"] * len(cols))
         lines = [header, sep]
@@ -157,10 +154,8 @@ def _run_query(sql: str) -> tuple[str, bool, str]:
                 cells.append(str(val))
             lines.append(" | ".join(cells))
         return "\n".join(lines), True, None
-    except Exception as e:
-        return f"SQL Error: {e}\nQuery was: {sql}", False, "sql_error"
-    finally:
-        conn.close()
+    except ValueError as e:
+        return str(e), False, "sql_error"
 
 
 REFLEXION_PROMPT = """Your previous SQL query failed. Reflect on what went wrong and write a corrected query.
