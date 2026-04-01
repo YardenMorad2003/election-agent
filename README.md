@@ -537,36 +537,3 @@ This project demonstrates techniques from DS-UA 301: Advanced Topics in Data Sci
 | 10 | Agentic AI (ReACT, Reflexion) | **LangGraph ReAct agent** implements the Thought-Action-Observation loop from [Yao et al., 2023]: the LLM reasons about which tool to call, observes the result, and decides next steps autonomously. **Reflexion** pattern enables self-correction: when SQL queries fail or return empty results, the error is fed back to the LLM with diagnostic hints, and it generates a corrected query (up to 2 retries). The **4-config comparison** (single-pass, RAG-only, fixed routing, dynamic routing) directly tests how routing strategy affects answer quality — the central research question from our proposal. |
 | 13 | LLM Benchmarking | **70-question benchmark suite** with two evaluation methods: (1) deterministic soft matching (substring + 5% numeric tolerance) for factual/numerical questions, and (2) **LLM-as-judge** scoring on a 0-5 rubric (perfect/good/acceptable/partial/poor/wrong) for open-ended questions. Results are broken down by question category (factual, numerical, multi-step, coalition) and by dataset (U.S., Israel, both). This follows the benchmarking methodology from Module 13, using LLM evaluation as an alternative to human annotation. |
 
----
-
-## Claude Code Continuation Instructions
-
-Use this section to pick up where the last session left off.
-
-### What's Done
-- **`build_us_db.py`** -- Written and run. All 4 U.S. tables loaded into `elections.db` (75K county + 7.4M precinct rows).
-- **`build_vectorstore.py`** -- Written and run. 22,799 chunks embedded into ChromaDB using local `all-MiniLM-L6-v2` embeddings (384-dim, no API key).
-- **`embeddings.py`** -- LangChain-compatible wrapper around local `sentence-transformers/all-MiniLM-L6-v2`. Replaces all OpenAI embedding calls.
-- **`classifiers.py`** -- Zero-shot classifier (`facebook/bart-large-mnli`) for Config 3 routing. Fine-tuned DistilBERT classifier scaffolded but not yet trained.
-- **`ner_preprocessor.py`** -- BERT-NER (`dslim/bert-base-NER`) entity extraction for Hebrew city name resolution. Replaces hardcoded dictionary lookup.
-- **`tools/data_query.py`** -- Full U.S. + Israeli schemas, Reflexion (2 retries), NER-based Hebrew city name resolution, bloc definitions, party_locality vs parties distinction.
-- **`tools/chart.py`** -- Chart generation tool with matplotlib, party colors, horizontal bar charts for Israeli data, English party name translation, Reflexion (2 retries), NER-based Hebrew city name resolution.
-- **`tools/web_search.py`** -- Web search tool for current events and background facts outside the election database.
-- **`agent.py`** -- Full ML pipeline: context_search tool, cross-encoder reranker, zero-shot + embedding-based routing, run_chat with conversation history, 5 tools registered.
-- **`app.py`** -- Conversational chatbot with inline chart rendering, tool badges, execution traces, LLM-generated follow-up suggestions, comparison mode.
-- **`benchmark/run_benchmark.py`** -- Soft match + LLM-as-judge (0-5) scoring, category/dataset breakdowns. Written but **NOT yet run**.
-- **`.gitignore`** -- Excludes `elections.db`, `chroma_db/`, `data/`, `charts/`.
-
-### What Still Needs to Happen
-1. **Fine-tune DistilBERT classifier** -- Create `train_classifier.py`, train on the 70 benchmark questions labeled by `expected_tool`, save to `models/distilbert-router/`.
-2. **Run the benchmark** -- `python -m benchmark.run_benchmark` (280+ API calls across 4 configs).
-3. **Optional**: Add `--routing` flag to benchmark to compare zero-shot vs embedding vs fine-tuned routing for Config 3.
-
-### Key File Locations
-- U.S. CSV source data: `~/election-agent/data/`
-- SQLite database: `~/election-agent/elections.db`
-- ChromaDB: `~/election-agent/chroma_db/`
-- Generated charts: `~/election-agent/charts/`
-- Benchmark results (after run): `~/election-agent/benchmark/results.json`
-- Original task spec: `~/Downloads/CLAUDE_CODE_INSTRUCTIONS.md`
-- Course syllabus: `~/Downloads/Spring 2026 DS-UA 301 Syllabus (7).pdf`
