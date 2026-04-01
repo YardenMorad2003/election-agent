@@ -40,7 +40,7 @@ User question
      +---> [Data Query]        NL -> SQL -> SQLite -> exact results
      |         |                   (with Reflexion: retries on error/empty)
      |
-     +---> [Context Search]    Question -> OpenAI embeddings -> ChromaDB (25 chunks)
+     +---> [Context Search]    Question -> local MiniLM embeddings -> ChromaDB (25 chunks)
      |         |                   -> cross-encoder rerank (top 10) -> context
      |
      +---> [Create Chart]      NL -> SQL + chart config -> matplotlib -> PNG
@@ -178,9 +178,13 @@ User question
 ## Tools
 
 ### Data Query (`data_query`)
-Translates natural language questions into SQL and executes them against the SQLite election database. Supports both U.S. and Israeli datasets. The LLM picks the right table based on context clues (state names, Knesset numbers, etc.).
+Translates natural language questions into SQL and executes them against the PostgreSQL election database (falls back to SQLite if `DATABASE_URL` is not set). Supports both U.S. and Israeli datasets. The LLM picks the right table based on context clues (state names, Knesset numbers, etc.).
 
-**Reflexion**: If the SQL query errors or returns empty results, the tool sends the failed query + error back to the LLM with common fix hints (uppercase candidate names, Hebrew LIKE matching, correct table selection). Retries up to 2 times.
+**Security**: All connections are read-only. SQL is validated before execution — `DROP`, `DELETE`, `INSERT`, `UPDATE`, and `ALTER` statements are blocked. A `LIMIT 50` is automatically enforced on all queries.
+
+**NER preprocessing**: Before SQL generation, a BERT-NER model (`dslim/bert-base-NER`) extracts city names from the question and injects the exact Hebrew equivalent (e.g., "Kiryat Ata" → `קרית אתא`), preventing incorrect Hebrew transliteration in queries.
+
+**Reflexion**: If the SQL query errors or returns empty results, the tool sends the failed query + error back to the LLM with diagnostic hints (uppercase candidate names, exact Hebrew name matching, correct table selection). The LLM reflects on what went wrong and generates a corrected query. Retries up to 2 times.
 
 ### Context Search (`context_search`)
 Queries the ChromaDB vector store containing **22,799 embedded text chunks**. A "chunk" is a short, self-contained piece of text (1-3 sentences) that describes one fact about the election data. The system pre-generates these from the database at build time (`build_vectorstore.py`), then embeds each one as a 384-dimensional vector using `all-MiniLM-L6-v2` so they can be searched semantically — like index cards in a library catalog.
@@ -199,10 +203,12 @@ Queries the ChromaDB vector store containing **22,799 embedded text chunks**. A 
 
 When you ask a question, the system converts it to a vector using the same embedding model, finds the 25 most similar chunk vectors in ChromaDB (dense retrieval), then a cross-encoder (`ms-marco-MiniLM-L-6-v2`) re-scores those 25 and keeps the top 10. Those 10 chunks become the context the LLM uses to answer.
 
-### Create Chart (`create_chart`)
-Generates matplotlib visualizations from election data. The LLM writes both the SQL query and a chart configuration (type, title, axes, grouping). Supports: bar, grouped bar, stacked bar, line, pie, and scatter charts. Includes party-specific colors (blue for Democrat, red for Republican). Charts are saved as PNG files and rendered inline in the Streamlit chat.
+> **Note on earlier versions**: An earlier version of the codebase included a keyword-based retrieval fallback (`_keyword_retrieve`) that activated when ChromaDB was not built. Since `chroma_db/` is excluded from the Git repository (too large), anyone cloning the repo without running `build_vectorstore.py` would silently fall back to keyword matching — which has no semantic understanding, no fuzzy matching, and no relevance ranking. This has been addressed: ChromaDB is now available as a [pre-built download](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0), and the keyword fallback remains only as a last-resort safety net, not as the intended retrieval method.
 
-**Reflexion**: If the SQL fails or returns no data (common with Hebrew name transliteration), retries up to 3 times with error context.
+### Create Chart (`create_chart`)
+Generates matplotlib visualizations from election data. The LLM writes both the SQL query and a chart configuration (type, title, axes, grouping). Supports: bar, horizontal bar, grouped bar, stacked bar, line, pie, and scatter charts. Israeli party breakdowns use horizontal bar charts for readability. Hebrew party names are automatically translated to English (e.g., "הליכוד" → "Likud"). Charts are saved as PNG files and rendered inline in the Streamlit chat.
+
+**Reflexion**: If the SQL fails or returns no data, the LLM reflects on the error and retries with a corrected query. Retries up to 2 times.
 
 ### Coalition Calculator (`coalition_calculator`)
 Brute-force search over Israeli party combinations to find coalitions reaching 61+ seats (out of 120). Supports:
@@ -225,7 +231,7 @@ The system implements 4 routing strategies to compare how different levels of to
 - Tests: what does the LLM know without any data access?
 
 ### Config 2: RAG-Only
-- ChromaDB vector retrieval (OpenAI embeddings)
+- ChromaDB vector retrieval (local MiniLM embeddings)
 - Cross-encoder reranking (ms-marco-MiniLM-L-6-v2)
 - LLM synthesizes answer from retrieved context only (no SQL)
 - Tests: can retrieval + reranking provide accurate answers without structured queries?
@@ -577,10 +583,10 @@ This project demonstrates techniques from DS-UA 301: Advanced Topics in Data Sci
 
 | Module | Topic (from syllabus) | How it's implemented in this project |
 |--------|----------------------|--------------------------------------|
-| 3 | Attention, Transformers, Embeddings | **Text embeddings** (`text-embedding-3-small`) encode 22K+ document chunks and user questions into dense vectors for semantic similarity search. The same embedding model is used for **embedding-based question classification** in Config 3, where cosine similarity against tool-category centroids replaces keyword matching. |
+| 3 | Attention, Transformers, Embeddings | **Local text embeddings** (`all-MiniLM-L6-v2`) encode 22K+ document chunks and user questions into 384-dim dense vectors for semantic similarity search. **BERT-NER** (`dslim/bert-base-NER`) extracts city name entities from questions for Hebrew name resolution. **Zero-shot classification** (`facebook/bart-large-mnli`) routes questions to tools via natural language inference. The same embedding model is used for **embedding-based question classification** in Config 3. |
 | 4 | Prompt Engineering, LangChain | **System prompts** for SQL generation contain full database schemas, query patterns, Hebrew name lookups, and domain-specific rules. **LangChain** provides the tool framework (`@tool` decorator, `ChatOpenAI` wrapper). Prompt design directly determines SQL quality — e.g., including the pattern for "flipped counties" using window functions prevents the LLM from generating incorrect queries. |
 | 5 | RAG (Retrieval-Augmented Generation) | **Two-stage RAG pipeline**: (1) dense retrieval from ChromaDB (25 nearest chunks by cosine similarity), then (2) **cross-encoder reranking** (`ms-marco-MiniLM-L-6-v2`) to top 10. The cross-encoder processes (query, chunk) pairs jointly through BERT attention layers — more accurate than bi-encoder cosine similarity because it captures token-level interactions. The 22K+ chunk vector store covers county summaries, state aggregates, Israeli election data, bloc definitions, and dataset documentation. |
-| 9 | Tool-Assisted LLMs | **Five specialized tools** extend the LLM's capabilities beyond its training knowledge: (1) `data_query` translates natural language to SQL and executes against SQLite, (2) `create_chart` generates SQL + matplotlib chart configs, (3) `coalition_calculator` does brute-force combinatorial search over party seat combinations, (4) `context_search` retrieves from the vector store, (5) `web_search` queries the web for current events and background facts outside the database. Each tool uses **function calling** — the LLM emits structured tool invocations that the system executes and returns results from. This follows the Tool-Augmented Language Model (TALM) paradigm covered in Module 9. |
+| 9 | Tool-Assisted LLMs | **Five specialized tools** extend the LLM's capabilities beyond its training knowledge: (1) `data_query` translates natural language to SQL and executes against PostgreSQL (or SQLite fallback), (2) `create_chart` generates SQL + matplotlib chart configs, (3) `coalition_calculator` does brute-force combinatorial search over party seat combinations, (4) `context_search` retrieves from the vector store, (5) `web_search` queries the web for current events and background facts outside the database. Each tool uses **function calling** — the LLM emits structured tool invocations that the system executes and returns results from. This follows the Tool-Augmented Language Model (TALM) paradigm covered in Module 9. |
 | 10 | Agentic AI (ReACT, Reflexion) | **LangGraph ReAct agent** implements the Thought-Action-Observation loop from [Yao et al., 2023]: the LLM reasons about which tool to call, observes the result, and decides next steps autonomously. **Reflexion** pattern enables self-correction: when SQL queries fail or return empty results, the error is fed back to the LLM with diagnostic hints, and it generates a corrected query (up to 2 retries). The **4-config comparison** (single-pass, RAG-only, fixed routing, dynamic routing) directly tests how routing strategy affects answer quality — the central research question from our proposal. |
 | 13 | LLM Benchmarking | **70-question benchmark suite** with two evaluation methods: (1) deterministic soft matching (substring + 5% numeric tolerance) for factual/numerical questions, and (2) **LLM-as-judge** scoring on a 0-5 rubric (perfect/good/acceptable/partial/poor/wrong) for open-ended questions. Results are broken down by question category (factual, numerical, multi-step, coalition) and by dataset (U.S., Israel, both). This follows the benchmarking methodology from Module 13, using LLM evaluation as an alternative to human annotation. |
 
