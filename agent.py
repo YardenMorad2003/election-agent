@@ -24,6 +24,7 @@ from langgraph.prebuilt import create_react_agent
 
 from tools.data_query import make_data_query_tool, SCHEMA
 from tools.coalition import coalition_calculator
+from tools.israel_politics_rss import israel_politics_rss
 from tools.web_search import web_search
 
 # ── Shared LLM ──
@@ -40,7 +41,9 @@ When answering questions:
 - Cite which Knesset/year you're referencing.
 - For coalition questions, use the coalition calculator.
 - For data lookups about the election database, use the data query tool.
-- For current events, external background, or facts outside the database, use web search.
+- For correlations, comparisons, turnout analysis, vote-share trends, locality patterns, and socioeconomic analysis, prefer the data query tool even if the user casually mentions "web" or "search".
+- For current Israeli political developments, breaking updates, and recent events, use the RSS news tool first.
+- For external background or facts outside the database that are not time-sensitive, use web search.
 - The database only covers election data through 2022. Do not use the data query tool for current office holders, biographies, general background, or news.
 - If a tool has already returned useful information, trust that tool output instead of falling back to training knowledge.
 - Never say you cannot browse the web or mention a knowledge cutoff after using a tool.
@@ -56,6 +59,22 @@ Rules:
 - If the tool output starts with STATUS: OK, answer directly from those results.
 - If the tool output starts with STATUS: NO_RESULTS or STATUS: ERROR, say the web search tool did not return usable results.
 - Do NOT mention training data, knowledge cutoffs, or lack of internet access.
+- Summarize the snippets into 2-4 concrete takeaways when possible.
+- Do not tell the user to go read the sources unless the tool output is too thin to support even a short summary.
+- Keep the answer concise and cite the source names or URLs when available.
+"""
+
+
+RSS_SYNTHESIS_PROMPT = """You are writing the final answer from an RSS news tool output.
+
+Rules:
+- Use ONLY the tool output provided.
+- If the tool output starts with STATUS: OK, summarize the freshest relevant developments directly.
+- If the tool output starts with STATUS: NO_RESULTS or STATUS: ERROR, say the RSS news tool did not return usable recent updates.
+- Prefer the newest items and mention concrete timing when available.
+- For each item you mention, include the publisher name and published timestamp if available.
+- When linking, use direct markdown links in the form `[Read more](URL)` or `[Title](URL)`.
+- Never write vague placeholders like `Read more here`.
 - Keep the answer concise and cite the source names or URLs when available.
 """
 
@@ -180,14 +199,49 @@ def _classify_question(question: str) -> str:
     q = question.lower()
     coalition_kw = ["coalition", "government", "majority", "61 seats", "form a",
                     "combine", "party combination", "קואליציה"]
+    data_kw = [
+        "correlation", "correlat", "academic degree", "education", "left-bloc",
+        "left bloc", "turnout", "vote share", "voting pattern", "compare",
+        "comparison", "average", "median", "trend", "locality", "municipality",
+        "socioeconomic", "regression", "seats", "votes",
+    ]
     web_kw = [
         "current", "currently", "latest", "recent", "today", "news", "search",
         "web", "wikipedia", "who is", "prime minister", "background", "history",
         "outside the database", "not in the database",
     ]
+    rss_kw = [
+        "rss", "headline", "headlines", "breaking", "update", "updates",
+        "real-time", "realtime", "live", "developments",
+    ]
+    current_role_kw = [
+        "who is the current", "who is currently", "current prime minister",
+        "current president", "current knesset speaker", "knesset speaker",
+        "current finance minister", "current defense minister",
+        "current foreign minister", "current minister", "office holder",
+    ]
+    person_news_kw = [
+        "news about", "recent news about", "latest news about",
+        "most recent news about", "what happened to", "what's new with",
+    ]
+    recency_kw = ["latest", "recent", "most recent", "today", "news", "update", "updates"]
     if any(kw in q for kw in coalition_kw):
         return "coalition"
+    if any(kw in q for kw in data_kw):
+        return "data_query"
+    if any(kw in q for kw in current_role_kw) and any(kw in q for kw in person_news_kw):
+        return "web_search"
+    if any(kw in q for kw in current_role_kw) and any(kw in q for kw in recency_kw) and "about" in q:
+        return "web_search"
+    if any(kw in q for kw in current_role_kw):
+        return "web_search"
+    if any(kw in q for kw in rss_kw):
+        return "rss_news"
     if any(kw in q for kw in web_kw):
+        if "who is" in q:
+            return "web_search"
+        if any(token in q for token in ["latest", "recent", "today", "news"]):
+            return "rss_news"
         return "web_search"
     return "data_query"
 
@@ -200,6 +254,12 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     if route == "coalition":
         tool_result = coalition_calculator.invoke(question)
         tool_name = "coalition_calculator"
+    elif route == "rss_news":
+        tool_result = israel_politics_rss.invoke(question)
+        tool_name = "israel_politics_rss"
+        if str(tool_result).startswith(("STATUS: NO_RESULTS", "STATUS: ERROR")):
+            tool_result = web_search.invoke(question)
+            tool_name = "web_search"
     elif route == "web_search":
         tool_result = web_search.invoke(question)
         tool_name = "web_search"
@@ -208,7 +268,11 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
         tool_name = "data_query"
 
     # synthesize final answer
-    synthesis_prompt = WEB_SYNTHESIS_PROMPT if tool_name == "web_search" else SYSTEM_PROMPT
+    synthesis_prompt = SYSTEM_PROMPT
+    if tool_name == "web_search":
+        synthesis_prompt = WEB_SYNTHESIS_PROMPT
+    elif tool_name == "israel_politics_rss":
+        synthesis_prompt = RSS_SYNTHESIS_PROMPT
     resp = llm.invoke([
         SystemMessage(content=synthesis_prompt),
         HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
@@ -229,8 +293,79 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
 # ═══════════════════════════════════════════════════════
 def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
+    route_hint = _classify_question(question)
     data_query_tool = make_data_query_tool(llm)
-    tools = [data_query_tool, coalition_calculator, web_search]
+    tools = [data_query_tool, coalition_calculator, israel_politics_rss, web_search]
+
+    if route_hint in {"data_query", "coalition"}:
+        if route_hint == "coalition":
+            tool_result = coalition_calculator.invoke(question)
+            tool_name = "coalition_calculator"
+        else:
+            tool_result = data_query_tool.invoke(question)
+            tool_name = "data_query"
+
+        resp = llm.invoke([
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
+                         "Provide a clear, well-formatted answer based on the tool output."),
+        ])
+        return {
+            "answer": resp.content,
+            "config": "dynamic_routing",
+            "tools_used": [tool_name],
+            "trace": [
+                f"Dynamic guardrail routed obvious question → {tool_name}",
+                f"Tool returned {len(str(tool_result))} chars",
+                "LLM synthesized final answer",
+            ],
+            "tool_output": tool_result,
+        }
+
+    if route_hint == "rss_news":
+        tool_result = israel_politics_rss.invoke(question)
+        tool_name = "israel_politics_rss"
+        if str(tool_result).startswith(("STATUS: NO_RESULTS", "STATUS: ERROR")):
+            tool_result = web_search.invoke(question)
+            tool_name = "web_search"
+
+        resp = llm.invoke([
+            SystemMessage(content=RSS_SYNTHESIS_PROMPT if tool_name == "israel_politics_rss" else WEB_SYNTHESIS_PROMPT),
+            HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
+                         "Provide a clear, well-formatted answer based on the tool output."),
+        ])
+        return {
+            "answer": resp.content,
+            "config": "dynamic_routing",
+            "tools_used": [tool_name],
+            "trace": [
+                f"Dynamic guardrail routed fresh-news question → {tool_name}",
+                f"Tool returned {len(str(tool_result))} chars",
+                "LLM synthesized final answer",
+            ],
+            "tool_output": tool_result,
+        }
+
+    if route_hint == "web_search":
+        tool_result = web_search.invoke(question)
+        tool_name = "web_search"
+
+        resp = llm.invoke([
+            SystemMessage(content=WEB_SYNTHESIS_PROMPT),
+            HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
+                         "Provide a clear, well-formatted answer based on the tool output."),
+        ])
+        return {
+            "answer": resp.content,
+            "config": "dynamic_routing",
+            "tools_used": [tool_name],
+            "trace": [
+                f"Dynamic guardrail routed web question → {tool_name}",
+                f"Tool returned {len(str(tool_result))} chars",
+                "LLM synthesized final answer",
+            ],
+            "tool_output": tool_result,
+        }
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 

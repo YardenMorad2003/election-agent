@@ -25,6 +25,7 @@ This project explores how different levels of tool access and routing logic affe
 
 - **Data Query** — Translates natural language questions into SQL and executes them against the election database. Handles factual lookups, aggregations, correlations, and comparisons.
 - **Coalition Calculator** — Brute-force search over party combinations to find coalitions reaching 61+ seats. Supports filters for must-include parties, max coalition size, and bloc constraints.
+- **Israeli Politics RSS** — Pulls fresh RSS headlines about Israeli politics so the agent can ground answers in recent developments.
 - **Web Search** — Searches public web endpoints for current events and background facts that are outside the local election database.
 
 ## Project Structure
@@ -39,6 +40,7 @@ election-agent/
 └── tools/
     ├── data_query.py # NL → SQL tool
     ├── coalition.py  # Coalition calculator tool
+    ├── israel_politics_rss.py # Recent Israeli politics RSS headlines
     └── web_search.py # Public web search tool
 ```
 
@@ -90,3 +92,4 @@ The UI provides:
 - "What is the correlation between academic degree % and left-bloc voting?"
 - "Which locality had the highest turnout in K25?"
 - "Who is the current Prime Minister of Israel?"
+- "What are the latest Israeli political developments from RSS feeds?"

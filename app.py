@@ -69,6 +69,7 @@ with st.sidebar:
         "Compare Likud seats in K24 vs K25",
         "Which locality had the highest turnout in K25?",
         "Who is the current Prime Minister of Israel?",
+        "What are the latest Israeli political developments from RSS feeds?",
         "Give me background on the Joint List party from the web",
     ]
     for ex in examples:
