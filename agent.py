@@ -7,6 +7,7 @@ Config 3: Agent + Fixed Routing (keyword rules → tool)
 Config 4: Agent + Dynamic Routing (LLM picks tools via ReAct)
 """
 import os, json, sqlite3, re
+import numpy as np
 from typing import Literal
 from dotenv import load_dotenv
 load_dotenv()
@@ -18,34 +19,47 @@ try:
         os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 except Exception:
     pass
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
+from embeddings import LocalEmbeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.prebuilt import create_react_agent
 
 from tools.data_query import make_data_query_tool, SCHEMA
 from tools.coalition import coalition_calculator
 from tools.web_search import web_search
+from tools.chart import make_chart_tool
+from classifiers import classify_question_zeroshot
 
 # ── Shared LLM ──
 def get_llm(model: str = "gpt-4o-mini", temperature: float = 0):
     return ChatOpenAI(model=model, temperature=temperature)
 
 
-SYSTEM_PROMPT = """You are an expert analyst of Israeli Knesset elections (1996–2022).
-You have access to a structured database covering 12 elections, 1,384 localities,
-party-level results, and socioeconomic data for 201 municipalities.
+SYSTEM_PROMPT = """You are an expert analyst of elections in the United States and Israel.
 
-When answering questions:
-- Be precise with numbers — use the tools to look up exact figures.
-- Cite which Knesset/year you're referencing.
-- For coalition questions, use the coalition calculator.
-- For data lookups about the election database, use the data query tool.
+U.S. DATA: You have access to U.S. federal election results (President, House, Senate)
+from 2000-2024. Presidential data is available at the county level (2000-2024) and
+precinct level (2016, 2020, 2024). House and Senate data is at precinct level (2016-2020).
+Each record includes NCHS urban-rural classification (Urban/Suburban/Rural).
+
+ISRAELI DATA: You have access to Israeli Knesset election data (K14-K25, 1996-2022)
+covering 1,384 localities, party-level results, and socioeconomic data for 201 municipalities.
+
+When answering:
+- Use the data query tool for factual/numerical questions that need precise SQL lookups.
+- Use the context search tool for background info, definitions, dataset coverage, or to get
+  context before writing a complex query.
+- Use the create chart tool when the user asks for a graph, plot, chart, visualization, or trend line.
+- Use the coalition calculator for Israeli coalition questions.
 - For current events, external background, or facts outside the database, use web search.
 - The database only covers election data through 2022. Do not use the data query tool for current office holders, biographies, general background, or news.
+- Be precise with numbers — always look them up, don't guess.
+- Cite the year and geography you're referencing.
+- For U.S. questions, leverage the urban_rural classification to provide urbanization analysis.
 - If a tool has already returned useful information, trust that tool output instead of falling back to training knowledge.
 - Never say you cannot browse the web or mention a knowledge cutoff after using a tool.
 - Do not call the same tool repeatedly with the exact same query unless the previous call returned an error or no results.
-- Give concise answers.
+- Show your reasoning step by step.
 """
 
 
@@ -66,7 +80,8 @@ Rules:
 def run_single_pass(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
     resp = llm.invoke([
-        SystemMessage(content="You are an expert on Israeli Knesset elections (1996-2022). "
+        SystemMessage(content="You are an expert on U.S. federal elections (2000-2024) and "
+                      "Israeli Knesset elections (1996-2022). "
                       "Answer the question using only your training knowledge. "
                       "If you're not sure about exact numbers, say so."),
         HumanMessage(content=question),
@@ -130,8 +145,8 @@ def _build_rag_chunks():
     return chunks
 
 
-def _simple_retrieve(question: str, top_k: int = 15) -> list[str]:
-    """Keyword-based retrieval (no embeddings needed for demo — fast and deterministic)."""
+def _keyword_retrieve(question: str, top_k: int = 15) -> list[str]:
+    """Keyword-based retrieval fallback (no embeddings needed — fast and deterministic)."""
     chunks = _build_rag_chunks()
     q_lower = question.lower()
 
@@ -152,13 +167,149 @@ def _simple_retrieve(question: str, top_k: int = 15) -> list[str]:
     return [c for _, c in scored[:top_k]]
 
 
+def _vector_retrieve(question: str, top_k: int = 15) -> list[str]:
+    """Retrieve relevant chunks using ChromaDB vector similarity."""
+    try:
+        from langchain_community.vectorstores import Chroma
+        chroma_dir = os.path.join(os.path.dirname(__file__), "chroma_db")
+        if not os.path.exists(chroma_dir):
+            raise FileNotFoundError("ChromaDB not built yet")
+        embedding_fn = LocalEmbeddings()
+        vectorstore = Chroma(
+            collection_name="election_data",
+            embedding_function=embedding_fn,
+            persist_directory=chroma_dir,
+        )
+        results = vectorstore.similarity_search(question, k=top_k)
+        return [doc.page_content for doc in results]
+    except Exception:
+        # Fall back to keyword retrieval if ChromaDB isn't available
+        return _keyword_retrieve(question, top_k)
+
+
+# ── Cross-encoder reranker ──
+_reranker = None
+
+def _get_reranker():
+    """Lazy-load the cross-encoder reranker model."""
+    global _reranker
+    if _reranker is None:
+        from sentence_transformers import CrossEncoder
+        _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    return _reranker
+
+
+def _rerank(question: str, chunks: list[str], top_k: int = 10) -> list[str]:
+    """Rerank retrieved chunks using a cross-encoder model."""
+    if not chunks:
+        return chunks
+    try:
+        reranker = _get_reranker()
+        pairs = [[question, chunk] for chunk in chunks]
+        scores = reranker.predict(pairs)
+        ranked = sorted(zip(scores, chunks), key=lambda x: -x[0])
+        return [chunk for _, chunk in ranked[:top_k]]
+    except Exception:
+        return chunks[:top_k]
+
+
+def _vector_retrieve_and_rerank(question: str, retrieve_k: int = 25, final_k: int = 10) -> list[str]:
+    """Retrieve from ChromaDB then rerank with cross-encoder."""
+    raw_chunks = _vector_retrieve(question, top_k=retrieve_k)
+    return _rerank(question, raw_chunks, top_k=final_k)
+
+
+# ── Context search tool (for Config 4 dynamic agent) ──
+from langchain_core.tools import tool
+
+@tool
+def context_search(question: str) -> str:
+    """Search the election knowledge base for background context, definitions, summaries,
+    and historical trends. Use this for conceptual questions about election data, NCHS
+    urban-rural classifications, dataset coverage, or when you need context before writing
+    a SQL query. Input is a natural language question."""
+    chunks = _vector_retrieve_and_rerank(question, retrieve_k=25, final_k=10)
+    if not chunks:
+        return "No relevant context found."
+    return "\n\n".join(f"[{i+1}] {c}" for i, c in enumerate(chunks))
+
+
+# ── Embedding-based question classifier (for Config 3) ──
+_routing_embeddings = None
+
+def _get_routing_embeddings():
+    """Build and cache reference embeddings for each tool category."""
+    global _routing_embeddings
+    if _routing_embeddings is not None:
+        return _routing_embeddings
+
+    embedding_fn = LocalEmbeddings()
+
+    # Reference sentences that characterize each tool's domain
+    coalition_refs = [
+        "Can the right bloc form a coalition government?",
+        "What are all possible 3-party coalitions reaching 61 seats?",
+        "Can Likud form a government without Shas?",
+        "Which party combinations can form a majority?",
+        "Is a coalition possible without Arab parties?",
+    ]
+    data_query_refs = [
+        "How many seats did Likud win in Knesset 25?",
+        "What was Biden's vote share in suburban counties?",
+        "Which state had the highest Republican turnout?",
+        "Compare urban vs rural voting trends",
+        "What was the turnout in the 2020 election?",
+        "How many votes did Trump get in Georgia?",
+    ]
+    context_refs = [
+        "What are the NCHS urban-rural classification codes?",
+        "What data is available in this system?",
+        "Explain the urban-rural divide in U.S. elections",
+        "What years of election data do you have?",
+        "What is the Israeli Knesset electoral system?",
+    ]
+
+    coal_embs = embedding_fn.embed_documents(coalition_refs)
+    data_embs = embedding_fn.embed_documents(data_query_refs)
+    ctx_embs = embedding_fn.embed_documents(context_refs)
+
+    # Average each group into a centroid
+    _routing_embeddings = {
+        "coalition": np.mean(coal_embs, axis=0),
+        "data_query": np.mean(data_embs, axis=0),
+        "context_search": np.mean(ctx_embs, axis=0),
+    }
+    return _routing_embeddings
+
+
+def _classify_question_embedding(question: str) -> str:
+    """Classify a question to a tool using cosine similarity against reference embeddings."""
+    try:
+        embedding_fn = LocalEmbeddings()
+        q_emb = np.array(embedding_fn.embed_query(question))
+        centroids = _get_routing_embeddings()
+
+        best_tool = "data_query"
+        best_score = -1
+        for tool_name, centroid in centroids.items():
+            centroid = np.array(centroid)
+            score = np.dot(q_emb, centroid) / (np.linalg.norm(q_emb) * np.linalg.norm(centroid))
+            if score > best_score:
+                best_score = score
+                best_tool = tool_name
+        return best_tool
+    except Exception:
+        # Fall back to keyword classification if embeddings fail
+        return _classify_question(question)
+
+
 def run_rag_only(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
-    retrieved = _simple_retrieve(question)
+    retrieved = _vector_retrieve_and_rerank(question, retrieve_k=25, final_k=10)
     context = "\n".join(retrieved)
 
     resp = llm.invoke([
-        SystemMessage(content="You are an expert on Israeli Knesset elections. "
+        SystemMessage(content="You are an expert on U.S. federal elections and Israeli Knesset elections. "
                       "Answer the question using ONLY the retrieved context below. "
                       "If the context doesn't contain enough info, say so.\n\n"
                       f"RETRIEVED CONTEXT:\n{context}"),
@@ -167,8 +318,12 @@ def run_rag_only(question: str, llm: ChatOpenAI | None = None) -> dict:
     return {
         "answer": resp.content,
         "config": "rag_only",
-        "tools_used": ["rag_retrieval"],
-        "trace": [f"Retrieved {len(retrieved)} chunks", "LLM synthesized answer from context"],
+        "tools_used": ["rag_retrieval", "cross_encoder_reranker"],
+        "trace": [
+            "Retrieved 25 chunks from ChromaDB",
+            "Reranked to top 10 with cross-encoder (ms-marco-MiniLM-L-6-v2)",
+            "LLM synthesized answer from reranked context",
+        ],
         "retrieved_chunks": retrieved,
     }
 
@@ -192,9 +347,19 @@ def _classify_question(question: str) -> str:
     return "data_query"
 
 
-def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
+def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
+                      routing_method: str = "zeroshot") -> dict:
+    """Config 3: Fixed routing with configurable classification method.
+
+    routing_method: "zeroshot" (BART-MNLI), "embedding" (cosine centroids), or "keyword"
+    """
     llm = llm or get_llm()
-    route = _classify_question(question)
+    if routing_method == "zeroshot":
+        route = classify_question_zeroshot(question)
+    elif routing_method == "embedding":
+        route = _classify_question_embedding(question)
+    else:
+        route = _classify_question(question)
     data_query_tool = make_data_query_tool(llm)
 
     if route == "coalition":
@@ -203,6 +368,9 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     elif route == "web_search":
         tool_result = web_search.invoke(question)
         tool_name = "web_search"
+    elif route == "context_search":
+        tool_result = context_search.invoke(question)
+        tool_name = "context_search"
     else:
         tool_result = data_query_tool.invoke(question)
         tool_name = "data_query"
@@ -218,7 +386,7 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
         "answer": resp.content,
         "config": "fixed_routing",
         "tools_used": [tool_name],
-        "trace": [f"Keyword routing → {tool_name}", f"Tool returned {len(str(tool_result))} chars",
+        "trace": [f"{routing_method} routing -> {tool_name}", f"Tool returned {len(str(tool_result))} chars",
                   "LLM synthesized final answer"],
         "tool_output": tool_result,
     }
@@ -230,16 +398,18 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
 def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
     data_query_tool = make_data_query_tool(llm)
-    tools = [data_query_tool, coalition_calculator, web_search]
+    chart_tool = make_chart_tool(llm)
+    tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search]
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
     result = agent.invoke({"messages": [HumanMessage(content=question)]})
 
-    # extract trace
+    # extract trace and chart paths
     messages = result["messages"]
     trace = []
     tools_used = []
+    chart_paths = []
     final_answer = ""
     for msg in messages:
         if hasattr(msg, "tool_calls") and msg.tool_calls:
@@ -248,6 +418,11 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
                 tools_used.append(tc["name"])
         if msg.type == "tool":
             trace.append(f"Tool '{msg.name}' returned {len(msg.content)} chars")
+            # Extract chart paths from tool output
+            if "CHART_PATH:" in msg.content:
+                for line in msg.content.split("\n"):
+                    if line.startswith("CHART_PATH:"):
+                        chart_paths.append(line.replace("CHART_PATH:", "").strip())
         if msg.type == "ai" and not getattr(msg, "tool_calls", None):
             final_answer = msg.content
 
@@ -256,6 +431,7 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
         "config": "dynamic_routing",
         "tools_used": list(dict.fromkeys(tools_used)),
         "trace": trace,
+        "chart_paths": chart_paths,
     }
 
 
@@ -273,6 +449,62 @@ def run_question(question: str, config: str = "dynamic_routing",
                  model: str = "gpt-4o-mini") -> dict:
     llm = get_llm(model=model)
     return CONFIGS[config](question, llm)
+
+
+def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
+    """Run the dynamic routing agent with full conversation history.
+
+    Args:
+        messages: list of dicts with 'role' ('user'/'assistant') and 'content'
+        model: OpenAI model name
+
+    Returns:
+        dict with 'answer', 'tools_used', 'trace'
+    """
+    llm = get_llm(model=model)
+    data_query_tool = make_data_query_tool(llm)
+    chart_tool = make_chart_tool(llm)
+    tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search]
+
+    agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
+
+    # Convert chat history to LangChain messages
+    lc_messages = []
+    for msg in messages:
+        if msg["role"] == "user":
+            lc_messages.append(HumanMessage(content=msg["content"]))
+        elif msg["role"] == "assistant":
+            lc_messages.append(AIMessage(content=msg["content"]))
+
+    result = agent.invoke({"messages": lc_messages})
+
+    # Extract trace and chart paths
+    out_messages = result["messages"]
+    trace = []
+    tools_used = []
+    chart_paths = []
+    final_answer = ""
+    for msg in out_messages:
+        if hasattr(msg, "tool_calls") and msg.tool_calls:
+            for tc in msg.tool_calls:
+                trace.append(f"Called: {tc['name']}({json.dumps(tc['args'], ensure_ascii=False)[:200]})")
+                tools_used.append(tc["name"])
+        if msg.type == "tool":
+            trace.append(f"Tool '{msg.name}' returned {len(msg.content)} chars")
+            # Extract chart paths from tool output
+            if "CHART_PATH:" in msg.content:
+                for line in msg.content.split("\n"):
+                    if line.startswith("CHART_PATH:"):
+                        chart_paths.append(line.replace("CHART_PATH:", "").strip())
+        if msg.type == "ai" and not getattr(msg, "tool_calls", None):
+            final_answer = msg.content
+
+    return {
+        "answer": final_answer,
+        "tools_used": tools_used,
+        "trace": trace,
+        "chart_paths": chart_paths,
+    }
 
 
 def run_all_configs(question: str, model: str = "gpt-4o-mini") -> dict:

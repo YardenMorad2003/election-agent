@@ -3,5 +3,9 @@ venv/
 __pycache__/
 *.pyc
 .chromadb/
+chroma_db/
 .streamlit/secrets.toml
 .DS_Store
+elections.db
+data/
+charts/

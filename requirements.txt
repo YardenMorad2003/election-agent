@@ -7,3 +7,7 @@ openai
 streamlit
 pandas
 python-dotenv
+sentence-transformers
+numpy
+transformers
+torch
