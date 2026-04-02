@@ -1,0 +1,1602 @@
+[
+  {
+    "id": 1,
+    "question": "Who won the presidential election in Georgia in 2020?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.0
+  },
+  {
+    "id": 1,
+    "question": "Who won the presidential election in Georgia in 2020?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 13.0
+  },
+  {
+    "id": 1,
+    "question": "Who won the presidential election in Georgia in 2020?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 4.8
+  },
+  {
+    "id": 2,
+    "question": "How many seats did Likud win in Knesset 25?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 0.9
+  },
+  {
+    "id": 2,
+    "question": "How many seats did Likud win in Knesset 25?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 2,
+    "question": "How many seats did Likud win in Knesset 25?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.3
+  },
+  {
+    "id": 3,
+    "question": "Which party won the most votes in Texas in 2024?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 3,
+    "question": "Which party won the most votes in Texas in 2024?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 1,
+    "time_seconds": 4.2
+  },
+  {
+    "id": 3,
+    "question": "Which party won the most votes in Texas in 2024?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 4.6
+  },
+  {
+    "id": 4,
+    "question": "What was the turnout percentage in Knesset 22?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 2,
+    "time_seconds": 1.0
+  },
+  {
+    "id": 4,
+    "question": "What was the turnout percentage in Knesset 22?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": -1,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 5,
+    "question": "How many total votes were cast in Pennsylvania in the 2020 p",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 1.0
+  },
+  {
+    "id": 5,
+    "question": "How many total votes were cast in Pennsylvania in the 2020 p",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 5.9
+  },
+  {
+    "id": 6,
+    "question": "Who won Arizona in the 2020 presidential election?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 2.8
+  },
+  {
+    "id": 7,
+    "question": "How many seats did Shas win in K25?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 0.9
+  },
+  {
+    "id": 7,
+    "question": "How many seats did Shas win in K25?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.0
+  },
+  {
+    "id": 8,
+    "question": "What was the Republican two-party vote share in Florida in 2",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 1.1
+  },
+  {
+    "id": 8,
+    "question": "What was the Republican two-party vote share in Florida in 2",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 1,
+    "time_seconds": 1.9
+  },
+  {
+    "id": 8,
+    "question": "What was the Republican two-party vote share in Florida in 2",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 1,
+    "time_seconds": 5.0
+  },
+  {
+    "id": 9,
+    "question": "Which Israeli party had the highest vote percentage in Kness",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 9,
+    "question": "Which Israeli party had the highest vote percentage in Kness",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.9
+  },
+  {
+    "id": 9,
+    "question": "Which Israeli party had the highest vote percentage in Kness",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 3.8
+  },
+  {
+    "id": 10,
+    "question": "How many votes did Donald Trump receive in Maricopa County, ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 10,
+    "question": "How many votes did Donald Trump receive in Maricopa County, ",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 10,
+    "question": "How many votes did Donald Trump receive in Maricopa County, ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 5.3
+  },
+  {
+    "id": 11,
+    "question": "What was the right-bloc vote share in Knesset 14?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 4,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 11,
+    "question": "What was the right-bloc vote share in Knesset 14?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.7
+  },
+  {
+    "id": 11,
+    "question": "What was the right-bloc vote share in Knesset 14?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 2.9
+  },
+  {
+    "id": 12,
+    "question": "Which state had the highest Democratic vote total in 2020?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 12,
+    "question": "Which state had the highest Democratic vote total in 2020?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 12,
+    "question": "Which state had the highest Democratic vote total in 2020?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.6
+  },
+  {
+    "id": 13,
+    "question": "How many Knesset elections are in the database?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 13,
+    "question": "How many Knesset elections are in the database?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.7
+  },
+  {
+    "id": 13,
+    "question": "How many Knesset elections are in the database?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 4.2
+  },
+  {
+    "id": 14,
+    "question": "What was Biden's total vote count across all counties in 202",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.1
+  },
+  {
+    "id": 14,
+    "question": "What was Biden's total vote count across all counties in 202",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 15,
+    "question": "Who won the presidential election in Wisconsin in 2016?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 15,
+    "question": "Who won the presidential election in Wisconsin in 2016?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 3.4
+  },
+  {
+    "id": 16,
+    "question": "What was the average turnout across all Israeli elections?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 1.7
+  },
+  {
+    "id": 16,
+    "question": "What was the average turnout across all Israeli elections?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 16,
+    "question": "What was the average turnout across all Israeli elections?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 3.7
+  },
+  {
+    "id": 17,
+    "question": "How many counties are classified as Rural in the 2020 presid",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 3,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 17,
+    "question": "How many counties are classified as Rural in the 2020 presid",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 0,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 17,
+    "question": "How many counties are classified as Rural in the 2020 presid",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.0
+  },
+  {
+    "id": 18,
+    "question": "Which party won Michigan in the 2024 presidential election?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 18,
+    "question": "Which party won Michigan in the 2024 presidential election?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 18,
+    "question": "Which party won Michigan in the 2024 presidential election?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 4.9
+  },
+  {
+    "id": 19,
+    "question": "How many seats did the Joint List win in Knesset 23?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 0.9
+  },
+  {
+    "id": 19,
+    "question": "How many seats did the Joint List win in Knesset 23?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 19,
+    "question": "How many seats did the Joint List win in Knesset 23?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 2.8
+  },
+  {
+    "id": 20,
+    "question": "What was Trump's vote share in rural counties nationwide in ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 2.1
+  },
+  {
+    "id": 20,
+    "question": "What was Trump's vote share in rural counties nationwide in ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 20,
+    "question": "What was Trump's vote share in rural counties nationwide in ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 4.1
+  },
+  {
+    "id": 21,
+    "question": "Did the urban-rural gap in presidential voting grow between ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 4.4
+  },
+  {
+    "id": 21,
+    "question": "Did the urban-rural gap in presidential voting grow between ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 21,
+    "question": "Did the urban-rural gap in presidential voting grow between ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 26.1
+  },
+  {
+    "id": 22,
+    "question": "Which 5 states had the biggest swing toward Democrats betwee",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 2.1
+  },
+  {
+    "id": 22,
+    "question": "Which 5 states had the biggest swing toward Democrats betwee",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 2.4
+  },
+  {
+    "id": 23,
+    "question": "How did right-bloc vote share change from K14 to K25?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 3.4
+  },
+  {
+    "id": 23,
+    "question": "How did right-bloc vote share change from K14 to K25?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 3.9
+  },
+  {
+    "id": 23,
+    "question": "How did right-bloc vote share change from K14 to K25?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 6.2
+  },
+  {
+    "id": 24,
+    "question": "Compare Biden's performance in Urban vs Suburban vs Rural co",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 5.3
+  },
+  {
+    "id": 24,
+    "question": "Compare Biden's performance in Urban vs Suburban vs Rural co",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.2
+  },
+  {
+    "id": 24,
+    "question": "Compare Biden's performance in Urban vs Suburban vs Rural co",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 64.3
+  },
+  {
+    "id": 25,
+    "question": "Which election year had the smallest margin of victory in Oh",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 25,
+    "question": "Which election year had the smallest margin of victory in Oh",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 2.1
+  },
+  {
+    "id": 25,
+    "question": "Which election year had the smallest margin of victory in Oh",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 10.0
+  },
+  {
+    "id": 26,
+    "question": "How has the Haredi bloc vote share trended from K14 to K25?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 5.4
+  },
+  {
+    "id": 26,
+    "question": "How has the Haredi bloc vote share trended from K14 to K25?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 7.0
+  },
+  {
+    "id": 26,
+    "question": "How has the Haredi bloc vote share trended from K14 to K25?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 14.6
+  },
+  {
+    "id": 27,
+    "question": "Compare Republican vote share in Large central metro vs Nonc",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 5.3
+  },
+  {
+    "id": 27,
+    "question": "Compare Republican vote share in Large central metro vs Nonc",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.3
+  },
+  {
+    "id": 27,
+    "question": "Compare Republican vote share in Large central metro vs Nonc",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 11.9
+  },
+  {
+    "id": 28,
+    "question": "Which locality had the highest turnout in K25?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 28,
+    "question": "Which locality had the highest turnout in K25?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 0,
+    "time_seconds": 1.0
+  },
+  {
+    "id": 28,
+    "question": "Which locality had the highest turnout in K25?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.6
+  },
+  {
+    "id": 29,
+    "question": "What is the correlation between academic degree % and left-b",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 2.5
+  },
+  {
+    "id": 29,
+    "question": "What is the correlation between academic degree % and left-b",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 29,
+    "question": "What is the correlation between academic degree % and left-b",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 3,
+    "time_seconds": 24.5
+  },
+  {
+    "id": 30,
+    "question": "How many states did Trump win in 2016 vs 2020?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.2
+  },
+  {
+    "id": 30,
+    "question": "How many states did Trump win in 2016 vs 2020?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 30,
+    "question": "How many states did Trump win in 2016 vs 2020?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 13.2
+  },
+  {
+    "id": 31,
+    "question": "Can the right bloc form a government in K25 without Shas?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 2.5
+  },
+  {
+    "id": 31,
+    "question": "Can the right bloc form a government in K25 without Shas?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 2.7
+  },
+  {
+    "id": 31,
+    "question": "Can the right bloc form a government in K25 without Shas?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 3.8
+  },
+  {
+    "id": 32,
+    "question": "What are all possible 3-party coalitions reaching 61 seats i",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 3.1
+  },
+  {
+    "id": 32,
+    "question": "What are all possible 3-party coalitions reaching 61 seats i",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 5.1
+  },
+  {
+    "id": 32,
+    "question": "What are all possible 3-party coalitions reaching 61 seats i",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 12.9
+  },
+  {
+    "id": 33,
+    "question": "Can Yesh Atid form a coalition without Arab parties in K24?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 3.7
+  },
+  {
+    "id": 33,
+    "question": "Can Yesh Atid form a coalition without Arab parties in K24?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.5
+  },
+  {
+    "id": 33,
+    "question": "Can Yesh Atid form a coalition without Arab parties in K24?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 7.1
+  },
+  {
+    "id": 34,
+    "question": "What is the smallest coalition that includes both Likud and ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 3.5
+  },
+  {
+    "id": 34,
+    "question": "What is the smallest coalition that includes both Likud and ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.8
+  },
+  {
+    "id": 34,
+    "question": "What is the smallest coalition that includes both Likud and ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 5.4
+  },
+  {
+    "id": 35,
+    "question": "How did the suburban vote shift between 2016 and 2020 for De",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 3.9
+  },
+  {
+    "id": 35,
+    "question": "How did the suburban vote shift between 2016 and 2020 for De",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 3.5
+  },
+  {
+    "id": 35,
+    "question": "How did the suburban vote shift between 2016 and 2020 for De",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 16.6
+  },
+  {
+    "id": 36,
+    "question": "Which county in Pennsylvania had the highest Democratic vote",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 36,
+    "question": "Which county in Pennsylvania had the highest Democratic vote",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 2.1
+  },
+  {
+    "id": 36,
+    "question": "Which county in Pennsylvania had the highest Democratic vote",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 5.3
+  },
+  {
+    "id": 37,
+    "question": "What was the total number of eligible voters in Knesset 25?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.0
+  },
+  {
+    "id": 37,
+    "question": "What was the total number of eligible voters in Knesset 25?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 37,
+    "question": "What was the total number of eligible voters in Knesset 25?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 2.9
+  },
+  {
+    "id": 38,
+    "question": "How many third-party votes were cast in the 2016 presidentia",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 4,
+    "time_seconds": 1.9
+  },
+  {
+    "id": 38,
+    "question": "How many third-party votes were cast in the 2016 presidentia",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 1,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 38,
+    "question": "How many third-party votes were cast in the 2016 presidentia",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 4.0
+  },
+  {
+    "id": 39,
+    "question": "Which Knesset election had the highest center-left-arab bloc",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 39,
+    "question": "Which Knesset election had the highest center-left-arab bloc",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 39,
+    "question": "Which Knesset election had the highest center-left-arab bloc",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.6
+  },
+  {
+    "id": 40,
+    "question": "What was Obama's two-party vote share in 2008?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.1
+  },
+  {
+    "id": 40,
+    "question": "What was Obama's two-party vote share in 2008?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 7.1
+  },
+  {
+    "id": 40,
+    "question": "What was Obama's two-party vote share in 2008?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.4
+  },
+  {
+    "id": 41,
+    "question": "List the top 5 counties by total votes cast in 2020",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 2.7
+  },
+  {
+    "id": 41,
+    "question": "List the top 5 counties by total votes cast in 2020",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 41,
+    "question": "List the top 5 counties by total votes cast in 2020",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 6.2
+  },
+  {
+    "id": 42,
+    "question": "How many seats did Religious Zionism win in K25?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 0.8
+  },
+  {
+    "id": 42,
+    "question": "How many seats did Religious Zionism win in K25?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 43,
+    "question": "What percentage of the vote did Libertarian candidates get i",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.2
+  },
+  {
+    "id": 43,
+    "question": "What percentage of the vote did Libertarian candidates get i",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 44,
+    "question": "Which Israeli election had the lowest turnout?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 44,
+    "question": "Which Israeli election had the lowest turnout?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 44,
+    "question": "Which Israeli election had the lowest turnout?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 3.3
+  },
+  {
+    "id": 45,
+    "question": "How did Trump's vote share in Michigan change from 2016 to 2",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 5.5
+  },
+  {
+    "id": 45,
+    "question": "How did Trump's vote share in Michigan change from 2016 to 2",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 3.2
+  },
+  {
+    "id": 45,
+    "question": "How did Trump's vote share in Michigan change from 2016 to 2",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 7.8
+  },
+  {
+    "id": 46,
+    "question": "Compare the number of Urban vs Rural counties in the databas",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.9
+  },
+  {
+    "id": 46,
+    "question": "Compare the number of Urban vs Rural counties in the databas",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 46,
+    "question": "Compare the number of Urban vs Rural counties in the databas",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 5.5
+  },
+  {
+    "id": 47,
+    "question": "What was the Arab party vote share in Knesset 21?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.9
+  },
+  {
+    "id": 47,
+    "question": "What was the Arab party vote share in Knesset 21?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.9
+  },
+  {
+    "id": 47,
+    "question": "What was the Arab party vote share in Knesset 21?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 1,
+    "time_seconds": 6.8
+  },
+  {
+    "id": 48,
+    "question": "Which state had the closest margin in the 2020 presidential ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 48,
+    "question": "Which state had the closest margin in the 2020 presidential ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 2.2
+  },
+  {
+    "id": 48,
+    "question": "Which state had the closest margin in the 2020 presidential ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 7.5
+  },
+  {
+    "id": 49,
+    "question": "How many right-bloc coalitions are possible in K24?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 4.1
+  },
+  {
+    "id": 49,
+    "question": "How many right-bloc coalitions are possible in K24?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.2
+  },
+  {
+    "id": 49,
+    "question": "How many right-bloc coalitions are possible in K24?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 50,
+    "question": "What was the population of Tel Aviv according to the socioec",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 2.1
+  },
+  {
+    "id": 50,
+    "question": "What was the population of Tel Aviv according to the socioec",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 50,
+    "question": "What was the population of Tel Aviv according to the socioec",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 10.3
+  },
+  {
+    "id": 51,
+    "question": "How many votes did Biden receive in urban counties in 2020?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 2,
+    "time_seconds": 2.2
+  },
+  {
+    "id": 51,
+    "question": "How many votes did Biden receive in urban counties in 2020?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 2,
+    "time_seconds": 2.2
+  },
+  {
+    "id": 51,
+    "question": "How many votes did Biden receive in urban counties in 2020?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 10.0
+  },
+  {
+    "id": 52,
+    "question": "Which 3 states had the most counties that flipped from R to ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.0
+  },
+  {
+    "id": 52,
+    "question": "Which 3 states had the most counties that flipped from R to ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 2.4
+  },
+  {
+    "id": 52,
+    "question": "Which 3 states had the most counties that flipped from R to ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 14.4
+  },
+  {
+    "id": 53,
+    "question": "What was Meretz's best election result by seats?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 53,
+    "question": "What was Meretz's best election result by seats?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 53,
+    "question": "What was Meretz's best election result by seats?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 9.9
+  },
+  {
+    "id": 54,
+    "question": "Compare total votes cast in the U.S. presidential election i",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 3.7
+  },
+  {
+    "id": 54,
+    "question": "Compare total votes cast in the U.S. presidential election i",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 54,
+    "question": "Compare total votes cast in the U.S. presidential election i",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 5.4
+  },
+  {
+    "id": 55,
+    "question": "How did Suburban counties vote in the 2024 presidential elec",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 55,
+    "question": "How did Suburban counties vote in the 2024 presidential elec",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 3.8
+  },
+  {
+    "id": 55,
+    "question": "How did Suburban counties vote in the 2024 presidential elec",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 9.5
+  },
+  {
+    "id": 56,
+    "question": "What are the NCHS urban-rural classification codes?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.7
+  },
+  {
+    "id": 56,
+    "question": "What are the NCHS urban-rural classification codes?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 2.8
+  },
+  {
+    "id": 56,
+    "question": "What are the NCHS urban-rural classification codes?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 6.8
+  },
+  {
+    "id": 57,
+    "question": "Which Knesset had the most parties winning seats?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 2.3
+  },
+  {
+    "id": 57,
+    "question": "Which Knesset had the most parties winning seats?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.2
+  },
+  {
+    "id": 57,
+    "question": "Which Knesset had the most parties winning seats?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.3
+  },
+  {
+    "id": 58,
+    "question": "How did the Republican vote share in Large central metro cou",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 2.6
+  },
+  {
+    "id": 58,
+    "question": "How did the Republican vote share in Large central metro cou",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 58,
+    "question": "How did the Republican vote share in Large central metro cou",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 5.9
+  },
+  {
+    "id": 59,
+    "question": "What was the highest-income locality's voting pattern in K25",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 59,
+    "question": "What was the highest-income locality's voting pattern in K25",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 2,
+    "time_seconds": 1.5
+  },
+  {
+    "id": 59,
+    "question": "What was the highest-income locality's voting pattern in K25",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 10.2
+  },
+  {
+    "id": 60,
+    "question": "How did Obama's 2008 performance compare to Biden's 2020 in ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 9.5
+  },
+  {
+    "id": 60,
+    "question": "How did Obama's 2008 performance compare to Biden's 2020 in ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 7.9
+  },
+  {
+    "id": 60,
+    "question": "How did Obama's 2008 performance compare to Biden's 2020 in ",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 44.3
+  },
+  {
+    "id": 61,
+    "question": "Can a center-left coalition form a government in K22?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 4,
+    "time_seconds": 4.2
+  },
+  {
+    "id": 61,
+    "question": "Can a center-left coalition form a government in K22?",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 3.9
+  },
+  {
+    "id": 61,
+    "question": "Can a center-left coalition form a government in K22?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 9.9
+  },
+  {
+    "id": 62,
+    "question": "How many presidential election years are in the U.S. county ",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 2.5
+  },
+  {
+    "id": 62,
+    "question": "How many presidential election years are in the U.S. county ",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 62,
+    "question": "How many presidential election years are in the U.S. county ",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.8
+  },
+  {
+    "id": 63,
+    "question": "Which county had the highest total votes in the 2024 electio",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.3
+  },
+  {
+    "id": 63,
+    "question": "Which county had the highest total votes in the 2024 electio",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 1.9
+  },
+  {
+    "id": 63,
+    "question": "Which county had the highest total votes in the 2024 electio",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 1,
+    "time_seconds": 4.3
+  },
+  {
+    "id": 64,
+    "question": "What was Yisrael Beiteinu's seat count in K22?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.4
+  },
+  {
+    "id": 64,
+    "question": "What was Yisrael Beiteinu's seat count in K22?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 1.6
+  },
+  {
+    "id": 64,
+    "question": "What was Yisrael Beiteinu's seat count in K22?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.9
+  },
+  {
+    "id": 65,
+    "question": "How did the Micropolitan (code 5) counties vote in 2020 vs 2",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.5
+  },
+  {
+    "id": 65,
+    "question": "How did the Micropolitan (code 5) counties vote in 2020 vs 2",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.3
+  },
+  {
+    "id": 65,
+    "question": "How did the Micropolitan (code 5) counties vote in 2020 vs 2",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 11.6
+  },
+  {
+    "id": 66,
+    "question": "What is the right-haredi bloc percentage in K25?",
+    "config": "single_pass",
+    "soft_match": true,
+    "judge_score": 2,
+    "time_seconds": 2.7
+  },
+  {
+    "id": 66,
+    "question": "What is the right-haredi bloc percentage in K25?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 4.9
+  },
+  {
+    "id": 66,
+    "question": "What is the right-haredi bloc percentage in K25?",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 7.1
+  },
+  {
+    "id": 67,
+    "question": "Which 5 counties in Georgia had the biggest swing toward Dem",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 4.0
+  },
+  {
+    "id": 67,
+    "question": "Which 5 counties in Georgia had the biggest swing toward Dem",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 67,
+    "question": "Which 5 counties in Georgia had the biggest swing toward Dem",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 5,
+    "time_seconds": 15.2
+  },
+  {
+    "id": 68,
+    "question": "What datasets and election types are available in this syste",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 3.9
+  },
+  {
+    "id": 68,
+    "question": "What datasets and election types are available in this syste",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 1.7
+  },
+  {
+    "id": 68,
+    "question": "What datasets and election types are available in this syste",
+    "config": "dynamic_routing",
+    "soft_match": true,
+    "judge_score": 4,
+    "time_seconds": 7.6
+  },
+  {
+    "id": 69,
+    "question": "How many localities are in the Israeli database?",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 2.0
+  },
+  {
+    "id": 69,
+    "question": "How many localities are in the Israeli database?",
+    "config": "rag_only",
+    "soft_match": true,
+    "judge_score": 5,
+    "time_seconds": 3.4
+  },
+  {
+    "id": 69,
+    "question": "How many localities are in the Israeli database?",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 0,
+    "time_seconds": 3.3
+  },
+  {
+    "id": 70,
+    "question": "What was the Democratic two-party vote share in urban counti",
+    "config": "single_pass",
+    "soft_match": false,
+    "judge_score": 3,
+    "time_seconds": 2.8
+  },
+  {
+    "id": 70,
+    "question": "What was the Democratic two-party vote share in urban counti",
+    "config": "rag_only",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 1.8
+  },
+  {
+    "id": 70,
+    "question": "What was the Democratic two-party vote share in urban counti",
+    "config": "dynamic_routing",
+    "soft_match": false,
+    "judge_score": 2,
+    "time_seconds": 4.4
+  }
+]
