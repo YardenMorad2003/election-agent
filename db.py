@@ -45,7 +45,7 @@ def enforce_limit(sql: str, limit: int = 50) -> str:
     return sql
 
 
-def execute_query(sql: str) -> tuple[list[dict], list[str]]:
+def execute_query(sql: str, params: tuple = ()) -> tuple[list[dict], list[str]]:
     """Execute a read-only SQL query and return (rows_as_dicts, column_names).
 
     Raises ValueError on SQL errors or blocked queries.
@@ -59,11 +59,28 @@ def execute_query(sql: str) -> tuple[list[dict], list[str]]:
 
     try:
         cur = conn.cursor()
-        cur.execute(sql)
+        # Adapt placeholder style: SQLite uses ?, PostgreSQL uses %s
+        if DATABASE_URL and '?' in sql:
+            sql = sql.replace('?', '%s')
+        cur.execute(sql, params)
         cols = [desc[0] for desc in cur.description]
         rows = [dict(zip(cols, row)) for row in cur.fetchall()]
         return rows, cols
     except Exception as e:
         raise ValueError(f"SQL Error: {e}\nQuery: {sql}")
+    finally:
+        conn.close()
+
+
+def fetch_all(sql: str, params: tuple = ()) -> list[dict]:
+    """Execute a read-only query and return rows as dicts. No SQL validation (for internal use)."""
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        if DATABASE_URL and '?' in sql:
+            sql = sql.replace('?', '%s')
+        cur.execute(sql, params)
+        cols = [desc[0] for desc in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
     finally:
         conn.close()

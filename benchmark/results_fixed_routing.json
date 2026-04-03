@@ -1,0 +1,1349 @@
+{
+  "summary": {
+    "fixed_routing": {
+      "total": 70,
+      "soft_match": 21,
+      "tool_match": 68,
+      "errors": 0,
+      "avg_time": 456.9893457889557,
+      "avg_judge_score": 3.31
+    }
+  },
+  "results": [
+    {
+      "id": 1,
+      "question": "Who won the presidential election in Georgia in 2020?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "JOSEPH R BIDEN / DEMOCRAT",
+      "actual_answer": "In the 2020 presidential election in Georgia, Joseph R. Biden Jr. from the Democratic Party won with a total of 2,474,507 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winner's name and party affiliation along with the vote count.",
+      "time_seconds": 6.68,
+      "error": null
+    },
+    {
+      "id": 2,
+      "question": "How many seats did Likud win in Knesset 25?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "32",
+      "actual_answer": "It seems that there was an error when attempting to retrieve the number of seats won by Likud in Knesset 25. Unfortunately, I cannot provide the exact number of seats due to this issue with the data query tool.\n\nHowever, based on historical context, Likud has been a major political party in Israel, often securing a significant number of seats in the Knesset. For the most accurate and up-to-date information, I recommend checking official election results or reliable news sources that cover Israel",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer fails to provide the correct number of seats won by Likud and instead offers irrelevant information about historical context.",
+      "time_seconds": 9.31,
+      "error": null
+    },
+    {
+      "id": 3,
+      "question": "Which party won the most votes in Texas in 2024?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "REPUBLICAN",
+      "actual_answer": "In the 2024 presidential election in Texas, the party that won the most votes was classified as \"OTHER,\" receiving a total of 11,540,498 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect as it misidentifies the winning party and provides an irrelevant vote count.",
+      "time_seconds": 3.58,
+      "error": null
+    },
+    {
+      "id": 4,
+      "question": "What was the turnout percentage in Knesset 22?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "69.83",
+      "actual_answer": "The turnout percentage in Knesset 22, which took place in 2019, was 69.4%.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides a turnout percentage but is incorrect and does not match the expected value.",
+      "time_seconds": 2.75,
+      "error": null
+    },
+    {
+      "id": 5,
+      "question": "How many total votes were cast in Pennsylvania in the 2020 presidential election?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "6915283",
+      "actual_answer": "In the 2020 presidential election, a total of **6,915,283 votes** were cast in Pennsylvania.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing the exact number of votes cast in Pennsylvania.",
+      "time_seconds": 2.68,
+      "error": null
+    },
+    {
+      "id": 6,
+      "question": "Who won Arizona in the 2020 presidential election?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "JOSEPH R BIDEN / DEMOCRAT",
+      "actual_answer": "In the 2020 presidential election, Arizona was won by Joseph R. Biden Jr. of the Democratic Party, who received a total of 1,672,143 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winner and the party affiliation along with the vote count.",
+      "time_seconds": 5.96,
+      "error": null
+    },
+    {
+      "id": 7,
+      "question": "How many seats did Shas win in K25?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "11",
+      "actual_answer": "In the Knesset elections for K25, the Shas party won a total of **11 seats**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, directly stating the number of seats won by Shas.",
+      "time_seconds": 3.58,
+      "error": null
+    },
+    {
+      "id": 8,
+      "question": "What was the Republican two-party vote share in Florida in 2016?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "49.1",
+      "actual_answer": "In the 2016 presidential election, the Republican two-party vote share in Florida was approximately **50.62%**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides a specific percentage but is incorrect and does not match the expected value.",
+      "time_seconds": 3.77,
+      "error": null
+    },
+    {
+      "id": 9,
+      "question": "Which Israeli party had the highest vote percentage in Knesset 20?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Likud",
+      "actual_answer": "In the Knesset elections of 2015 (Knesset 20), the party with the highest vote percentage was the **Joint List**, achieving an impressive **99.03%** of the votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect, as it misidentifies the party and provides an absurd vote percentage.",
+      "time_seconds": 4.69,
+      "error": null
+    },
+    {
+      "id": 10,
+      "question": "How many votes did Donald Trump receive in Maricopa County, AZ in 2020?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "995665",
+      "actual_answer": "In the 2020 presidential election, Donald Trump received **995,665 votes** in Maricopa County, Arizona.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing the exact vote count for Donald Trump in Maricopa County.",
+      "time_seconds": 5.54,
+      "error": null
+    },
+    {
+      "id": 11,
+      "question": "What was the right-bloc vote share in Knesset 14?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "right_pct from elections table for K14",
+      "actual_answer": "In Knesset 14, which took place in 1996, the right-bloc vote share was 42.1%.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing the right-bloc vote share for Knesset 14.",
+      "time_seconds": 2.44,
+      "error": null
+    },
+    {
+      "id": 12,
+      "question": "Which state had the highest Democratic vote total in 2020?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "CA",
+      "actual_answer": "In the 2020 presidential election, California had the highest Democratic vote total, with a total of 11,110,250 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the state and the total vote count.",
+      "time_seconds": 2.92,
+      "error": null
+    },
+    {
+      "id": 13,
+      "question": "How many Knesset elections are in the database?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "12",
+      "actual_answer": "The database contains a total of 12 Knesset elections.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, matching the expected answer.",
+      "time_seconds": 2.22,
+      "error": null
+    },
+    {
+      "id": 14,
+      "question": "What was Biden's total vote count across all counties in 2020?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "81268924",
+      "actual_answer": "The total vote count for Joseph R. Biden across all counties in the 2020 presidential election is not available in the dataset, as the query returned no results. This could indicate that there were no recorded votes for Biden in the dataset for that year, or there may be an issue with the data retrieval.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect as it fails to provide the correct total vote count for Biden.",
+      "time_seconds": 4.19,
+      "error": null
+    },
+    {
+      "id": 15,
+      "question": "Who won the presidential election in Wisconsin in 2016?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "DONALD J TRUMP / REPUBLICAN",
+      "actual_answer": "In the 2016 presidential election in Wisconsin, Hillary Clinton, representing the Democratic Party, won with a total of 288,797 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect, as it states that Hillary Clinton won when in fact Donald Trump won the election in Wisconsin.",
+      "time_seconds": 2.94,
+      "error": null
+    },
+    {
+      "id": 16,
+      "question": "What was the average turnout across all Israeli elections?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "average of turnout_pct",
+      "actual_answer": "The average voter turnout across all Israeli elections from K14 to K25 (1996-2022) is approximately **69.89%**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and provides the average voter turnout percentage for the specified elections.",
+      "time_seconds": 2.42,
+      "error": null
+    },
+    {
+      "id": 17,
+      "question": "How many counties are classified as Rural in the 2020 presidential data?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "count of distinct counties where urban_rural='Rural' in 2020",
+      "actual_answer": "In the 2020 presidential election data, there are **1,234 counties** classified as Rural.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies the count of counties classified as Rural in the 2020 presidential data.",
+      "time_seconds": 3.82,
+      "error": null
+    },
+    {
+      "id": 18,
+      "question": "Which party won Michigan in the 2024 presidential election?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "REPUBLICAN",
+      "actual_answer": "In the 2024 presidential election, the Republican Party won Michigan, receiving a total of 2,816,636 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winning party and the vote count.",
+      "time_seconds": 3.37,
+      "error": null
+    },
+    {
+      "id": 19,
+      "question": "How many seats did the Joint List win in Knesset 23?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "15",
+      "actual_answer": "In Knesset 23, the Joint List (ודעם) won a total of **15 seats**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing the exact number of seats won by the Joint List in Knesset 23.",
+      "time_seconds": 3.74,
+      "error": null
+    },
+    {
+      "id": 20,
+      "question": "What was Trump's vote share in rural counties nationwide in 2020?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "~65-70%",
+      "actual_answer": "In the 2020 presidential election, Donald Trump received approximately **9.27%** of the total vote share in rural counties nationwide.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect, as it significantly misrepresents Trump's vote share in rural counties.",
+      "time_seconds": 5.61,
+      "error": null
+    },
+    {
+      "id": 21,
+      "question": "Did the urban-rural gap in presidential voting grow between 2000 and 2024?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Yes, the gap between urban and rural Democratic vote share widened significantly",
+      "actual_answer": "The urban-rural gap in presidential voting did grow between 2000 and 2024. Here are the key findings based on the data:\n\n### Democratic Vote Share\n- **Urban Areas**:\n  - **2000**: 53.08%\n  - **2024**: 48.15%\n  \n- **Suburban Areas**:\n  - **2000**: 46.13%\n  - **2024**: 42.36%\n  \n- **Rural Areas**:\n  - **2000**: 40.62%\n  - **2024**: 28.01%\n\n### Republican Vote Share\n- **Urban Areas**:\n  - **2000**: 43.20%\n  - **2024**: 40.16%\n  \n- **Suburban Areas**:\n  - **2000**: 50.04%\n  - **2024**: 48.04%\n  \n- *",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 3,
+      "judge_reason": "The answer correctly states that the urban-rural gap grew, but the vote share percentages provided are inaccurate and incomplete.",
+      "time_seconds": 15.56,
+      "error": null
+    },
+    {
+      "id": 22,
+      "question": "Which 5 states had the biggest swing toward Democrats between 2016 and 2020?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "States where Democratic two-party share increased most",
+      "actual_answer": "The five states that experienced the biggest swing toward Democrats between the 2016 and 2020 presidential elections are:\n\n1. **Colorado (CO)** - Swing: 4.25%\n2. **Nebraska (NE)** - Swing: 3.76%\n3. **Delaware (DE)** - Swing: 3.63%\n4. **Kansas (KS)** - Swing: 3.62%\n5. **New Hampshire (NH)** - Swing: 3.55%\n\nThese percentages represent the change in Democratic vote share from 2016 to 2020.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer incorrectly lists states with swings toward Democrats, including Nebraska and Kansas, which actually swung toward Republicans.",
+      "time_seconds": 8.71,
+      "error": null
+    },
+    {
+      "id": 23,
+      "question": "How did right-bloc vote share change from K14 to K25?",
+      "category": "multi_step",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Compare right_pct between K14 and K25",
+      "actual_answer": "The right-bloc vote share in Israel changed slightly from K14 to K25. Here are the details:\n\n- In K14 (1996), the right-bloc vote share was approximately **18.28%**.\n- In K25 (2022), the right-bloc vote share increased to approximately **18.82%**.\n\nThis indicates a modest increase of about **0.54 percentage points** in the right-bloc vote share over the span of these two elections.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately compares the right-bloc vote share between K14 and K25, providing precise percentages and the change in vote share.",
+      "time_seconds": 6.84,
+      "error": null
+    },
+    {
+      "id": 24,
+      "question": "Compare Biden's performance in Urban vs Suburban vs Rural counties in 2020",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Biden won urban, competitive in suburban, lost rural",
+      "actual_answer": "In the 2020 presidential election, Joe Biden's performance varied significantly across different types of counties classified as Urban, Suburban, and Rural. Here’s a detailed comparison:\n\n### Biden's Performance by County Type in 2020\n\n| County Type | Total Votes | Biden Votes | Total Two-Party Votes | Biden Vote Share (%) |\n|-------------|-------------|-------------|-----------------------|-----------------------|\n| **Urban**   | 78,026,903  | 45,408,023  | 76,853,786            | 59.08        ",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer provides a comprehensive and accurate comparison of Biden's performance across urban, suburban, and rural counties, including specific vote counts and percentages.",
+      "time_seconds": 14.19,
+      "error": null
+    },
+    {
+      "id": 25,
+      "question": "Which election year had the smallest margin of victory in Ohio?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "year with closest two-party margin in Ohio",
+      "actual_answer": "The election year with the smallest margin of victory in Ohio was **2012**, where the margin was just **1 vote**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer correctly identifies 2012 but inaccurately states the margin as 1 vote, which is significantly incorrect.",
+      "time_seconds": 7.71,
+      "error": null
+    },
+    {
+      "id": 26,
+      "question": "How has the Haredi bloc vote share trended from K14 to K25?",
+      "category": "multi_step",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Trend of haredi_pct across elections",
+      "actual_answer": "The Haredi bloc vote share has shown an upward trend from Knesset 14 (K14) to Knesset 25 (K25). Here are the specific percentages:\n\n- In 1996 (K14), the Haredi bloc received **12.0%** of the vote.\n- In 2022 (K25), this share increased to **14.13%**.\n\nThis indicates a growth of approximately **2.13 percentage points** in the Haredi bloc's vote share over the span of these two elections.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately details the upward trend in the Haredi bloc vote share, providing specific percentages and a clear explanation of the change.",
+      "time_seconds": 5.27,
+      "error": null
+    },
+    {
+      "id": 27,
+      "question": "Compare Republican vote share in Large central metro vs Noncore rural counties from 2000 to 2024",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Republican share increased in rural, decreased in urban metro",
+      "actual_answer": "Here is the comparison of Republican vote share in Large Central Metro versus Noncore Rural counties from 2000 to 2024:\n\n### Republican Vote Share by Year\n\n| Year | Large Central Metro (%) | Noncore Rural (%) |\n|------|-------------------------|--------------------|\n| 2000 | 24.05                   | (Data not available) |\n| 2004 | 24.93                   | (Data not available) |\n| 2008 | 10.19                   | (Data not available) |\n| 2012 | 11.04                   | (Data not available) |\n|",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides some data for Large Central Metro but lacks any information for Noncore Rural counties and does not fully address the expected comparison.",
+      "time_seconds": 14.08,
+      "error": null
+    },
+    {
+      "id": 28,
+      "question": "Which locality had the highest turnout in K25?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "locality name with highest turnout_pct in K25",
+      "actual_answer": "The locality with the highest turnout in the Knesset elections (K25) was יסודות, with a turnout percentage of 90.9%.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies the locality with the highest turnout and provides the exact turnout percentage.",
+      "time_seconds": 3.44,
+      "error": null
+    },
+    {
+      "id": 29,
+      "question": "What is the correlation between academic degree % and left-bloc voting in Israeli localities?",
+      "category": "multi_step",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "positive correlation",
+      "actual_answer": "The analysis of the correlation between the percentage of residents with academic degrees and left-bloc voting in Israeli localities for the Knesset elections (K25) reveals the following:\n\n- **Average Percentage of Academic Degrees**: 31.82%\n- **Average Percentage of Left-Bloc Votes**: 5.46%\n- **Correlation Coefficient**: 0.34\n\nThis correlation coefficient of 0.34 indicates a moderate positive correlation between the percentage of residents with academic degrees and the percentage of votes for t",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately describes the correlation, provides relevant statistics, and explains the relationship clearly.",
+      "time_seconds": 6.83,
+      "error": null
+    },
+    {
+      "id": 30,
+      "question": "How many states did Trump win in 2016 vs 2020?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "More states in 2016 than 2020",
+      "actual_answer": "In the 2016 presidential election, Donald Trump won 24 states. In the 2020 presidential election, he won 18 states.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately states the number of states Trump won in both elections and correctly concludes that he won more states in 2016 than in 2020.",
+      "time_seconds": 5.19,
+      "error": null
+    },
+    {
+      "id": 31,
+      "question": "Can the right bloc form a government in K25 without Shas?",
+      "category": "coalition",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Depends on exact seat counts — likely no without Shas",
+      "actual_answer": "The right bloc can indeed form a government in Knesset 25 without Shas. Here are some possible coalitions that do not include Shas:\n\n1. **Coalition of 3 Parties:**\n   - הליכוד (Likud) - 32 seats\n   - יש עתיד (Yesh Atid) - 24 seats\n   - הציונות הדתית (Religious Zionism) - 14 seats\n   - **Total Seats: 70**\n\n2. **Coalition of 3 Parties:**\n   - הליכוד (Likud) - 32 seats\n   - יש עתיד (Yesh Atid) - 24 seats\n   - המחנה הממלכתי (National Unity) - 12 seats\n   - **Total Seats: 68**\n\n3. **Coalition of 4 Pa",
+      "expected_tool": "coalition_calculator",
+      "tools_used": [
+        "coalition_calculator"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer incorrectly states that the right bloc can form a government without Shas, providing flawed coalition examples that do not add up to a majority.",
+      "time_seconds": 11.04,
+      "error": null
+    },
+    {
+      "id": 32,
+      "question": "What are all possible 3-party coalitions reaching 61 seats in K25?",
+      "category": "coalition",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "List of 3-party combos with 61+ seats",
+      "actual_answer": "In Knesset 25, there are several possible 3-party coalitions that can reach a total of 61 seats. Here are the coalitions:\n\n1. **Coalition 1**: \n   - Parties: הליכוד (32), יש עתיד (24), הציונות הדתית (14)\n   - Total Seats: 70\n\n2. **Coalition 2**: \n   - Parties: הליכוד (32), יש עתיד (24), המחנה הממלכתי (12)\n   - Total Seats: 68\n\n3. **Coalition 3**: \n   - Parties: הליכוד (32), יש עתיד (24), ש\"ס (11)\n   - Total Seats: 67\n\n4. **Coalition 4**: \n   - Parties: הליכוד (32), יש עתיד (24), יהדות התורה (7)\n",
+      "expected_tool": "coalition_calculator",
+      "tools_used": [
+        "coalition_calculator"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly lists several 3-party coalitions that reach 61 or more seats, but it is incomplete as it cuts off mid-sentence.",
+      "time_seconds": 18.49,
+      "error": null
+    },
+    {
+      "id": 33,
+      "question": "Can Yesh Atid form a coalition without Arab parties in K24?",
+      "category": "coalition",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Yesh Atid coalition possibilities without Arab bloc",
+      "actual_answer": "Yes, Yesh Atid can form a coalition without Arab parties in Knesset 24. The coalition calculator indicates that there are multiple possible coalitions that include Yesh Atid (17 seats) along with other parties, excluding the Arab parties.\n\nHere are some examples of potential coalitions that do not include Arab parties:\n\n1. **Coalition 1**: \n   - הליכוד (Likud) - 30 seats\n   - יש עתיד (Yesh Atid) - 17 seats\n   - ש\"ס (Shas) - 9 seats\n   - כחול לבן (Blue and White) - 8 seats\n   - **Total**: 64 seat",
+      "expected_tool": "coalition_calculator",
+      "tools_used": [
+        "coalition_calculator"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly states that Yesh Atid can form a coalition without Arab parties and provides examples, but it is incomplete as it cuts off mid-sentence.",
+      "time_seconds": 12.35,
+      "error": null
+    },
+    {
+      "id": 34,
+      "question": "What is the smallest coalition that includes both Likud and Yesh Atid in K25?",
+      "category": "coalition",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "minimum party coalition with Likud + Yesh Atid",
+      "actual_answer": "The smallest coalition that includes both Likud (הליכוד) and Yesh Atid (יש עתיד) in Knesset 25 consists of **3 parties**. Here are the details of the smallest coalitions:\n\n1. **Coalition 1**: \n   - Parties: הליכוד (32 seats), יש עתיד (24 seats), הציונות הדתית (14 seats)\n   - Total Seats: **70**\n\n2. **Coalition 2**: \n   - Parties: הליכוד (32 seats), יש עתיד (24 seats), המחנה הממלכתי (12 seats)\n   - Total Seats: **68**\n\n3. **Coalition 3**: \n   - Parties: הליכוד (32 seats), יש עתיד (24 seats), ש\"ס ",
+      "expected_tool": "coalition_calculator",
+      "tools_used": [
+        "coalition_calculator"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies the smallest coalition including both Likud and Yesh Atid, providing detailed examples and confirming a majority in the Knesset.",
+      "time_seconds": 4.63,
+      "error": null
+    },
+    {
+      "id": 35,
+      "question": "How did the suburban vote shift between 2016 and 2020 for Democrats?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Democratic vote share in suburban counties increased from 2016 to 2020",
+      "actual_answer": "Between the 2016 and 2020 presidential elections, the suburban vote for Democrats showed a notable shift. \n\n- In 2016, Democrats received approximately **47.93%** of the votes in suburban areas.\n- By 2020, this percentage increased to about **50.10%**.\n\nThis indicates a shift of approximately **2.17 percentage points** towards the Democratic Party in suburban regions from 2016 to 2020.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately details the increase in Democratic vote share in suburban areas, providing specific percentages and the exact shift in points.",
+      "time_seconds": 9.11,
+      "error": null
+    },
+    {
+      "id": 36,
+      "question": "Which county in Pennsylvania had the highest Democratic vote share in 2020?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Philadelphia County",
+      "actual_answer": "In the 2020 presidential election, the county in Pennsylvania with the highest Democratic vote share was **Philadelphia**, which had a Democratic vote share of approximately **81.44%**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies Philadelphia County as having the highest Democratic vote share and provides an accurate percentage.",
+      "time_seconds": 3.53,
+      "error": null
+    },
+    {
+      "id": 37,
+      "question": "What was the total number of eligible voters in Knesset 25?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "total_eligible from elections table for K25",
+      "actual_answer": "The total number of eligible voters in Knesset 25 was 4,764,742.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete regarding the total number of eligible voters in Knesset 25.",
+      "time_seconds": 2.19,
+      "error": null
+    },
+    {
+      "id": 38,
+      "question": "How many third-party votes were cast in the 2016 presidential election nationwide?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Sum of votes where party NOT IN (DEMOCRAT, REPUBLICAN) in 2016",
+      "actual_answer": "In the 2016 presidential election, a total of **7,674,891** votes were cast for third-party candidates nationwide.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing the exact number of third-party votes in the 2016 presidential election.",
+      "time_seconds": 2.69,
+      "error": null
+    },
+    {
+      "id": 39,
+      "question": "Which Knesset election had the highest center-left-arab bloc percentage?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Knesset with max center_left_arab_pct",
+      "actual_answer": "The Knesset election with the highest center-left-Arab bloc percentage was in the year **2021** during the **24th Knesset**, where the percentage reached **56.43%**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies the 2021 Knesset election as having the highest center-left-Arab bloc percentage and provides the accurate percentage.",
+      "time_seconds": 2.66,
+      "error": null
+    },
+    {
+      "id": 40,
+      "question": "What was Obama's two-party vote share in 2008?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "~53%",
+      "actual_answer": "In the 2008 presidential election, Barack Obama received a two-party vote share of approximately **53.68%**. This percentage reflects the proportion of votes he garnered compared to the total votes cast for the two major parties, Democrat and Republican.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing the exact two-party vote share and context.",
+      "time_seconds": 3.96,
+      "error": null
+    },
+    {
+      "id": 41,
+      "question": "List the top 5 counties by total votes cast in 2020",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Los Angeles, Cook, Harris, Maricopa, San Diego (approximately)",
+      "actual_answer": "The top 5 counties by total votes cast in the 2020 U.S. Presidential election are as follows:\n\n| County Name     | State | Total Votes |\n|------------------|-------|-------------|\n| Los Angeles      | CA    | 4,231,527   |\n| Cook             | IL    | 2,314,178   |\n| Maricopa         | AZ    | 2,068,144   |\n| Harris           | TX    | 1,640,771   |\n| San Diego        | CA    | 1,593,551   |\n\nThese counties represent the highest voter turnout in the 2020 election.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately lists the top 5 counties by total votes cast, including precise vote counts.",
+      "time_seconds": 5.76,
+      "error": null
+    },
+    {
+      "id": 42,
+      "question": "How many seats did Religious Zionism win in K25?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "14",
+      "actual_answer": "It appears that the query for the number of seats won by Religious Zionism in Knesset 25 (K25) returned no results. This could indicate that the party code used for Religious Zionism ('טב') may not be correct or that there were no recorded results for that specific Knesset election in the dataset.\n\nTo provide accurate information, I will need to verify the correct party code or check the results for Knesset 25 in a different way. However, based on the current output, I cannot provide the number ",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer is mostly wrong as it fails to provide the correct number of seats and instead suggests a lack of data without addressing the actual outcome.",
+      "time_seconds": 5.69,
+      "error": null
+    },
+    {
+      "id": 43,
+      "question": "What percentage of the vote did Libertarian candidates get in 2016 nationally?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "~3.3%",
+      "actual_answer": "The data query for the percentage of the vote that Libertarian candidates received in the 2016 U.S. presidential election returned no results. This indicates that there may not be recorded votes for Libertarian candidates in the dataset for that year. \n\nAs a result, I cannot provide a specific percentage for the Libertarian vote in 2016 nationally based on the available data.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer is mostly wrong as it fails to acknowledge that Libertarian candidates received approximately 3.3% of the vote in 2016.",
+      "time_seconds": 3.71,
+      "error": null
+    },
+    {
+      "id": 44,
+      "question": "Which Israeli election had the lowest turnout?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Knesset with min turnout_pct",
+      "actual_answer": "The Israeli election with the lowest turnout was in the year **2006**, with a turnout percentage of **63.2%**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies the year and turnout percentage but lacks the specific mention of 'Knesset' and does not provide the minimum turnout percentage context.",
+      "time_seconds": 2.53,
+      "error": null
+    },
+    {
+      "id": 45,
+      "question": "How did Trump's vote share in Michigan change from 2016 to 2020 to 2024?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Trump vote share trend across 3 elections in MI",
+      "actual_answer": "To analyze Donald Trump's vote share in Michigan across the years 2016, 2020, and 2024, we need to look at the total votes he received in each of those years. The data returned from the query only includes the total votes for 2020. Therefore, we will need to gather the total votes for 2016 and 2024 to provide a complete comparison.\n\n### Total Votes for Donald Trump in Michigan:\n- **2016**: (Data not retrieved yet)\n- **2020**: The total votes for Trump in various counties are as follows:\n  - Alco",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer acknowledges the need for data from all three elections but fails to provide any actual vote share figures or trends, resulting in significant gaps.",
+      "time_seconds": 10.5,
+      "error": null
+    },
+    {
+      "id": 46,
+      "question": "Compare the number of Urban vs Rural counties in the database",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Count of distinct counties by urban_rural",
+      "actual_answer": "Based on the data retrieved from the U.S. presidential election results, the comparison of the number of counties by urban-rural classification (excluding Alaska) is as follows:\n\n- **Urban Counties**: 9,942\n- **Suburban Counties**: 15,226\n- **Rural Counties**: 49,402\n- **Counties with No Classification**: 115\n\n### Summary:\n- **Total Urban Counties**: 9,942\n- **Total Rural Counties**: 49,402\n\nFrom this data, it is evident that there are significantly more rural counties compared to urban counties",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 3,
+      "judge_reason": "The answer provides a count of urban and rural counties but includes suburban counties and counties with no classification, which are not relevant to the specific comparison requested.",
+      "time_seconds": 4.73,
+      "error": null
+    },
+    {
+      "id": 47,
+      "question": "What was the Arab party vote share in Knesset 21?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "arab_pct from elections table for K21",
+      "actual_answer": "In the Knesset elections of 2019 (Knesset 21), the total vote share for Arab parties was approximately **9,175.09%**. This figure represents the combined percentage of votes received by all parties classified under the Arab bloc during that election.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer provides an incorrect percentage figure and misrepresents the vote share as a percentage rather than a decimal or whole number.",
+      "time_seconds": 5.14,
+      "error": null
+    },
+    {
+      "id": 48,
+      "question": "Which state had the closest margin in the 2020 presidential election?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Georgia or Arizona (very close margins)",
+      "actual_answer": "In the 2020 presidential election, the state with the closest margin was Arizona, with a margin of 10,457 votes between the Democratic and Republican candidates.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies Arizona as having a close margin, but it overlooks Georgia, which had an even closer margin.",
+      "time_seconds": 3.77,
+      "error": null
+    },
+    {
+      "id": 49,
+      "question": "How many right-bloc coalitions are possible in K24?",
+      "category": "coalition",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Number of right-bloc coalitions reaching 61 seats",
+      "actual_answer": "In the Knesset 24 elections, there are a total of **100 possible coalitions** that can be formed. Here are some examples of the coalitions along with their seat counts:\n\n1. **64 seats, 4 parties**: הליכוד (30), יש עתיד (17), ש\"ס (9), כחול לבן (8)\n2. **63 seats, 4 parties**: הליכוד (30), יש עתיד (17), ש\"ס (9), ימינה (7)\n3. **63 seats, 4 parties**: הליכוד (30), יש עתיד (17), ש\"ס (9), יהדות התורה (7)\n4. **63 seats, 4 parties**: הליכוד (30), יש עתיד (17), ש\"ס (9), ישראל ביתנו (7)\n5. **62 seats, 4 pa",
+      "expected_tool": "coalition_calculator",
+      "tools_used": [
+        "coalition_calculator"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides information about possible coalitions but fails to specifically address the number of right-bloc coalitions reaching 61 seats.",
+      "time_seconds": 4.81,
+      "error": null
+    },
+    {
+      "id": 50,
+      "question": "What was the population of Tel Aviv according to the socioeconomic data?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "population from socioeconomic table",
+      "actual_answer": "It appears that the query for the population of Tel Aviv according to the socioeconomic data returned no results. This could be due to the specific naming conventions used in the dataset or the absence of data for that locality.\n\nUnfortunately, I cannot provide the population figure for Tel Aviv from the socioeconomic data at this time. If you have any other questions or need information on a different locality or topic, feel free to ask!",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer fails to provide any population figure and does not address the question directly.",
+      "time_seconds": 4.56,
+      "error": null
+    },
+    {
+      "id": 51,
+      "question": "How many votes did Biden receive in urban counties in 2020?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Sum of Biden votes where urban_rural='Urban' in 2020",
+      "actual_answer": "In the 2020 presidential election, Joe Biden received a total of **0 votes** in urban counties according to the data retrieved. This result indicates that there may be an issue with the data or the classification of urban counties in the dataset.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer is mostly wrong as it incorrectly states that Biden received 0 votes in urban counties, which is misleading.",
+      "time_seconds": 2.86,
+      "error": null
+    },
+    {
+      "id": 52,
+      "question": "Which 3 states had the most counties that flipped from R to D between 2016 and 2020?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "States with most county-level flips",
+      "actual_answer": "Between the 2016 and 2020 presidential elections, the three states with the most counties that flipped from Republican (R) to Democrat (D) are:\n\n1. **Alaska (AK)** - 6 counties\n2. **Virginia (VA)** - 6 counties\n3. **Minnesota (MN)** - 4 counties\n\nThese states experienced significant shifts in their county-level voting patterns during this period.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies the states and the number of counties that flipped, but it lacks context on the overall significance of these shifts.",
+      "time_seconds": 12.4,
+      "error": null
+    },
+    {
+      "id": 53,
+      "question": "What was Meretz's best election result by seats?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Highest seats for Meretz across all Knessets",
+      "actual_answer": "Meretz's best election result by seats was in the year **1999**, when the party secured **10 seats** in the Knesset.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies 1999 as Meretz's best election result with 10 seats in the Knesset, providing both the year and the number of seats.",
+      "time_seconds": 7.03,
+      "error": null
+    },
+    {
+      "id": 54,
+      "question": "Compare total votes cast in the U.S. presidential election in 2000 vs 2024",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Total votes in both years showing increase",
+      "actual_answer": "In the U.S. presidential elections, the total votes cast were as follows:\n\n- **2000 Election**: 105,411,375 votes\n- **2024 Election**: 199,645,974 votes\n\nThis indicates a significant increase in voter participation from the 2000 election to the 2024 election, with the total votes nearly doubling over this 24-year period.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately provides the total votes for both elections and correctly notes the significant increase in voter participation.",
+      "time_seconds": 5.37,
+      "error": null
+    },
+    {
+      "id": 55,
+      "question": "How did Suburban counties vote in the 2024 presidential election?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Two-party vote share in suburban counties in 2024",
+      "actual_answer": "In the 2024 presidential election, suburban counties exhibited a diverse range of voting patterns. Below are some key highlights from the results:\n\n1. **Top Suburban Counties by Total Votes**:\n   - **Denton County, TX**: 1,280,296 total votes, with a Democrat share of 43.18%.\n   - **Montgomery County, PA**: 1,041,812 total votes, with a Democrat share of 61.52%.\n   - **Fort Bend County, TX**: 1,032,582 total votes, with a Democrat share of 50.88%.\n   - **Williamson County, TX**: 878,078 total vo",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 3,
+      "judge_reason": "The answer provides some voting data for suburban counties but lacks a complete overview of the two-party vote share and does not include Republican percentages.",
+      "time_seconds": 14.02,
+      "error": null
+    },
+    {
+      "id": 56,
+      "question": "What are the NCHS urban-rural classification codes?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "1=Large central metro through 6=Noncore",
+      "actual_answer": "The NCHS Urban-Rural Classification divides U.S. counties into six categories, each with a specific code:\n\n1. **Large central metro (Code 1)** - Urban\n2. **Large fringe metro (Code 2)** - Suburban\n3. **Medium metro (Code 3)** - Urban\n4. **Small metro (Code 4)** - Suburban\n5. **Micropolitan (Code 5)** - Rural\n6. **Noncore (Code 6)** - Rural\n\nIn summary:\n- **Urban**: Codes 1 and 3\n- **Suburban**: Codes 2 and 4\n- **Rural**: Codes 5 and 6",
+      "expected_tool": "rag_retrieval",
+      "tools_used": [
+        "context_search"
+      ],
+      "soft_match": false,
+      "tool_match": false,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly lists the NCHS urban-rural classification codes but inaccurately categorizes Medium metro as Urban and Micropolitan as Rural.",
+      "time_seconds": 7.77,
+      "error": null
+    },
+    {
+      "id": 57,
+      "question": "Which Knesset had the most parties winning seats?",
+      "category": "multi_step",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Knesset with highest count of parties where seats > 0",
+      "actual_answer": "The Knesset with the most parties winning seats was the 15th Knesset, which took place in 1999. In this election, a total of 16 parties secured seats.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies the 15th Knesset as having the most parties winning seats and provides the accurate number of parties.",
+      "time_seconds": 3.33,
+      "error": null
+    },
+    {
+      "id": 58,
+      "question": "How did the Republican vote share in Large central metro counties change from 2000 to 2024?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Republican share declined in large metros over time",
+      "actual_answer": "The Republican vote share in Large central metro counties from the year 2000 shows a varied performance across different counties. Here are some key details from the data:\n\n### Republican Vote Share in 2000\n- **Los Angeles County, CA (FIPS: 06059)**: \n  - Republican Votes: 541,299\n  - Democrat Votes: 691,731\n  - Republican Vote Share: **43.90%**\n  \n- **Cook County, IL (FIPS: 06073)**: \n  - Republican Votes: 475,736\n  - Democrat Votes: 841,372\n  - Republican Vote Share: **36.12%**\n  \n- **Marion C",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides specific data for 2000 but fails to address the change in Republican vote share from 2000 to 2024.",
+      "time_seconds": 18.22,
+      "error": null
+    },
+    {
+      "id": 59,
+      "question": "What was the highest-income locality's voting pattern in K25?",
+      "category": "multi_step",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "JOIN socioeconomic + localities for highest income locality in K25",
+      "actual_answer": "In the Knesset elections (K25), the highest-income locality was **סביון (Savion)**. Below is the voting pattern for various parties in this locality, along with their respective vote percentages:\n\n| Party                          | Vote Percentage |\n|-------------------------------|-----------------|\n| Yesh Atid                     | 42.60%          |\n| Likud                         | 18.76%          |\n| National Unity                | 14.43%          |\n| Labor                         | 5.41%   ",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies Savion as the highest-income locality in K25 and provides a complete and accurate voting pattern for various parties.",
+      "time_seconds": 9.31,
+      "error": null
+    },
+    {
+      "id": 60,
+      "question": "How did Obama's 2008 performance compare to Biden's 2020 in the same states?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "State-by-state comparison of Democratic vote share",
+      "actual_answer": "It appears that the query to compare Barack Obama's 2008 performance with Joe Biden's 2020 performance in the same states returned no results. This indicates that there may be an issue with the data or the way the candidates are referenced in the database.\n\nHere are a few possible reasons for the empty result:\n\n1. **Candidate Name Variations**: The names used in the query might not match the exact names stored in the database. For example, there could be variations in how the candidates' names a",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 1,
+      "judge_reason": "The answer fails to provide any relevant comparison of vote shares and instead discusses potential data issues.",
+      "time_seconds": 18.58,
+      "error": null
+    },
+    {
+      "id": 61,
+      "question": "Can a center-left coalition form a government in K22?",
+      "category": "coalition",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "Center-left coalition possibilities in K22",
+      "actual_answer": "In Knesset 22, a center-left coalition can indeed form a government. Here are some potential coalition combinations that include center-left parties, specifically focusing on **כחול לבן (Blue and White)** and **הרשימה המשותפת (Joint List)**, along with other parties:\n\n1. **Coalition 1**: \n   - **Parties**: כחול לבן (33), הרשימה המשותפת (13), ש\"ס (9), ישראל ביתנו (8)\n   - **Total Seats**: 63\n\n2. **Coalition 2**: \n   - **Parties**: כחול לבן (33), הרשימה המשותפת (13), ש\"ס (9), יהדות התורה (7)\n   - ",
+      "expected_tool": "coalition_calculator",
+      "tools_used": [
+        "coalition_calculator"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies the possibility of a center-left coalition in Knesset 22 and provides several potential coalition combinations, but it is incomplete as it does not finish listing Coalition 5.",
+      "time_seconds": 9.62,
+      "error": null
+    },
+    {
+      "id": 62,
+      "question": "How many presidential election years are in the U.S. county database?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "7",
+      "actual_answer": "The U.S. county database contains data for a total of **7 presidential election years**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer is factually correct, precise, and complete, matching the expected answer.",
+      "time_seconds": 2.42,
+      "error": null
+    },
+    {
+      "id": 63,
+      "question": "Which county had the highest total votes in the 2024 election?",
+      "category": "factual",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Los Angeles County or similar large county",
+      "actual_answer": "In the 2024 election, the county with the highest total votes was Harris County, Texas, with a total of 4,353,427 votes.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect as it identifies Harris County instead of the expected Los Angeles County.",
+      "time_seconds": 2.74,
+      "error": null
+    },
+    {
+      "id": 64,
+      "question": "What was Yisrael Beiteinu's seat count in K22?",
+      "category": "factual",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "seats for Yisrael Beiteinu in K22",
+      "actual_answer": "It seems there was an error when attempting to retrieve the seat count for Yisrael Beiteinu in Knesset 22 (K22). Unfortunately, the query failed multiple times, and I was unable to obtain the specific data.\n\nHowever, based on historical context, Yisrael Beiteinu won 7 seats in the Knesset during the K22 elections held in 2019. If you need further details or analysis, please let me know!",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies the seat count for Yisrael Beiteinu in K22 but includes unnecessary information about retrieval errors.",
+      "time_seconds": 6.18,
+      "error": null
+    },
+    {
+      "id": 65,
+      "question": "How did the Micropolitan (code 5) counties vote in 2020 vs 2024?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Two-party vote share in Micropolitan counties both years",
+      "actual_answer": "In the 2020 U.S. Presidential election, Micropolitan counties (code 5) predominantly voted for the Republican Party. Below is a summary of the voting results for selected counties in 2020:\n\n| County Name      | State | Year | Party      | Votes |\n|------------------|-------|------|------------|-------|\n| Abbeville        | SC    | 2020 | REPUBLICAN | 8215  |\n| Adair            | MO    | 2020 | REPUBLICAN | 6413  |\n| Adams            | IL    | 2020 | REPUBLICAN | 24220 |\n| Adams            | IN  ",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides detailed voting results for 2020 but fails to address the voting in 2024, which is a significant gap.",
+      "time_seconds": 21.64,
+      "error": null
+    },
+    {
+      "id": 66,
+      "question": "What is the right-haredi bloc percentage in K25?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "right_haredi_pct from elections for K25",
+      "actual_answer": "In the Knesset elections (K25), the right-haredi bloc percentage was 49.57%.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": true,
+      "tool_match": true,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly provides the right-haredi bloc percentage for K25 as 49.57%, which is precise and complete.",
+      "time_seconds": 1.72,
+      "error": null
+    },
+    {
+      "id": 67,
+      "question": "Which 5 counties in Georgia had the biggest swing toward Democrats from 2016 to 2020?",
+      "category": "multi_step",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "Top 5 GA counties by increase in Democratic two-party share",
+      "actual_answer": "The analysis of the swing toward Democrats in Georgia from the 2016 to the 2020 presidential elections yielded the following results for the five counties with the biggest swing:\n\n| County Name | State | Democratic Share 2020 | Democratic Share 2016 | Swing |\n|-------------|-------|-----------------------|-----------------------|-------|\n| Appling     | GA    | None                  | None                  | None  |\n| Bacon       | GA    | None                  | None                  | None  |\n",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer provides no relevant data and fails to address the question about the counties with the biggest swing toward Democrats.",
+      "time_seconds": 11.47,
+      "error": null
+    },
+    {
+      "id": 68,
+      "question": "What datasets and election types are available in this system?",
+      "category": "factual",
+      "dataset": "both",
+      "config": "fixed_routing",
+      "expected_answer": "U.S. presidential (county 2000-2024, precinct 2016/2020/2024), House/Senate precinct 2016-2020, Israeli Knesset K14-K25",
+      "actual_answer": "The datasets and election types available in this system include:\n\n### U.S. Election Data:\n1. **Presidential Elections**:\n   - Data available from 2000 to 2024.\n   - Results are available at the county level (2000-2024) and precinct level (2016, 2020, 2024).\n   - Includes NCHS urban-rural classification (Urban/Suburban/Rural).\n\n2. **House Elections**:\n   - Data available from 2016 to 2020.\n   - Results are at the precinct level.\n   - Includes NCHS urban-rural classification.\n\n3. **Senate Electio",
+      "expected_tool": "rag_retrieval",
+      "tools_used": [
+        "context_search"
+      ],
+      "soft_match": true,
+      "tool_match": false,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies the datasets and election types but includes additional details that are not part of the expected answer.",
+      "time_seconds": 5.91,
+      "error": null
+    },
+    {
+      "id": 69,
+      "question": "How many localities are in the Israeli database?",
+      "category": "numerical",
+      "dataset": "israel",
+      "config": "fixed_routing",
+      "expected_answer": "1384",
+      "actual_answer": "The Israeli database contains a total of **14,076 localities**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 0,
+      "judge_reason": "The answer is completely incorrect, as it significantly overstates the number of localities in the Israeli database.",
+      "time_seconds": 1.51,
+      "error": null
+    },
+    {
+      "id": 70,
+      "question": "What was the Democratic two-party vote share in urban counties in 2020?",
+      "category": "numerical",
+      "dataset": "us",
+      "config": "fixed_routing",
+      "expected_answer": "~66%",
+      "actual_answer": "In the 2020 presidential election, the Democratic two-party vote share in urban counties was approximately **59.08%**.",
+      "expected_tool": "data_query",
+      "tools_used": [
+        "data_query"
+      ],
+      "soft_match": false,
+      "tool_match": true,
+      "judge_score": 2,
+      "judge_reason": "The answer provides a specific percentage but is significantly lower than the expected value, indicating a notable error.",
+      "time_seconds": 2.99,
+      "error": null
+    }
+  ],
+  "model": "gpt-4o-mini",
+  "configs": [
+    "fixed_routing"
+  ],
+  "judge_enabled": true
+}

@@ -11,10 +11,7 @@ task using a fine-tuned BERT model with attention over input tokens).
 """
 import os
 import re
-import sqlite3
 from transformers import pipeline
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "elections.db")
 
 # ── NER model (lazy-loaded singleton) ──
 _ner_pipeline = None

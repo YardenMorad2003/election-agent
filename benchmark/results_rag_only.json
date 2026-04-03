@@ -2,11 +2,11 @@
   "summary": {
     "rag_only": {
       "total": 70,
-      "soft_match": 25,
+      "soft_match": 24,
       "tool_match": 2,
       "errors": 0,
-      "avg_time": 155.83493089675903,
-      "avg_judge_score": 2.49
+      "avg_time": 178.73430490493774,
+      "avg_judge_score": 2.5
     }
   },
   "results": [
@@ -27,7 +27,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete, providing the winner, party affiliation, and vote counts.",
-      "time_seconds": 8.42,
+      "time_seconds": 6.78,
       "error": null
     },
     {
@@ -46,8 +46,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer is factually correct, precise, and complete.",
-      "time_seconds": 1.18,
+      "judge_reason": "The answer is factually correct, precise, and complete, matching the expected answer.",
+      "time_seconds": 1.67,
       "error": null
     },
     {
@@ -66,8 +66,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 1,
-      "judge_reason": "The answer incorrectly states that the 'OTHER' category won the most votes, misleadingly suggesting it was the winning party.",
-      "time_seconds": 3.9,
+      "judge_reason": "The answer incorrectly states that the 'OTHER' category won the most votes, while the question specifically asks for the winning party.",
+      "time_seconds": 2.13,
       "error": null
     },
     {
@@ -87,7 +87,7 @@
       "tool_match": false,
       "judge_score": 4,
       "judge_reason": "The answer is mostly correct but has a minor imprecision in the turnout percentage.",
-      "time_seconds": 1.04,
+      "time_seconds": 1.55,
       "error": null
     },
     {
@@ -97,7 +97,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "6915283",
-      "actual_answer": "The total votes cast in Pennsylvania in the 2020 presidential election can be calculated by adding the total votes from each listed county:\n\n- SUSQUEHANNA, PA: 21,752\n- CHESTER, PA: 314,502\n- DELAWARE, PA: 327,931\n- ALLEGHENY, PA: 719,733\n- PHILADELPHIA, PA: 741,377\n- JEFFERSON, PA: 22,824\n- CLINTON, PA: 17,625\n- WARREN, PA: 20,650\n- BEDFORD, PA: 27,574\n- FRANKLIN, PA: 80,783\n\nAdding these together:\n\n21,752 + 314,502 + 327,931 + 719,733 + 741,377 + 22,824 + 17,625 + 20,650 + 27,574 + 80,783 = 2,",
+      "actual_answer": "The total votes cast in Pennsylvania in the 2020 presidential election can be calculated by adding the total votes from each listed area:\n\n- SUSQUEHANNA, PA: 21,752\n- CHESTER, PA: 314,502\n- DELAWARE, PA: 327,931\n- ALLEGHENY, PA: 719,733\n- PHILADELPHIA, PA: 741,377\n- JEFFERSON, PA: 22,824\n- CLINTON, PA: 17,625\n- WARREN, PA: 20,650\n- BEDFORD, PA: 27,574\n- FRANKLIN, PA: 80,783\n\nTotal votes = 21,752 + 314,502 + 327,931 + 719,733 + 741,377 + 22,824 + 17,625 + 20,650 + 27,574 + 80,783 = 2,274,251.\n\nTh",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -106,8 +106,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 0,
-      "judge_reason": "The answer is completely incorrect as it provides an incorrect total vote count and does not reflect the actual total of 6,915,283.",
-      "time_seconds": 4.41,
+      "judge_reason": "The answer is completely incorrect as it provides a total vote count that is far below the actual total of 6,915,283.",
+      "time_seconds": 5.04,
       "error": null
     },
     {
@@ -126,8 +126,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winner and the vote count.",
-      "time_seconds": 2.19,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winner's name and party affiliation along with the vote count.",
+      "time_seconds": 1.86,
       "error": null
     },
     {
@@ -167,7 +167,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer is mostly wrong as it incorrectly states the Republican two-party vote share.",
-      "time_seconds": 1.3,
+      "time_seconds": 1.21,
       "error": null
     },
     {
@@ -177,7 +177,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "Likud",
-      "actual_answer": "In Knesset 20 (2015), the Israeli party with the highest vote percentage was the Right bloc, which received 35.24% of the votes.",
+      "actual_answer": "In Knesset 20, the party with the highest vote percentage was the Right bloc, which received 35.24% of the votes.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -187,7 +187,7 @@
       "tool_match": false,
       "judge_score": 2,
       "judge_reason": "The answer incorrectly identifies the Right bloc as the party with the highest vote percentage instead of Likud, but it does provide a specific percentage.",
-      "time_seconds": 1.79,
+      "time_seconds": 1.74,
       "error": null
     },
     {
@@ -206,8 +206,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer is factually correct, precise, and complete, providing the exact number of votes Trump received.",
-      "time_seconds": 1.21,
+      "judge_reason": "The answer is factually correct, precise, and complete, matching the expected answer exactly.",
+      "time_seconds": 1.78,
       "error": null
     },
     {
@@ -227,7 +227,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete, providing the exact right-bloc vote share for Knesset 14.",
-      "time_seconds": 1.25,
+      "time_seconds": 1.52,
       "error": null
     },
     {
@@ -246,8 +246,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer is factually correct, precise, and complete, providing both the state and the exact vote total.",
-      "time_seconds": 1.17,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the state and the vote total.",
+      "time_seconds": 1.66,
       "error": null
     },
     {
@@ -257,17 +257,17 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "12",
-      "actual_answer": "The database contains data for Knesset elections 14-25, which means there are 12 Knesset elections in the database.",
+      "actual_answer": "There are 10 Knesset elections in the database, from Knesset 15 (1999) to Knesset 25 (2022).",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
         "cross_encoder_reranker"
       ],
-      "soft_match": true,
+      "soft_match": false,
       "tool_match": false,
-      "judge_score": 5,
-      "judge_reason": "The answer correctly identifies the number of Knesset elections in the database and provides a clear explanation.",
-      "time_seconds": 1.4,
+      "judge_score": 1,
+      "judge_reason": "The answer is mostly wrong as it incorrectly states the number of Knesset elections.",
+      "time_seconds": 1.89,
       "error": null
     },
     {
@@ -287,7 +287,7 @@
       "tool_match": false,
       "judge_score": 0,
       "judge_reason": "The answer fails to provide any relevant information regarding Biden's total vote count and does not address the question.",
-      "time_seconds": 1.27,
+      "time_seconds": 1.44,
       "error": null
     },
     {
@@ -297,7 +297,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "DONALD J TRUMP / REPUBLICAN",
-      "actual_answer": "Donald Trump (Republican) won the presidential election in Wisconsin in 2016 with 1,404,440 votes (47.2%), while Hillary Clinton (Democrat) received 1,381,823 votes (46.4%).",
+      "actual_answer": "Donald Trump (Republican) won the presidential election in Wisconsin in 2016 with 1,404,440 votes (47.2%).",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -306,8 +306,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winner and the vote counts.",
-      "time_seconds": 2.07,
+      "judge_reason": "The answer is factually correct, precise, and complete, providing both the winner and the party affiliation.",
+      "time_seconds": 1.5,
       "error": null
     },
     {
@@ -317,7 +317,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "average of turnout_pct",
-      "actual_answer": "The retrieved context does not contain any information about Israeli elections or their turnout. Therefore, I cannot provide an answer to your question.",
+      "actual_answer": "The retrieved context does not provide enough information to calculate the average turnout across all Israeli elections.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -325,9 +325,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 0,
-      "judge_reason": "The answer fails to provide any relevant information about Israeli elections or their turnout, indicating a complete lack of response.",
-      "time_seconds": 1.32,
+      "judge_score": 2,
+      "judge_reason": "The answer acknowledges a lack of information but does not attempt to provide any relevant context or data about Israeli election turnout.",
+      "time_seconds": 1.5,
       "error": null
     },
     {
@@ -347,7 +347,7 @@
       "tool_match": false,
       "judge_score": 0,
       "judge_reason": "The answer does not provide any relevant information or attempt to address the question.",
-      "time_seconds": 1.44,
+      "time_seconds": 1.69,
       "error": null
     },
     {
@@ -367,7 +367,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete.",
-      "time_seconds": 1.1,
+      "time_seconds": 1.63,
       "error": null
     },
     {
@@ -387,7 +387,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete.",
-      "time_seconds": 1.12,
+      "time_seconds": 1.48,
       "error": null
     },
     {
@@ -405,9 +405,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 1,
-      "judge_reason": "The answer fails to provide any relevant information about Trump's vote share, making it mostly wrong.",
-      "time_seconds": 1.21,
+      "judge_score": 2,
+      "judge_reason": "The answer acknowledges the lack of specific information but fails to provide any relevant context or approximate figures.",
+      "time_seconds": 1.33,
       "error": null
     },
     {
@@ -427,7 +427,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer is mostly wrong as it fails to acknowledge the known trend of the urban-rural gap widening.",
-      "time_seconds": 1.4,
+      "time_seconds": 1.55,
       "error": null
     },
     {
@@ -447,7 +447,7 @@
       "tool_match": false,
       "judge_score": 0,
       "judge_reason": "The answer fails to provide any relevant information or attempt to address the question about the states with the biggest swing toward Democrats.",
-      "time_seconds": 1.15,
+      "time_seconds": 1.38,
       "error": null
     },
     {
@@ -466,8 +466,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 3,
-      "judge_reason": "The answer correctly identifies the lack of specific data but fails to provide any analysis or context regarding the individual party results.",
-      "time_seconds": 1.74,
+      "judge_reason": "The answer correctly identifies the lack of specific data but fails to suggest how to calculate the right-bloc vote share from the available individual party results.",
+      "time_seconds": 2.57,
       "error": null
     },
     {
@@ -477,7 +477,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Biden won urban, competitive in suburban, lost rural",
-      "actual_answer": "In 2020, Joe Biden's performance varied across different types of counties:\n\n- **Urban Counties**: Biden received 40% of the votes from urban areas.\n- **Suburban Counties**: Biden received 33% of the votes from suburban areas.\n- **Rural Counties**: Biden received 23% of the votes from rural areas.\n\nThis indicates that Biden performed best in urban counties, followed by suburban counties, and had the lowest performance in rural counties.",
+      "actual_answer": "In 2020, Joe Biden's performance varied across different types of counties:\n\n- **Urban Counties**: Biden received 81.4% of the votes in Philadelphia, a large central metro area, indicating strong support in urban settings.\n- **Suburban Counties**: In suburban areas, Biden received 62.6% of the votes in Montgomery, PA, and 58.0% in Chester, PA, showing a significant but slightly lower level of support compared to urban areas.\n- **Rural Counties**: Biden's support was notably lower in rural areas,",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -485,9 +485,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 3,
-      "judge_reason": "The answer captures the general trend of Biden's performance but provides incorrect vote percentages and lacks specific context about competitiveness in suburban areas.",
-      "time_seconds": 2.4,
+      "judge_score": 5,
+      "judge_reason": "The answer accurately describes Biden's performance in urban, suburban, and rural counties, providing specific vote percentages and a clear overall comparison.",
+      "time_seconds": 5.15,
       "error": null
     },
     {
@@ -497,7 +497,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "year with closest two-party margin in Ohio",
-      "actual_answer": "The election year with the smallest margin of victory in Ohio was 2004, where the Republican candidate received 2,858,727 votes (50.8%) and the Democrat received 2,739,952 votes (48.7%), resulting in a margin of approximately 118,775 votes.",
+      "actual_answer": "The election year with the smallest margin of victory in Ohio was 2004, where the Republican candidate received 2,858,727 votes (50.8%) and the Democrat received 2,739,952 votes (48.7%), resulting in a margin of 118,775 votes.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -507,7 +507,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer correctly identifies the election year 2004 and provides precise vote counts and margin details.",
-      "time_seconds": 2.5,
+      "time_seconds": 2.1,
       "error": null
     },
     {
@@ -527,7 +527,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer accurately describes the trend in the Haredi bloc vote share, providing specific percentages for K14 and K25.",
-      "time_seconds": 2.12,
+      "time_seconds": 3.11,
       "error": null
     },
     {
@@ -537,7 +537,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Republican share increased in rural, decreased in urban metro",
-      "actual_answer": "The retrieved context does not provide specific data on Republican vote share in Large central metro versus Noncore rural counties for the years 2000 and 2024. Therefore, I cannot make a comparison based on the available information.",
+      "actual_answer": "The retrieved context does not provide specific data on Republican vote share in Large central metro versus Noncore rural counties for the years 2000 and 2024. Therefore, I cannot provide a comparison based on the available information.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -547,7 +547,7 @@
       "tool_match": false,
       "judge_score": 2,
       "judge_reason": "The answer acknowledges the lack of specific data but fails to provide any relevant context or trends regarding Republican vote share.",
-      "time_seconds": 1.4,
+      "time_seconds": 2.41,
       "error": null
     },
     {
@@ -557,7 +557,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "locality name with highest turnout_pct in K25",
-      "actual_answer": "The retrieved context does not contain information about voter turnout in K25 or any specific locality's turnout.",
+      "actual_answer": "The retrieved context does not provide information about voter turnout in K25 or any specific locality's turnout.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -567,7 +567,7 @@
       "tool_match": false,
       "judge_score": 0,
       "judge_reason": "The answer fails to provide any relevant information regarding the locality with the highest turnout in K25.",
-      "time_seconds": 0.86,
+      "time_seconds": 1.14,
       "error": null
     },
     {
@@ -587,7 +587,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer fails to address the question and does not provide any relevant information.",
-      "time_seconds": 1.42,
+      "time_seconds": 1.87,
       "error": null
     },
     {
@@ -607,7 +607,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer fails to provide any relevant information about the number of states Trump won in either election, making it mostly unhelpful.",
-      "time_seconds": 1.25,
+      "time_seconds": 1.39,
       "error": null
     },
     {
@@ -627,7 +627,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete, clearly explaining the seat count and coalition requirements.",
-      "time_seconds": 1.94,
+      "time_seconds": 2.66,
       "error": null
     },
     {
@@ -637,7 +637,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "List of 3-party combos with 61+ seats",
-      "actual_answer": "The possible 3-party coalitions reaching 61 seats in K25 are:\n\n1. Likud (32 seats) + Shas (11 seats) + UTJ (7 seats) = 50 seats (not enough)\n2. Likud (32 seats) + Religious Zionism (6 seats) + Shas (11 seats) = 49 seats (not enough)\n3. Likud (32 seats) + Religious Zionism (6 seats) + UTJ (7 seats) = 45 seats (not enough)\n4. Likud (32 seats) + Shas (11 seats) + Yisrael Beiteinu (6 seats) = 49 seats (not enough)\n5. Likud (32 seats) + Shas (11 seats) + Labor (4 seats) = 47 seats (not enough)\n6. Lik",
+      "actual_answer": "The possible 3-party coalitions reaching 61 seats in K25, based on the retrieved context, are:\n\n1. Likud (32 seats) + Shas (11 seats) + UTJ (7 seats) = 50 seats (not enough)\n2. Likud (32 seats) + Religious Zionism (6 seats) + Shas (11 seats) = 49 seats (not enough)\n3. Likud (32 seats) + Religious Zionism (6 seats) + UTJ (7 seats) = 45 seats (not enough)\n4. Likud (32 seats) + Shas (11 seats) + Yisrael Beiteinu (6 seats) = 49 seats (not enough)\n5. Likud (32 seats) + Shas (11 seats) + Labor (4 seat",
       "expected_tool": "coalition_calculator",
       "tools_used": [
         "rag_retrieval",
@@ -646,8 +646,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 1,
-      "judge_reason": "The answer lists combinations but fails to provide any valid coalitions reaching 61 seats, making it mostly wrong.",
-      "time_seconds": 13.58,
+      "judge_reason": "The answer lists several 3-party combinations but fails to identify any that reach 61 seats, which is the main requirement of the question.",
+      "time_seconds": 13.32,
       "error": null
     },
     {
@@ -667,7 +667,7 @@
       "tool_match": false,
       "judge_score": 2,
       "judge_reason": "The answer contains some correct elements about coalition dynamics but incorrectly states that Yesh Atid cannot form a coalition without Arab parties, which is misleading.",
-      "time_seconds": 2.31,
+      "time_seconds": 2.32,
       "error": null
     },
     {
@@ -677,7 +677,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "minimum party coalition with Likud + Yesh Atid",
-      "actual_answer": "The smallest coalition that includes both Likud and Yesh Atid in K25 would require at least 61 seats. Likud has 32 seats and Yesh Atid has 24 seats, totaling 56 seats. To reach the minimum of 61 seats, they would need to include an additional party or parties that can provide at least 5 more seats. \n\nThe Right+Haredi bloc (Likud + Religious Zionism + Shas + UTJ) has 64 seats, which is sufficient to form a coalition. However, if we consider the smallest coalition that includes both Likud and Yesh",
+      "actual_answer": "The smallest coalition that includes both Likud and Yesh Atid in K25 would require a total of 61 seats. Likud has 32 seats and Yesh Atid has 24 seats, which totals 56 seats. To reach the minimum of 61 seats, they would need an additional 5 seats. \n\nThe Right+Haredi bloc (Likud + Religious Zionism + Shas + UTJ) has 64 seats, so they could potentially form a coalition with any of these parties to reach the required 61 seats. Therefore, the smallest coalition that includes both Likud and Yesh Atid ",
       "expected_tool": "coalition_calculator",
       "tools_used": [
         "rag_retrieval",
@@ -685,9 +685,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 5,
-      "judge_reason": "The answer accurately identifies the need for an additional party to reach 61 seats and provides examples of potential parties to include.",
-      "time_seconds": 4.1,
+      "judge_score": 4,
+      "judge_reason": "The answer correctly identifies the need for an additional party to reach 61 seats but could be clearer about the specific parties that could be included.",
+      "time_seconds": 4.76,
       "error": null
     },
     {
@@ -697,7 +697,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Democratic vote share in suburban counties increased from 2016 to 2020",
-      "actual_answer": "In 2016, the suburban vote for Democrats in Oregon was 53%, in Minnesota it was 48%, in Michigan it was 47%, and in Indiana it was 42%. In 2020, the suburban vote for Democrats in Oregon increased to 56%, in Minnesota it remained at 48%, in Michigan it decreased to 47%, and in Indiana it decreased to 42%. \n\nOverall, the suburban vote for Democrats increased in Oregon, remained the same in Minnesota, and decreased in both Michigan and Indiana.",
+      "actual_answer": "In 2016, the suburban vote for Democrats in Oregon was 53%, and in 2020 it increased to 56%. In Minnesota, it was 48% in 2016 and remained the same in 2020. In Indiana, the suburban vote for Democrats was 42% in 2020, but there is no data for 2016 to compare. In California, the suburban vote for Democrats was 62% in 2020, with no 2016 data available for comparison. \n\nOverall, the suburban vote for Democrats increased in Oregon and remained the same in Minnesota, while data for Indiana and Califo",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -706,8 +706,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 3,
-      "judge_reason": "The answer provides specific data on suburban vote shifts in certain states but fails to give a comprehensive overview of the overall trend for Democrats across all suburban areas.",
-      "time_seconds": 2.79,
+      "judge_reason": "The answer provides specific data for some states but fails to give a comprehensive overview of the overall suburban vote shift for Democrats.",
+      "time_seconds": 3.48,
       "error": null
     },
     {
@@ -727,7 +727,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer incorrectly identifies Delaware County instead of Philadelphia County as having the highest Democratic vote share.",
-      "time_seconds": 1.35,
+      "time_seconds": 1.87,
       "error": null
     },
     {
@@ -747,7 +747,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete regarding the total number of eligible voters in Knesset 25.",
-      "time_seconds": 1.98,
+      "time_seconds": 1.25,
       "error": null
     },
     {
@@ -765,8 +765,8 @@
       ],
       "soft_match": true,
       "tool_match": false,
-      "judge_score": 2,
-      "judge_reason": "The answer acknowledges a lack of information but does not provide any relevant data or context about third-party votes.",
+      "judge_score": 1,
+      "judge_reason": "The answer fails to provide any relevant information about third-party votes and incorrectly states a lack of information.",
       "time_seconds": 1.39,
       "error": null
     },
@@ -786,8 +786,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer correctly identifies Knesset 17 (2006) as having the highest center-left-arab bloc percentage and provides the exact percentage.",
-      "time_seconds": 1.31,
+      "judge_reason": "The answer correctly identifies Knesset 17 (2006) as having the highest center-left-arab bloc percentage and provides the accurate percentage.",
+      "time_seconds": 2.19,
       "error": null
     },
     {
@@ -806,8 +806,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 2,
-      "judge_reason": "The answer provides a method for calculating the vote share but fails to give the correct overall two-party vote share for Obama in 2008.",
-      "time_seconds": 4.94,
+      "judge_reason": "The answer contains some correct elements about calculating vote share but fails to provide the actual two-party vote share for Obama in 2008.",
+      "time_seconds": 5.44,
       "error": null
     },
     {
@@ -826,8 +826,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 0,
-      "judge_reason": "The answer lists completely incorrect counties and vote totals, failing to address the question.",
-      "time_seconds": 2.51,
+      "judge_reason": "The answer is completely incorrect, listing counties with significantly lower total votes than the expected top counties.",
+      "time_seconds": 2.78,
       "error": null
     },
     {
@@ -847,7 +847,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete.",
-      "time_seconds": 0.95,
+      "time_seconds": 1.54,
       "error": null
     },
     {
@@ -866,8 +866,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 1,
-      "judge_reason": "The answer fails to provide any relevant information about the percentage of the vote for Libertarian candidates in 2016, making it mostly unhelpful.",
-      "time_seconds": 1.57,
+      "judge_reason": "The answer fails to provide any relevant information about the percentage of the vote for Libertarian candidates in 2016.",
+      "time_seconds": 1.92,
       "error": null
     },
     {
@@ -877,7 +877,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "Knesset with min turnout_pct",
-      "actual_answer": "The retrieved context does not contain information about Israeli elections or their turnout rates. Therefore, I cannot provide an answer to your question.",
+      "actual_answer": "Knesset 17 (2006) had the lowest turnout at 63.2%.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -885,9 +885,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 0,
-      "judge_reason": "The answer fails to address the question and does not provide any relevant information about Israeli elections or turnout rates.",
-      "time_seconds": 1.42,
+      "judge_score": 5,
+      "judge_reason": "The answer correctly identifies the Knesset 17 election in 2006 as having the lowest turnout and provides the precise turnout percentage.",
+      "time_seconds": 1.26,
       "error": null
     },
     {
@@ -897,7 +897,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Trump vote share trend across 3 elections in MI",
-      "actual_answer": "In Michigan, Donald Trump's vote share changed as follows:\n\n- In 2016, he received 67.0% of the votes in Newaygo County and 62.0% in Livingston County.\n- In 2020, he received 69.2% in Huron County, 58.7% in Jackson County, 52.5% in Clinton County, and 60.6% in Livingston County.\n- In 2024, he received 56.4% in Calhoun County.\n\nOverall, Trump's vote share was highest in 2016, slightly lower in 2020, and further decreased in 2024.",
+      "actual_answer": "In Michigan, Donald Trump's vote share changed as follows:\n\n- In 2016, he received 67.0% of the votes in Newaygo County and 62.0% in Livingston County.\n- In 2020, he received 69.2% in Huron County, 58.7% in Jackson County, 52.5% in Clinton County, and 60.6% in Livingston County.\n- In 2024, he received 56.4% in Calhoun County.\n\nOverall, Trump's vote share was highest in 2016, decreased in 2020, and further decreased in 2024.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -906,8 +906,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 2,
-      "judge_reason": "The answer provides specific county data but fails to summarize Trump's overall vote share trend in Michigan across the three elections.",
-      "time_seconds": 3.71,
+      "judge_reason": "The answer provides specific county data but fails to summarize Trump's overall vote share trend in Michigan across all three elections.",
+      "time_seconds": 3.89,
       "error": null
     },
     {
@@ -917,7 +917,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Count of distinct counties by urban_rural",
-      "actual_answer": "The retrieved context does not provide information about the number of Urban vs Rural counties in the database.",
+      "actual_answer": "The retrieved context does not provide information on the number of Urban vs Rural counties in the database.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -927,7 +927,7 @@
       "tool_match": false,
       "judge_score": 0,
       "judge_reason": "The answer fails to provide any relevant information or attempt to address the question.",
-      "time_seconds": 1.06,
+      "time_seconds": 1.66,
       "error": null
     },
     {
@@ -947,7 +947,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete, providing the exact vote share for the Arab party in Knesset 21.",
-      "time_seconds": 1.28,
+      "time_seconds": 1.25,
       "error": null
     },
     {
@@ -967,7 +967,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer incorrectly identifies Washington, GA as the state with the closest margin, while it should have mentioned Georgia or Arizona.",
-      "time_seconds": 2.34,
+      "time_seconds": 3.3,
       "error": null
     },
     {
@@ -977,7 +977,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "Number of right-bloc coalitions reaching 61 seats",
-      "actual_answer": "The context does not provide specific information on the number of possible right-bloc coalitions in K24. Therefore, I cannot answer the question based on the retrieved context.",
+      "actual_answer": "The context does not provide enough information to determine the number of possible right-bloc coalitions in K24.",
       "expected_tool": "coalition_calculator",
       "tools_used": [
         "rag_retrieval",
@@ -985,9 +985,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 1,
-      "judge_reason": "The answer acknowledges a lack of information but fails to provide any relevant context or attempt to estimate the number of coalitions.",
-      "time_seconds": 1.52,
+      "judge_score": 2,
+      "judge_reason": "The answer acknowledges a lack of information but fails to address the question about the number of coalitions that could reach 61 seats.",
+      "time_seconds": 1.55,
       "error": null
     },
     {
@@ -1007,7 +1007,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer indicates a lack of relevant information but does not provide any population data, making it mostly unhelpful.",
-      "time_seconds": 1.13,
+      "time_seconds": 1.52,
       "error": null
     },
     {
@@ -1017,7 +1017,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Sum of Biden votes where urban_rural='Urban' in 2020",
-      "actual_answer": "The retrieved context does not provide enough information to determine the total number of votes Joseph R. Biden Jr. received in urban counties in 2020.",
+      "actual_answer": "The retrieved context does not provide enough information to determine the total number of votes Biden received in urban counties in 2020.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1026,8 +1026,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 2,
-      "judge_reason": "The answer acknowledges a lack of information but does not attempt to provide any relevant context or data that could help answer the question.",
-      "time_seconds": 2.04,
+      "judge_reason": "The answer acknowledges a lack of information but does not attempt to provide any context or related data that could help understand the situation.",
+      "time_seconds": 1.5,
       "error": null
     },
     {
@@ -1046,8 +1046,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 0,
-      "judge_reason": "The answer fails to provide any relevant information or attempt to address the question about county-level flips.",
-      "time_seconds": 1.28,
+      "judge_reason": "The answer fails to provide any relevant information or attempt to address the question.",
+      "time_seconds": 1.89,
       "error": null
     },
     {
@@ -1057,7 +1057,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "Highest seats for Meretz across all Knessets",
-      "actual_answer": "Meretz's best election result by seats was 10 seats in K15.",
+      "actual_answer": "The retrieved context does not contain information about Meretz's election results or the number of seats it has won in any election.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1065,8 +1065,8 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 5,
-      "judge_reason": "The answer correctly identifies Meretz's best election result by stating it was 10 seats in Knesset 15.",
+      "judge_score": 0,
+      "judge_reason": "The answer fails to provide any relevant information about Meretz's election results or seat counts.",
       "time_seconds": 1.26,
       "error": null
     },
@@ -1086,8 +1086,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 1,
-      "judge_reason": "The answer fails to provide any relevant information about the total votes in 2000 and does not address the comparison requested.",
-      "time_seconds": 1.37,
+      "judge_reason": "The answer fails to provide any relevant information about the 2000 election and does not attempt to address the comparison requested.",
+      "time_seconds": 1.77,
       "error": null
     },
     {
@@ -1097,7 +1097,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Two-party vote share in suburban counties in 2024",
-      "actual_answer": "In the 2024 presidential election, suburban counties voted as follows:\n\n- IN: 41% Democrat\n- SD: 33% Democrat\n- OR: 55% Democrat\n- ME: 45% Democrat\n- HI: 63% Democrat\n- KS: 51% Democrat\n- DE: 63% Democrat\n- ID: 26% Democrat\n- OK: 29% Democrat\n- TX: 35% Democrat\n\nOverall, suburban counties showed a mix of support for both Democrats and Republicans, with some states leaning more Democratic and others more Republican.",
+      "actual_answer": "In the 2024 presidential election, suburban counties voted as follows:\n\n- IN: 41% Democrat\n- SD: 33% Democrat\n- OR: 55% Democrat\n- ME: 45% Democrat\n- HI: 63% Democrat\n- KS: 51% Democrat\n- DE: 63% Democrat\n- ID: 26% Democrat\n- OK: 29% Democrat\n- MS: 36% Democrat\n\nOverall, suburban counties showed a mix of support for both parties, with some states leaning more Democratic and others more Republican.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1106,8 +1106,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 2,
-      "judge_reason": "The answer provides some vote share percentages but lacks the overall two-party vote share and does not clearly indicate Republican percentages.",
-      "time_seconds": 2.99,
+      "judge_reason": "The answer provides some vote share percentages but lacks a comprehensive overview of the two-party vote share and does not clarify the overall voting trend.",
+      "time_seconds": 3.9,
       "error": null
     },
     {
@@ -1126,8 +1126,8 @@
       "soft_match": false,
       "tool_match": true,
       "judge_score": 0,
-      "judge_reason": "The answer fails to provide any relevant information about the NCHS urban-rural classification codes.",
-      "time_seconds": 1.1,
+      "judge_reason": "The answer does not provide any relevant information about the NCHS urban-rural classification codes.",
+      "time_seconds": 1.24,
       "error": null
     },
     {
@@ -1145,9 +1145,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 2,
-      "judge_reason": "The answer acknowledges a lack of specific information but fails to provide any context or attempt to address the question based on available data.",
-      "time_seconds": 1.58,
+      "judge_score": 1,
+      "judge_reason": "The answer fails to provide any relevant information and does not attempt to address the question about the Knesset with the most parties winning seats.",
+      "time_seconds": 1.69,
       "error": null
     },
     {
@@ -1166,8 +1166,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 1,
-      "judge_reason": "The answer acknowledges the lack of information but fails to provide any relevant context or analysis regarding the Republican vote share.",
-      "time_seconds": 1.59,
+      "judge_reason": "The answer acknowledges a lack of information but fails to provide any relevant context or analysis regarding the Republican vote share.",
+      "time_seconds": 1.71,
       "error": null
     },
     {
@@ -1186,8 +1186,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 1,
-      "judge_reason": "The answer fails to provide any relevant information about the voting pattern and does not attempt to address the question.",
-      "time_seconds": 1.25,
+      "judge_reason": "The answer fails to provide any relevant information about the voting pattern and does not address the question.",
+      "time_seconds": 1.16,
       "error": null
     },
     {
@@ -1197,7 +1197,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "State-by-state comparison of Democratic vote share",
-      "actual_answer": "The retrieved context provides voting results for specific counties in Alabama and Georgia for both Barack Obama in 2008 and Joseph Biden in 2020. Here's a comparison of their performances in the same states:\n\n1. **Washington, AL**:\n   - 2008: John McCain (Republican) received 64.4%, Barack Obama (Democrat) received 35.0%.\n   - 2020: Donald Trump (Republican) received 74.0%, Joseph Biden (Democrat) received 25.4%.\n   - **Comparison**: Both Obama and Biden received a lower percentage of votes com",
+      "actual_answer": "The retrieved context provides voting results for specific counties in Alabama and Georgia for both Barack Obama in 2008 and Joseph Biden in 2020. Here's a comparison of their performances in the same states:\n\n1. **Washington, AL**:\n   - 2008: John McCain (Republican) received 64.4%, Barack Obama (Democrat) received 35.0%.\n   - 2020: Donald Trump (Republican) received 74.0%, Joseph Biden (Democrat) received 25.4%.\n   - **Comparison**: Both Democrats lost, but Biden's percentage was lower than Ob",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1205,9 +1205,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 3,
-      "judge_reason": "The answer provides a partial comparison of vote shares in specific counties but lacks a comprehensive state-by-state analysis and does not cover all relevant states.",
-      "time_seconds": 14.31,
+      "judge_score": 4,
+      "judge_reason": "The answer provides a detailed state-by-state comparison of Democratic vote share in specific counties, but it lacks a comprehensive overview of all relevant states.",
+      "time_seconds": 18.18,
       "error": null
     },
     {
@@ -1226,8 +1226,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer is factually correct, precise, and complete, clearly explaining the seat count and the majority requirement.",
-      "time_seconds": 2.27,
+      "judge_reason": "The answer is factually correct, precise, and complete, clearly explaining the seat count and majority requirement.",
+      "time_seconds": 2.5,
       "error": null
     },
     {
@@ -1247,7 +1247,7 @@
       "tool_match": false,
       "judge_score": 1,
       "judge_reason": "The answer is mostly wrong as it only mentions three years instead of the expected seven.",
-      "time_seconds": 1.51,
+      "time_seconds": 1.39,
       "error": null
     },
     {
@@ -1267,7 +1267,7 @@
       "tool_match": false,
       "judge_score": 0,
       "judge_reason": "The answer is completely incorrect as it identifies a small county instead of the expected large county like Los Angeles.",
-      "time_seconds": 1.35,
+      "time_seconds": 1.33,
       "error": null
     },
     {
@@ -1287,7 +1287,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete, providing the exact seat count for Yisrael Beiteinu in K22.",
-      "time_seconds": 0.88,
+      "time_seconds": 1.08,
       "error": null
     },
     {
@@ -1297,7 +1297,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Two-party vote share in Micropolitan counties both years",
-      "actual_answer": "The retrieved context does not provide information about the voting results for Micropolitan counties in 2020, only for 2024. Therefore, I cannot answer how the Micropolitan counties voted in 2020 compared to 2024.",
+      "actual_answer": "The retrieved context does not provide information on how the Micropolitan counties voted in 2020, only the voting results for 2024. Therefore, I cannot answer how they voted in 2020 vs 2024.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1306,8 +1306,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 2,
-      "judge_reason": "The answer acknowledges the lack of data for 2020 but fails to provide any relevant information or context about the voting patterns in Micropolitan counties.",
-      "time_seconds": 1.79,
+      "judge_reason": "The answer acknowledges the lack of information for 2020 but fails to provide any relevant data or context about the voting patterns.",
+      "time_seconds": 2.6,
       "error": null
     },
     {
@@ -1317,7 +1317,7 @@
       "dataset": "israel",
       "config": "rag_only",
       "expected_answer": "right_haredi_pct from elections for K25",
-      "actual_answer": "The right-haredi bloc in K25 won 64 seats, which includes the following parties and their respective percentages of votes: \n\n- Likud: 23.41%\n- Shas: 8.25%\n- United Torah Judaism: 5.88%\n\nTo calculate the total percentage for the right-haredi bloc, we sum these percentages:\n\n23.41% (Likud) + 8.25% (Shas) + 5.88% (United Torah Judaism) = 37.54%\n\nTherefore, the right-haredi bloc percentage in K25 is 37.54%.",
+      "actual_answer": "The right-haredi bloc in K25 won 64 seats, which corresponds to the following parties and their percentages of votes: Likud (23.41%), Shas (8.25%), and United Torah Judaism (5.88%). To calculate the total percentage for the right-haredi bloc, we sum these percentages:\n\n23.41% (Likud) + 8.25% (Shas) + 5.88% (United Torah Judaism) = 37.54%.\n\nTherefore, the right-haredi bloc percentage in K25 is 37.54%.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1326,8 +1326,8 @@
       "soft_match": true,
       "tool_match": false,
       "judge_score": 5,
-      "judge_reason": "The answer correctly calculates the right-haredi bloc percentage in K25 and provides a clear breakdown of the contributing parties and their percentages.",
-      "time_seconds": 3.86,
+      "judge_reason": "The answer accurately calculates the right-haredi bloc percentage in K25 and provides a clear breakdown of the contributing parties and their respective percentages.",
+      "time_seconds": 4.58,
       "error": null
     },
     {
@@ -1337,7 +1337,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "Top 5 GA counties by increase in Democratic two-party share",
-      "actual_answer": "The retrieved context does not provide enough information to determine the five counties in Georgia that had the biggest swing toward Democrats from 2016 to 2020.",
+      "actual_answer": "The retrieved context does not provide enough information to determine which 5 counties in Georgia had the biggest swing toward Democrats from 2016 to 2020.",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1346,8 +1346,8 @@
       "soft_match": false,
       "tool_match": false,
       "judge_score": 0,
-      "judge_reason": "The answer fails to provide any relevant information regarding the counties in Georgia, making it completely unhelpful.",
-      "time_seconds": 1.35,
+      "judge_reason": "The answer fails to provide any relevant information or attempt to address the question.",
+      "time_seconds": 1.75,
       "error": null
     },
     {
@@ -1366,8 +1366,8 @@
       "soft_match": false,
       "tool_match": true,
       "judge_score": 0,
-      "judge_reason": "The answer fails to provide any relevant information about the datasets and election types, which is the core of the question.",
-      "time_seconds": 1.33,
+      "judge_reason": "The answer fails to provide any relevant information about the datasets and election types, making it completely unhelpful.",
+      "time_seconds": 1.12,
       "error": null
     },
     {
@@ -1387,7 +1387,7 @@
       "tool_match": false,
       "judge_score": 5,
       "judge_reason": "The answer is factually correct, precise, and complete, providing the exact number of localities in the Israeli database.",
-      "time_seconds": 1.42,
+      "time_seconds": 1.59,
       "error": null
     },
     {
@@ -1397,7 +1397,7 @@
       "dataset": "us",
       "config": "rag_only",
       "expected_answer": "~66%",
-      "actual_answer": "The retrieved context does not provide enough information to determine the overall Democratic two-party vote share in urban counties for the 2020 elections.",
+      "actual_answer": "The Democratic two-party vote share in urban counties in 2020 varied by state, but the context provides specific percentages for several states. Here are the urban Democratic vote shares from the retrieved context:\n\n- Oregon (OR): 69% Dem\n- Maine (ME): 63% Dem\n- Indiana (IN): 54% Dem\n- Washington D.C. (DC): 94% Dem\n- New York (NY): 70% Dem\n- Colorado (CO): 62% Dem\n- Michigan (MI): 63% Dem\n- Hawaii (HI): 64% Dem\n- California (CA): 66% Dem\n- Connecticut (CT): 61% Dem\n\nTo calculate an overall Democ",
       "expected_tool": "data_query",
       "tools_used": [
         "rag_retrieval",
@@ -1405,9 +1405,9 @@
       ],
       "soft_match": false,
       "tool_match": false,
-      "judge_score": 2,
-      "judge_reason": "The answer acknowledges a lack of information but fails to provide any relevant context or approximate figures.",
-      "time_seconds": 1.93,
+      "judge_score": 3,
+      "judge_reason": "The answer provides relevant state-specific data but fails to give a clear overall Democratic two-party vote share for urban counties as requested.",
+      "time_seconds": 3.88,
       "error": null
     }
   ],

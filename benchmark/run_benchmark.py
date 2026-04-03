@@ -11,6 +11,7 @@ Runs each question through all 4 configs (or a single config) and records:
 """
 import json, os, sys, time, re
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
 # Add parent dir to path so we can import agent
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -123,7 +124,7 @@ def llm_judge(question: str, expected: str, actual: str, judge_llm) -> dict:
         return {"score": -1, "reason": f"Judge error: {e}"}
 
 
-def run_benchmark(configs=None, model="gpt-4o-mini", output_path=None, use_judge=True):
+def run_benchmark(configs=None, model="gpt-4o-mini", output_path=None, use_judge=True, retrieval_method="minilm"):
     questions = load_questions()
     configs = configs or list(CONFIGS.keys())
 
@@ -153,7 +154,13 @@ def run_benchmark(configs=None, model="gpt-4o-mini", output_path=None, use_judge
         for config in configs:
             try:
                 start = time.time()
-                result = run_question(question, config=config, model=model)
+                # Timeout per question: 120s to prevent ReAct agent infinite loops
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(run_question, question, config=config, model=model, retrieval_method=retrieval_method)
+                    try:
+                        result = future.result(timeout=120)
+                    except FuturesTimeout:
+                        raise TimeoutError(f"Q{qid} timed out after 120s on config={config}")
                 elapsed = time.time() - start
 
                 answer = result.get("answer", "")
@@ -311,7 +318,11 @@ if __name__ == "__main__":
                         help="Output JSON file path")
     parser.add_argument("--no-judge", action="store_true",
                         help="Disable LLM-as-judge scoring (faster, cheaper)")
+    parser.add_argument("--retrieval-method", type=str, default="minilm",
+                        choices=["minilm", "mpnet", "openai", "keyword"],
+                        help="Retrieval method for RAG (default: minilm)")
     args = parser.parse_args()
 
     configs = [args.config] if args.config else None
-    run_benchmark(configs=configs, model=args.model, output_path=args.output, use_judge=not args.no_judge)
+    run_benchmark(configs=configs, model=args.model, output_path=args.output,
+                  use_judge=not args.no_judge, retrieval_method=args.retrieval_method)

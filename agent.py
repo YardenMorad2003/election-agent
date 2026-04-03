@@ -6,7 +6,7 @@ Config 2: RAG-Only (retrieve chunks → LLM)
 Config 3: Agent + Fixed Routing (keyword rules → tool)
 Config 4: Agent + Dynamic Routing (LLM picks tools via ReAct)
 """
-import os, json, sqlite3, re
+import os, json, re
 import numpy as np
 from typing import Literal
 from dotenv import load_dotenv
@@ -105,13 +105,11 @@ def _build_rag_chunks():
     if _rag_chunks is not None:
         return _rag_chunks
 
-    db_path = os.path.join(os.path.dirname(__file__), "elections.db")
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    from db import fetch_all
     chunks = []
 
     # Election summaries
-    for row in conn.execute("SELECT * FROM elections ORDER BY knesset"):
+    for row in fetch_all("SELECT * FROM elections ORDER BY knesset"):
         chunks.append(
             f"Knesset {row['knesset']} ({row['year']}): "
             f"Eligible voters: {row['total_eligible']:,}. Turnout: {row['turnout_pct']}%. "
@@ -123,24 +121,26 @@ def _build_rag_chunks():
         )
 
     # Party results per election
-    for row in conn.execute(
+    from tools.chart import HEBREW_TO_ENGLISH
+    for row in fetch_all(
         "SELECT knesset, name, bloc, vote_pct, seats FROM parties WHERE seats>0 ORDER BY knesset, seats DESC"
     ):
+        name = row['name']
+        eng_name = HEBREW_TO_ENGLISH.get(name, name)
+        label = f"{eng_name} ({name})" if eng_name != name else name
         chunks.append(
-            f"K{row['knesset']}: {row['name']} ({row['bloc']}) — "
+            f"K{row['knesset']}: {label} ({row['bloc']}) — "
             f"{row['vote_pct']}% of votes, {row['seats']} seats."
         )
 
     # Socioeconomic summaries
-    for row in conn.execute("SELECT * FROM socioeconomic LIMIT 201"):
+    for row in fetch_all("SELECT * FROM socioeconomic LIMIT 201"):
         chunks.append(
             f"Socioeconomic — {row['name']}: pop {row['population']:.0f}, "
             f"median age {row['median_age']}, "
             f"academic degree {row['pct_academic_degree']:.1f}%, "
             f"income/capita {row['avg_monthly_income_per_capita']:.0f} NIS."
         )
-
-    conn.close()
     _rag_chunks = chunks
     return chunks
 
@@ -400,13 +400,17 @@ def _classify_question(question: str) -> str:
 
 
 def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
-                      routing_method: str = "zeroshot") -> dict:
+                      routing_method: str = "finetuned") -> dict:
     """Config 3: Fixed routing with configurable classification method.
 
-    routing_method: "zeroshot" (BART-MNLI), "embedding" (cosine centroids), or "keyword"
+    routing_method: "finetuned" (DistilBERT), "zeroshot" (BART-MNLI),
+                    "embedding" (cosine centroids), or "keyword"
     """
     llm = llm or get_llm()
-    if routing_method == "zeroshot":
+    if routing_method == "finetuned":
+        from classifiers import classify_question_finetuned
+        route = classify_question_finetuned(question)
+    elif routing_method == "zeroshot":
         route = classify_question_zeroshot(question)
     elif routing_method == "embedding":
         route = _classify_question_embedding(question)
@@ -455,7 +459,10 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
-    result = agent.invoke({"messages": [HumanMessage(content=question)]})
+    result = agent.invoke(
+        {"messages": [HumanMessage(content=question)]},
+        config={"recursion_limit": 25},
+    )
 
     # extract trace and chart paths
     messages = result["messages"]
@@ -498,8 +505,11 @@ CONFIGS = {
 }
 
 def run_question(question: str, config: str = "dynamic_routing",
-                 model: str = "gpt-4o-mini") -> dict:
+                 model: str = "gpt-4o-mini",
+                 retrieval_method: str = "minilm") -> dict:
     llm = get_llm(model=model)
+    if config == "rag_only":
+        return CONFIGS[config](question, llm, retrieval_method=retrieval_method)
     return CONFIGS[config](question, llm)
 
 
@@ -528,7 +538,10 @@ def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
         elif msg["role"] == "assistant":
             lc_messages.append(AIMessage(content=msg["content"]))
 
-    result = agent.invoke({"messages": lc_messages})
+    result = agent.invoke(
+        {"messages": lc_messages},
+        config={"recursion_limit": 25},
+    )
 
     # Extract trace and chart paths
     out_messages = result["messages"]

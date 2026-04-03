@@ -1,22 +1,16 @@
 """
 Coalition Calculator Tool — finds party combinations that reach 61+ seats.
 """
-import sqlite3, os
 from itertools import combinations
 from langchain_core.tools import tool
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "elections.db")
+from db import fetch_all
 
 
 def _get_parties(knesset: int) -> list[dict]:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    rows = conn.execute(
+    return fetch_all(
         "SELECT name, code, bloc, seats FROM parties WHERE knesset=? AND seats>0 ORDER BY seats DESC",
         (knesset,)
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    )
 
 
 def _find_coalitions(parties: list[dict], min_seats: int = 61,

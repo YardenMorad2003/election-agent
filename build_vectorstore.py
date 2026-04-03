@@ -179,11 +179,15 @@ def build_israeli_chunks(conn):
             "country": "IL",
         })
 
-    # Party results
+    # Party results — include English name alongside Hebrew for cross-lingual retrieval
+    from tools.chart import HEBREW_TO_ENGLISH
     for row in conn.execute(
         "SELECT knesset, name, bloc, vote_pct, seats FROM parties WHERE seats>0 ORDER BY knesset, seats DESC"
     ):
-        text = (f"K{row['knesset']}: {row['name']} ({row['bloc']}) - "
+        name = row['name']
+        eng_name = HEBREW_TO_ENGLISH.get(name, name)
+        label = f"{eng_name} ({name})" if eng_name != name else name
+        text = (f"K{row['knesset']}: {label} ({row['bloc']}) - "
                 f"{row['vote_pct']}% of votes, {row['seats']} seats.")
         chunks.append(text)
         metadatas.append({
@@ -356,7 +360,7 @@ def build():
     print(f"Local embeddings done! ({elapsed:.1f}s)")
 
     # ── Step 3 (optional): Also embed with OpenAI for comparison ──
-    if "--with-openai" in sys.argv:
+    if "--with-openai" in sys.argv or "--with-all" in sys.argv:
         print(f"\n[3/3] Embedding {len(all_chunks)} chunks with OpenAI text-embedding-3-small...")
         from langchain_openai import OpenAIEmbeddings
         openai_fn = OpenAIEmbeddings(model="text-embedding-3-small")
