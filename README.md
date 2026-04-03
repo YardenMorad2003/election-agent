@@ -407,23 +407,26 @@ OPENAI_API_KEY=your-key-here
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/election_agent
 ```
 
-### 3. Download pre-built databases
+### 3. Download pre-built databases and models
 
-Download the pre-built database files from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0):
+Download the pre-built files from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0):
 
 - **`elections.db`** (1.2 GB) — SQLite database with all election data (source for PostgreSQL migration)
 - **`chroma_db.tar.gz`** (47 MB) — ChromaDB vector store with 22,799 embedded chunks
+- **`distilbert-router.tar.gz`** (235 MB) — Fine-tuned DistilBERT question router for Config 3 (fixed routing)
 
-Place `elections.db` in the project root and extract ChromaDB:
+Place `elections.db` in the project root and extract the archives:
 ```bash
 tar -xzf chroma_db.tar.gz
+mkdir -p models && tar -xzf distilbert-router.tar.gz -C models/
 ```
 
-Alternatively, build them from source CSVs (see `data/` directory):
+Alternatively, build from source:
 ```bash
 python build_db.py          # Israeli tables
 python build_us_db.py       # U.S. tables
 python build_vectorstore.py # ChromaDB (~5 min)
+python train_classifier.py  # Fine-tune DistilBERT router (~2 min)
 ```
 
 ### 4. Set up PostgreSQL
