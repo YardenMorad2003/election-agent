@@ -523,18 +523,77 @@ python -m benchmark.run_benchmark --model gpt-4o
 
 # Skip LLM-as-judge (faster, cheaper)
 python -m benchmark.run_benchmark --no-judge
+
+# Keyword ablation (no embeddings — tests retrieval quality)
+python -m benchmark.run_benchmark --config rag_only --retrieval-method keyword
 ```
 
 ### Question Categories (70 total)
 
 | Category | Count | Evaluation | Example |
 |----------|-------|------------|---------|
-| Factual | ~20 | Exact match | "Who won Georgia in 2020?" |
-| Numerical | ~15 | Tolerance-based | "What was Biden's two-party share in urban counties?" |
-| Multi-step | ~25 | Reasoning quality | "Did the urban-rural gap grow between 2000 and 2024?" |
-| Coalition | ~10 | Correctness | "Can the right bloc form a government without Shas in K25?" |
+| Factual | 23 | Exact match | "Who won Georgia in 2020?" |
+| Numerical | 20 | Tolerance-based | "What was Biden's two-party share in urban counties?" |
+| Multi-step | 21 | Reasoning quality | "Did the urban-rural gap grow between 2000 and 2024?" |
+| Coalition | 6 | Correctness | "Can the right bloc form a government without Shas in K25?" |
 
-Results are saved to `benchmark/results.json` with per-question details, and summary tables are printed for: overall, by category, and by dataset (U.S. / Israel / both).
+Results are saved to `benchmark/results*.json` with per-question details, and summary tables are printed for: overall, by category, and by dataset (U.S. / Israel / both).
+
+### Results
+
+All benchmarks run with `gpt-4o-mini`, 70 questions, LLM-as-judge enabled.
+
+#### Overall
+
+| Config | Soft Match | Judge Score | Avg Time | Errors |
+|--------|-----------|-------------|----------|--------|
+| Single-pass LLM (no tools) | 22.9% (16/70) | 3.6/5 | 2.2s | 0 |
+| RAG-only (embeddings + reranker) | 34.3% (24/70) | 2.5/5 | 2.6s | 0 |
+| Fixed routing (DistilBERT classifier) | 30.0% (21/70) | 3.3/5 | 6.5s | 0 |
+| Dynamic routing (ReAct agent) | 32.9% (23/70) | 3.3/5 | ~8s | 5 |
+
+#### By Category
+
+| Category | Single-Pass | RAG-Only | Fixed Routing | Dynamic Routing |
+|----------|------------|----------|---------------|-----------------|
+| Factual (23) | 35% / 3.7 | 52% / 2.9 | 48% / 3.6 | 57% / 3.9 |
+| Numerical (20) | 40% / 3.5 | 55% / 2.5 | 40% / 2.9 | 45% / 3.0 |
+| Multi-step (21) | 0% / 3.6 | 5% / 2.0 | 10% / 3.4 | 5% / 3.0 |
+| Coalition (6) | 0% / 3.2 | 0% / 3.2 | 0% / 3.3 | 0% / 3.5 |
+
+*Format: soft match % / judge score out of 5*
+
+#### By Dataset
+
+| Dataset | Single-Pass | RAG-Only | Fixed Routing | Dynamic Routing |
+|---------|------------|----------|---------------|-----------------|
+| U.S. (39) | 13% / 3.5 | 28% / 1.9 | 21% / 3.1 | 23% / 2.9 |
+| Israel (30) | 37% / 3.6 | 43% / 3.3 | 40% / 3.6 | 43% / 3.8 |
+
+#### Embedding Ablation: Keyword vs. Embedding Retrieval
+
+To measure the impact of dense embeddings vs. naive keyword matching in Config 2 (RAG-only):
+
+| Retrieval Method | Soft Match | Judge Score | US Match | Israel Match |
+|-----------------|-----------|-------------|----------|--------------|
+| Keyword overlap (no embeddings) | 20.0% (14/70) | 1.4/5 | 8% | 37% |
+| MiniLM embeddings + cross-encoder reranker | 34.3% (24/70) | 2.5/5 | 28% | 43% |
+
+Embeddings nearly doubled the judge score (1.4 → 2.5) and added 14 percentage points to soft match. The improvement is most pronounced on U.S. questions (8% → 28%), where the 22K county-level chunks require semantic understanding to retrieve relevant results — keyword matching fails because questions like "highest vote share" have zero keyword overlap with chunks containing actual percentages.
+
+#### Key Findings
+
+1. **Dynamic routing excels at factual questions** — 57% match and 3.9/5 judge score, the best of any config in that category. The ReAct agent can chain multiple tools and self-correct, which helps for precise lookups.
+
+2. **RAG-only has the highest overall soft match (34.3%) but the lowest judge score (2.5/5)** — it retrieves correct data fragments but the LLM's synthesis without structured SQL is less coherent. This suggests retrieval helps with recall but hurts precision when the model can't run exact queries.
+
+3. **Single-pass LLM scores highest on judge (3.6/5) despite lowest soft match (22.9%)** — without tools, the LLM gives fluent, well-reasoned answers that score well on coherence, but lacks access to precise data.
+
+4. **Multi-step and coalition questions remain hard for all configs (0-10% match)** — these require chaining multiple queries or combinatorial reasoning that current prompts don't handle well.
+
+5. **Israel outperforms U.S. across all configs (~40% vs ~20%)** — the Israeli dataset is smaller and more structured (12 elections, national-level stats), making it easier for both retrieval and SQL generation. The U.S. dataset (75K county rows, 7 elections) requires more precise queries.
+
+6. **Embeddings matter** — the keyword ablation shows that replacing MiniLM embeddings with keyword matching drops performance from 34.3% to 20.0% soft match and from 2.5 to 1.4 judge score. Dense retrieval with cross-encoder reranking is essential for the RAG pipeline.
 
 ---
 
