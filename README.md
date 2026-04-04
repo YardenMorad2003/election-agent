@@ -1,8 +1,8 @@
 # Agentic Electoral Analyst
 
-A conversational AI system for analyzing **U.S. federal elections (2000-2024)** and **Israeli Knesset elections (1996-2022)**. The system uses multiple ML models in the pipeline — vector embeddings, cross-encoder reranking, embedding-based classification, and LLM-driven tool selection — to answer questions, generate charts, and compare routing strategies.
+An AI-powered chatbot for exploring **U.S. federal elections (2000-2024)** and **Israeli Knesset elections (1996-2022)**. It chains together vector embeddings, cross-encoder reranking, NER, zero-shot classification, and LLM-driven tool selection to answer questions, generate charts, and calculate coalition scenarios — all through natural language.
 
-Project for DS-UA 301 (Large Language Models) at NYU.
+Built for DS-UA 301 (LLMs) at NYU.
 
 ---
 
@@ -25,7 +25,7 @@ Project for DS-UA 301 (Large Language Models) at NYU.
 
 ## How It Works
 
-The app is a **conversational chatbot** built with Streamlit. You ask questions about elections in natural language, and a LangGraph ReAct agent autonomously decides how to answer — choosing between SQL queries, vector search, chart generation, or a coalition calculator depending on the question.
+You type a question about elections. A LangGraph ReAct agent figures out how to answer it — maybe it writes a SQL query, maybe it searches the vector store, maybe it builds a chart, or some combination. The whole thing runs in a Streamlit chat interface.
 
 ### Architecture
 
@@ -37,10 +37,10 @@ User question
      |
      |  Agent decides which tool(s) to call (can chain multiple)
      |
-     +---> [Data Query]        NL -> SQL -> SQLite -> exact results
+     +---> [Data Query]        NL -> SQL -> PostgreSQL -> exact results
      |         |                   (with Reflexion: retries on error/empty)
      |
-     +---> [Context Search]    Question -> local MiniLM embeddings -> ChromaDB (25 chunks)
+     +---> [Context Search]    Question -> embeddings -> ChromaDB (25 chunks)
      |         |                   -> cross-encoder rerank (top 10) -> context
      |
      +---> [Create Chart]      NL -> SQL + chart config -> matplotlib -> PNG
@@ -60,195 +60,159 @@ Chat response
   - 3 contextual follow-up suggestions (LLM-generated)
 ```
 
-### Key Features
+### What makes it interesting
 
-- **Conversational memory** -- the agent sees the full chat history, so follow-up questions work naturally ("What about 2024?" after asking about 2020)
-- **Smart follow-up suggestions** -- after every response, 3 contextual follow-ups are generated based on the conversation so far, shown as clickable buttons
-- **Inline chart generation** -- ask for any visualization and the agent writes SQL, builds a matplotlib chart, and renders it directly in the chat
-- **Reflexion pattern** -- when SQL queries fail or return empty results, the agent reflects on what went wrong (wrong table, wrong name spelling, etc.) and automatically retries with a corrected query (up to 2 retries)
-- **Hebrew city name resolution** -- Israeli locality names are in Hebrew in the database; the system includes a lookup table of 30+ common cities (English -> Hebrew) so queries like "How did Kiryat Ata vote?" work correctly
-- **4-config comparison mode** -- toggle in the sidebar to run the same question through all 4 routing strategies and compare their outputs side by side
+- **Conversational memory** -- follow-ups work naturally ("What about 2024?" after asking about 2020)
+- **Follow-up suggestions** -- 3 contextual follow-ups generated after every response, shown as clickable buttons
+- **Inline charts** -- ask for a visualization and it writes SQL, builds a matplotlib chart, and renders it in the chat
+- **Reflexion** -- when a SQL query fails or returns nothing, the agent reflects on what went wrong and retries with a corrected query (up to 2 times)
+- **Hebrew city name resolution** -- Israeli localities are stored in Hebrew; a BERT-NER model + lookup table translates English city names so queries like "How did Kiryat Ata vote?" just work
+- **Cross-lingual party name expansion** -- queries mentioning romanized Hebrew ("HaAvoda"), English ("Labor"), or Hebrew party names all resolve correctly through query expansion before embedding search
+- **4-config comparison** -- run the same question through all 4 routing strategies side by side
 
 ---
 
 ## ML Pipeline
 
-The system chains **7 distinct ML models** in its pipeline — 6 of which are local/open-source HuggingFace models, with only the core LLM calling the OpenAI API. Our central research question (from the [project proposal](group13_proposal.pdf)) is: *How does tool routing strategy in an LLM-based agent affect answer quality for complex, multi-step electoral analysis questions?*
+We chain **7 ML models** through the pipeline — 6 local HuggingFace models plus GPT-4o-mini as the core LLM. The research question driving the project: *How does tool routing strategy affect answer quality for complex electoral analysis questions?*
 
-| # | Model | Provider | Type | Course Module | Where Used |
-|---|-------|----------|------|---------------|------------|
-| 1 | `all-MiniLM-L6-v2` | HuggingFace (local) | Text embeddings (384-dim) | Module 3 | ChromaDB retrieval (22K+ chunks), embedding-based question routing (Config 3) |
-| 2 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | HuggingFace (local) | Cross-encoder reranker | Module 5 | Reranks retrieved chunks from 25→10 in context_search tool |
-| 3 | `facebook/bart-large-mnli` | HuggingFace (local) | Zero-shot NLI classifier | Module 3 + 9 | Question routing in Config 3 — classifies questions to tools via natural language inference |
-| 4 | `dslim/bert-base-NER` | HuggingFace (local) | Named Entity Recognition | Module 3 | Extracts city names from questions for Hebrew name resolution before SQL generation |
-| 5 | `distilbert-base-uncased` (fine-tuned) | HuggingFace (local) | Sequence classifier | Module 7 | Question routing in Config 3 — trained on labeled benchmark questions *(planned)* |
-| 6 | `gpt-4o-mini` / `gpt-4o` | OpenAI (API) | Large Language Model | Module 4, 9, 10 | SQL generation, ReAct reasoning, answer synthesis, chart config, Reflexion, LLM-as-judge |
+| # | Model | Type | Where it's used |
+|---|-------|------|-----------------|
+| 1 | `all-MiniLM-L6-v2` | Text embeddings (384-dim, local) | ChromaDB retrieval, embedding-based routing |
+| 2 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-encoder reranker (local) | Reranks 25 retrieved chunks down to top 10 |
+| 3 | `facebook/bart-large-mnli` | Zero-shot NLI classifier (local) | Routes questions to tools in Config 3 |
+| 4 | `dslim/bert-base-NER` | Named Entity Recognition (local) | Extracts city names for Hebrew resolution |
+| 5 | `distilbert-base-uncased` (fine-tuned) | Sequence classifier (local) | Alternative question router for Config 3 |
+| 6 | `all-mpnet-base-v2` | Text embeddings (768-dim, local) | Higher-quality embedding alternative |
+| 7 | `gpt-4o-mini` / `gpt-4o` | LLM (OpenAI API) | SQL generation, reasoning, synthesis, evaluation |
 
-### How the ML models connect (Config 4 / Chat mode)
+### How they connect in practice (Config 4)
 
 ```
 User question
-     │
-     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ STEP 0: NER Preprocessing (Module 3)                            │
-│ BERT-NER (dslim/bert-base-NER) extracts city names from the     │
-│ question, maps them to exact Hebrew DB names via lookup table.   │
-│ "Kiryat Ata" → "Kiryat Ata (Hebrew: קרית אתא)"                 │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ STEP 1: ReAct Agent (Module 10 — Agentic AI)                   │
-│ The LLM follows the ReAct pattern (Yao et al., 2023):          │
-│ Thought → Action → Observation → Thought → ...                 │
-│ It autonomously decides which tool(s) to call and can chain     │
-│ multiple tools in a single turn.                                │
-└─────────┬───────────────┬──────────────┬───────────────┬────────┘
-          │               │              │               │
-          ▼               ▼              ▼               ▼
-┌─────────────┐ ┌──────────────┐ ┌────────────┐ ┌──────────────┐
-│ data_query  │ │context_search│ │create_chart│ │coalition_calc│
-│ (Module 9)  │ │ (Module 5)   │ │ (Module 9) │ │ (Module 9)   │
-└──────┬──────┘ └──────┬───────┘ └─────┬──────┘ └──────┬───────┘
-       │               │               │               │
-       ▼               ▼               ▼               ▼
-  ┌─────────┐   ┌────────────┐   ┌──────────┐   ┌───────────┐
-  │ LLM     │   │ Embeddings │   │ LLM      │   │ Brute-    │
-  │ writes  │   │ encode     │   │ writes   │   │ force     │
-  │ SQL     │   │ question   │   │ SQL +    │   │ seat      │
-  │(Mod. 4) │   │ (Module 3) │   │ chart    │   │ combos    │
-  └────┬────┘   └─────┬──────┘   │ config   │   │ (≥61)     │
-       │              │          └────┬─────┘   └───────────┘
-       ▼              ▼               ▼
-  ┌─────────┐   ┌────────────┐   ┌──────────┐
-  │ SQLite  │   │ ChromaDB   │   │ SQLite   │
-  │ execute │   │ retrieve   │   │ execute  │
-  └────┬────┘   │ 25 chunks  │   └────┬─────┘
-       │        └─────┬──────┘        │
-       │              ▼               ▼
-       │        ┌────────────┐   ┌──────────┐
-       │        │Cross-encoder│  │matplotlib│
-       │        │ rerank→top │   │ render   │
-       │        │ 10 (Mod. 5)│   │ chart    │
-       │        └────────────┘   └──────────┘
-       │
-  ┌────▼─────────────────────────────┐
-  │ On error or empty results:       │
-  │ REFLEXION (Module 10)            │
-  │ LLM reflects on what went wrong  │
-  │ (wrong table? wrong name?) and   │
-  │ generates a corrected SQL query. │
-  │ Up to 2 retries.                 │
-  └──────────────────────────────────┘
-       │
-       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ STEP 2: Answer Synthesis (Module 4 — Prompt Engineering)        │
-│ The ReAct agent receives tool outputs as "Observations" and     │
-│ synthesizes a final natural language answer with citations.      │
-└─────────────────────────────────────────────────────────────────┘
-       │
-       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ STEP 3: Follow-Up Generation                                    │
-│ A separate LLM call generates 3 contextual follow-up            │
-│ suggestions based on the conversation so far.                   │
-└─────────────────────────────────────────────────────────────────┘
+     |
+     v
++-----------------------------------------------------------------+
+| STEP 0: NER Preprocessing                                       |
+| BERT-NER extracts city names, maps to Hebrew via lookup table.  |
+| "Kiryat Ata" -> "Kiryat Ata (Hebrew: קרית אתא)"               |
++-----------------------------------------------------------------+
+     |
+     v
++-----------------------------------------------------------------+
+| STEP 1: ReAct Agent (Yao et al., 2023)                         |
+| Thought -> Action -> Observation -> Thought -> ...              |
+| Autonomously picks tool(s), can chain multiple in one turn.     |
++-----------------------------------------------------------------+
+     |               |              |               |
+     v               v              v               v
++-----------+ +-------------+ +----------+ +--------------+
+| data_query| |context_search| |create_chart| |coalition_calc|
++-----------+ +-------------+ +----------+ +--------------+
+     |               |               |               |
+     v               v               v               v
+  LLM writes    Embeddings      LLM writes      Brute-force
+  SQL           encode query    SQL + chart     seat combos
+     |               |          config           (>=61)
+     v               v               v
+  PostgreSQL    ChromaDB        PostgreSQL
+  execute       retrieve 25     execute
+     |               |               |
+     |               v               v
+     |          Cross-encoder    matplotlib
+     |          rerank -> 10    render chart
+     |
+     v
+  On error/empty: Reflexion
+  LLM reflects on failure, generates corrected SQL (up to 2 retries)
+     |
+     v
++-----------------------------------------------------------------+
+| STEP 2: Synthesis                                                |
+| Agent combines tool outputs into a natural language answer.      |
++-----------------------------------------------------------------+
+     |
+     v
++-----------------------------------------------------------------+
+| STEP 3: Follow-Up Generation                                    |
+| Separate LLM call produces 3 contextual follow-up suggestions.  |
++-----------------------------------------------------------------+
 ```
 
-### Detailed AI Process by Step
+### Step-by-step breakdown
 
-1. **Question preprocessing with NER (Module 3)** — Before any LLM call, a BERT-based Named Entity Recognition model (`dslim/bert-base-NER`) extracts location entities from the question. Detected city names (e.g., "Kiryat Ata") are matched against a Hebrew lookup table and the exact Hebrew equivalent (e.g., `קרית אתא`) is injected into the question. This removes a common failure mode where the LLM generates incorrect Hebrew strings in SQL. The NER model handles cities the hardcoded dictionary might miss, with dictionary fallback for robustness.
+1. **NER preprocessing** -- Before anything else, BERT-NER (`dslim/bert-base-NER`) pulls location entities out of the question. If it finds "Kiryat Ata", it looks up the Hebrew equivalent (`קרית אתא`) and injects it. This prevents the LLM from guessing (usually wrong) Hebrew strings in SQL.
 
-2. **ReAct reasoning (Module 10)** — The LangGraph ReAct agent implements the Thought-Action-Observation loop from [Yao et al., 2023]. The LLM receives the conversation history + available tool descriptions, reasons about which tool is needed, emits a structured tool call, observes the result, and decides whether to call another tool or produce a final answer. This is the "dynamic routing" strategy — the LLM has full autonomy over tool selection, unlike Config 3 (fixed routing) where an embedding classifier pre-determines the tool.
+2. **ReAct reasoning** -- The LangGraph agent follows the Thought-Action-Observation loop. It sees the conversation history and available tools, reasons about what to do, calls a tool, observes the result, and either calls another tool or produces a final answer. In Config 4 (the default), the LLM has full autonomy over tool selection.
 
-3. **SQL generation via prompt engineering (Module 4)** — The data_query and create_chart tools use carefully engineered system prompts containing the full database schema, query patterns (e.g., how to compute flipped counties using window functions), Hebrew name lookups, and domain-specific rules. The LLM generates a SQL query from natural language — this is a form of *tool-assisted LLM* (Module 9) where the LLM's output is executed as code against an external system.
+3. **SQL generation** -- The data_query and create_chart tools use system prompts containing the full database schema, query patterns, Hebrew name lookups, and domain rules. The LLM writes SQL from natural language that gets executed against PostgreSQL.
 
-4. **Reflexion self-correction (Module 10)** — When a SQL query fails or returns empty results, the system implements the Reflexion pattern: the failed query and error message are fed back to the LLM with diagnostic hints (e.g., "candidate names must be UPPERCASE", "use exact match for Hebrew locality names"). The LLM reflects on what went wrong and generates a corrected query. This retry loop runs up to 2 times, enabling the system to recover from errors autonomously rather than surfacing failures to the user.
+4. **Reflexion** -- When SQL fails or comes back empty, the error gets fed back to the LLM with hints ("candidate names must be UPPERCASE", "use exact Hebrew locality names"). It figures out what went wrong and tries again, up to 2 times.
 
-5. **Dense retrieval + reranking (Module 5)** — The context_search tool implements a two-stage RAG pipeline. First, the question is encoded with `all-MiniLM-L6-v2` (a local sentence-transformer, no API calls) and the 25 nearest chunks are retrieved from ChromaDB by cosine similarity (dense retrieval). Then, a cross-encoder (`ms-marco-MiniLM-L-6-v2`) reranks those 25 chunks to the top 10. The cross-encoder is more accurate than bi-encoder cosine similarity because it processes the (query, chunk) pair jointly through BERT's attention layers, capturing token-level interactions that independent embeddings miss.
+5. **Dense retrieval + reranking** -- The context_search tool encodes the question with MiniLM (locally, no API calls), pulls the 25 nearest chunks from ChromaDB, then a cross-encoder reranks them to the top 10. The cross-encoder is more accurate because it processes each (query, chunk) pair jointly through BERT's attention layers, rather than comparing independent embeddings.
 
-6. **Zero-shot question routing (Module 3 + 9)** — In Config 3 (Fixed Routing), questions are classified to tools using `facebook/bart-large-mnli`, a zero-shot NLI classifier. The model checks entailment between the user's question and descriptive candidate labels for each tool category (e.g., "looking up election results, vote counts, percentages" → data_query). This replaces simple keyword matching with ML-based classification that generalizes to unseen question phrasings. An alternative embedding-based routing method (cosine similarity to pre-computed centroids using `all-MiniLM-L6-v2`) is also available.
+6. **Zero-shot routing** -- In Config 3, questions get classified to tools using `bart-large-mnli`. The model checks entailment between the question and descriptive labels for each tool ("looking up election results, vote counts" -> data_query). An embedding-based alternative (cosine similarity to pre-computed centroids) is also available.
 
-7. **LLM-as-judge evaluation (Module 13)** — The benchmark suite evaluates answer quality using two methods: deterministic soft matching (substring + numeric tolerance) and LLM-as-judge scoring on a 0-5 rubric. A separate LLM call scores each answer on correctness, completeness, and relevance, providing partial credit for answers that are directionally correct but imprecise — something exact-match metrics cannot capture.
+7. **LLM-as-judge** -- The benchmark evaluates answers with both soft matching and a separate LLM scoring call on a 0-5 rubric, giving partial credit for answers that are directionally right but imprecise.
 
 ---
 
 ## Tools
 
 ### Data Query (`data_query`)
-Translates natural language questions into SQL and executes them against the PostgreSQL election database (falls back to SQLite if `DATABASE_URL` is not set). Supports both U.S. and Israeli datasets. The LLM picks the right table based on context clues (state names, Knesset numbers, etc.).
+Natural language to SQL, executed against PostgreSQL (SQLite fallback if `DATABASE_URL` isn't set). Covers both U.S. and Israeli datasets. The LLM picks the right table from context clues.
 
-**Security**: All connections are read-only. SQL is validated before execution — `DROP`, `DELETE`, `INSERT`, `UPDATE`, and `ALTER` statements are blocked. A `LIMIT 50` is automatically enforced on all queries.
-
-**NER preprocessing**: Before SQL generation, a BERT-NER model (`dslim/bert-base-NER`) extracts city names from the question and injects the exact Hebrew equivalent (e.g., "Kiryat Ata" → `קרית אתא`), preventing incorrect Hebrew transliteration in queries.
-
-**Reflexion**: If the SQL query errors or returns empty results, the tool sends the failed query + error back to the LLM with diagnostic hints (uppercase candidate names, exact Hebrew name matching, correct table selection). The LLM reflects on what went wrong and generates a corrected query. Retries up to 2 times.
+- **Security**: Read-only connections. `DROP`, `DELETE`, `INSERT`, `UPDATE`, `ALTER` are blocked. `LIMIT 50` auto-appended.
+- **NER**: BERT-NER extracts city names and injects Hebrew equivalents before SQL generation.
+- **Reflexion**: Failed queries get fed back with diagnostic hints; the LLM retries up to 2 times.
 
 ### Context Search (`context_search`)
-Queries the ChromaDB vector store containing **22,799 embedded text chunks**. A "chunk" is a short, self-contained piece of text (1-3 sentences) that describes one fact about the election data. The system pre-generates these from the database at build time (`build_vectorstore.py`), then embeds each one as a 384-dimensional vector using `all-MiniLM-L6-v2` so they can be searched semantically — like index cards in a library catalog.
+Two-stage RAG over **22,799 embedded chunks** in ChromaDB. Each chunk is a 1-3 sentence fact about the election data, pre-generated from the database at build time.
 
-#### What's in the 22,799 chunks
+#### What's in the chunks
 
-| Chunk Type | Count | What it contains | Example |
-|-----------|-------|-----------------|---------|
-| County summaries | 22,083 | One per county per election year — candidate names, parties, vote counts, percentages, urban/rural classification | *"In 2020, Maricopa, AZ (Large central metro): JOSEPH R BIDEN (DEMOCRAT) received 1,040,774 votes (50.3%); DONALD J TRUMP (REPUBLICAN) received 995,665 votes (48.1%)."* |
-| State summaries | 357 | One per state per year — winner, party totals, urban/suburban/rural Democratic vote share | *"In 2020, GA: DEMOCRAT won with 2,473,633 votes (49.5%). Urban: 72% Dem. Rural: 28% Dem."* |
-| Israeli data | 349 | National election stats (12 elections), party results (seats, blocs), and socioeconomic profiles (201 municipalities) | *"K25: הליכוד (right) — 23.4% of votes, 32 seats."* |
-| Documentation | 7 | Bloc definitions, dataset descriptions, coalition formation context, what tables/columns are available | *"Israeli aggregate bloc groupings: 'Right+Haredi bloc' combines the right and haredi blocs..."* |
-| NCHS context | 3 | Urban-rural classification code definitions and data coverage | *"The NCHS Urban-Rural Classification divides U.S. counties into 6 categories..."* |
+| Type | Count | Example |
+|------|-------|---------|
+| County summaries | 22,083 | *"In 2020, Maricopa, AZ (Large central metro): JOSEPH R BIDEN (DEMOCRAT) received 1,040,774 votes (50.3%)..."* |
+| State summaries | 357 | *"In 2020, GA: DEMOCRAT won with 2,473,633 votes (49.5%). Urban: 72% Dem."* |
+| Israeli data | 349 | *"K25: Likud (הליכוד) (right) - 23.4% of votes, 32 seats."* |
+| Documentation | 7 | Bloc definitions, table descriptions, coalition context |
+| NCHS context | 3 | Urban-rural classification codes and coverage |
 
-#### How retrieval works
+#### Retrieval pipeline
 
-When you ask a question, the system converts it to a vector using the same embedding model, finds the 25 most similar chunk vectors in ChromaDB (dense retrieval), then a cross-encoder (`ms-marco-MiniLM-L-6-v2`) re-scores those 25 and keeps the top 10. Those 10 chunks become the context the LLM uses to answer.
+Question comes in -> party name expansion (romanized/English/Hebrew aliases appended) -> MiniLM encodes to 384-dim vector -> 25 nearest chunks from ChromaDB -> cross-encoder reranks to top 10 -> passed to LLM as context.
 
-> **Note on earlier versions**: An earlier version of the codebase included a keyword-based retrieval fallback (`_keyword_retrieve`) that activated when ChromaDB was not built. Since `chroma_db/` is excluded from the Git repository (too large), anyone cloning the repo without running `build_vectorstore.py` would silently fall back to keyword matching — which has no semantic understanding, no fuzzy matching, and no relevance ranking. This has been addressed: ChromaDB is now available as a [pre-built download](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0), and the keyword fallback remains only as a last-resort safety net, not as the intended retrieval method.
+Three embedding models are available for comparison: MiniLM (default), MPNet (768-dim), and OpenAI `text-embedding-3-small` (1536-dim).
 
 ### Create Chart (`create_chart`)
-Generates matplotlib visualizations from election data. The LLM writes both the SQL query and a chart configuration (type, title, axes, grouping). Supports: bar, horizontal bar, grouped bar, stacked bar, line, pie, and scatter charts. Israeli party breakdowns use horizontal bar charts for readability. Hebrew party names are automatically translated to English (e.g., "הליכוד" → "Likud"). Charts are saved as PNG files and rendered inline in the Streamlit chat.
-
-**Reflexion**: If the SQL fails or returns no data, the LLM reflects on the error and retries with a corrected query. Retries up to 2 times.
+The LLM writes both the SQL and a chart config (type, title, axes, grouping). Supports bar, grouped bar, stacked bar, line, pie, and scatter. Hebrew party names auto-translate to English (54 mappings). Charts render inline in the Streamlit chat. Reflexion retries on failure.
 
 ### Coalition Calculator (`coalition_calculator`)
-Brute-force search over Israeli party combinations to find coalitions reaching 61+ seats (out of 120). Supports:
-- Must-include parties (e.g., "coalitions including Likud")
-- Maximum coalition size (e.g., "3-party coalitions")
-- Bloc filters (e.g., "right-bloc coalitions only")
+Brute-force search over Israeli party seat combinations to find coalitions reaching 61+ seats. Supports must-include parties, max coalition size, and bloc filters.
 
 ### Web Search (`web_search`)
-Searches public web endpoints for current events, background facts, and information that is outside the local election database. Useful for questions about current office holders, recent news, or general political background that the database (which only covers through 2022) cannot answer.
+DuckDuckGo + Wikipedia for current events and background facts outside the database's coverage.
 
 ---
 
 ## Routing Configurations
 
-The system implements 4 routing strategies to compare how different levels of tool access and ML affect answer quality:
+Four strategies, compared head-to-head in the benchmark:
 
 ### Config 1: Single-Pass LLM (Baseline)
-- No tools, no retrieval
-- LLM answers from training knowledge only
-- Tests: what does the LLM know without any data access?
+No tools, no retrieval. The LLM answers from training knowledge only. Tests what the model knows without data access.
 
 ### Config 2: RAG-Only
-- ChromaDB vector retrieval (local MiniLM embeddings)
-- Cross-encoder reranking (ms-marco-MiniLM-L-6-v2)
-- LLM synthesizes answer from retrieved context only (no SQL)
-- Tests: can retrieval + reranking provide accurate answers without structured queries?
+ChromaDB retrieval with MiniLM embeddings + cross-encoder reranking. No SQL. Tests whether retrieval alone can provide accurate answers.
 
-### Config 3: Fixed Routing (Embedding-Based)
-- Questions are classified to tools using **cosine similarity** between the question embedding and pre-computed reference centroids for each tool category (data_query, coalition_calculator, context_search)
-- This replaces simple keyword matching (`if "coalition" in question`) with actual ML-based classification
-- The selected tool runs, then the LLM synthesizes the answer
-- Tests: does embedding-based routing pick the right tool?
+### Config 3: Fixed Routing
+An embedding classifier (or zero-shot NLI) decides which single tool to run based on the question. The tool executes, then the LLM synthesizes the answer. Tests ML-based routing vs. LLM autonomy.
 
-### Config 4: Dynamic Routing (ReAct Agent) -- **Default**
-- LangGraph ReAct agent with all 5 tools available
-- The LLM autonomously decides which tool(s) to call, can chain multiple tools, and reasons step by step
-- Full conversation history is maintained
-- Tests: does giving the LLM full autonomy produce better results?
+### Config 4: Dynamic Routing (ReAct) -- Default
+Full ReAct agent with all 5 tools. The LLM decides what to call, can chain tools, and reasons step by step. Tests whether full autonomy beats fixed routing.
 
-**Compare mode**: Toggle "Compare all 4 configs" in the sidebar to run a question through all 4 strategies and see the outputs side by side in a 2x2 grid.
+**Compare mode**: Toggle in the sidebar to run all 4 configs on the same question in a 2x2 grid.
 
 ---
 
@@ -258,10 +222,10 @@ The system implements 4 routing strategies to compare how different levels of to
 
 | Table | Scope | Years | Rows |
 |-------|-------|-------|------|
-| `us_president_county` | County-level presidential results | 2000-2024 (7 elections) | ~75K |
-| `us_president_precinct` | Precinct-level presidential results | 2016, 2020, 2024 | ~3.4M |
-| `us_house_precinct` | Precinct-level House results | 2016, 2018, 2020 | ~2.2M |
-| `us_senate_precinct` | Precinct-level Senate results | 2016, 2018, 2020 | ~1.9M |
+| `us_president_county` | County-level presidential | 2000-2024 (7 elections) | ~75K |
+| `us_president_precinct` | Precinct-level presidential | 2016, 2020, 2024 | ~3.4M |
+| `us_house_precinct` | Precinct-level House | 2016, 2018, 2020 | ~2.2M |
+| `us_senate_precinct` | Precinct-level Senate | 2016, 2018, 2020 | ~1.9M |
 
 Every U.S. record includes **NCHS urban-rural classification**:
 - **Urban** -- Large central metro (code 1) + Medium metro (code 3)
@@ -272,10 +236,10 @@ Every U.S. record includes **NCHS urban-rural classification**:
 
 | Table | Scope | Coverage | Rows |
 |-------|-------|----------|------|
-| `elections` | National-level stats per election | K14-K25 (1996-2022) | 12 |
-| `parties` | National party results (votes, seats, bloc) | K14-K25 | 151 |
+| `elections` | National stats per election | K14-K25 (1996-2022) | 12 |
+| `parties` | National party results | K14-K25 | 151 |
 | `localities` | Per-locality bloc breakdowns | 1,384 localities x 12 elections | ~14K |
-| `party_locality` | Per-locality party vote percentages | 1,384 localities x 12 elections | ~179K |
+| `party_locality` | Per-locality party votes | 1,384 localities x 12 elections | ~179K |
 | `socioeconomic` | Municipal indicators | 201 municipalities | 201 |
 
 ---
@@ -332,16 +296,14 @@ socioeconomic(name PK, population, median_age, dependency_ratio,
 
 ## Israeli Political Blocs
 
-The database classifies Israeli parties into 6 blocs, with two aggregate groupings:
-
-### Bloc Definitions
+Israeli parties fall into 6 blocs, with two aggregate groupings used throughout the database:
 
 | Bloc | Parties (K25 example) | Description |
 |------|----------------------|-------------|
 | **right** | Likud, Religious Zionism, Jewish Home | Nationalist right |
-| **haredi** | Shas, United Torah Judaism (UTJ) | Ultra-Orthodox religious parties |
+| **haredi** | Shas, United Torah Judaism | Ultra-Orthodox religious |
 | **center** | Yesh Atid, National Unity | Centrist / liberal |
-| **left** | Labor, Meretz | Social-democratic / progressive |
+| **left** | Labor, Meretz | Social-democratic |
 | **arab** | Ra'am, Hadash-Ta'al, Balad | Arab-majority parties |
 | **opposition_right** | Yisrael Beiteinu | Right-leaning secular, historically in opposition |
 
@@ -349,10 +311,10 @@ The database classifies Israeli parties into 6 blocs, with two aggregate groupin
 
 | Field | Formula | Meaning |
 |-------|---------|---------|
-| `right_haredi_pct` | right + haredi | Natural coalition partners (e.g., K25 coalition: Likud + RZ + Shas + UTJ = 64 seats) |
+| `right_haredi_pct` | right + haredi | Natural coalition partners (e.g., K25: Likud + RZ + Shas + UTJ = 64 seats) |
 | `center_left_arab_pct` | center + left + arab + **opposition_right** | The opposition bloc. Yisrael Beiteinu is counted here, NOT in right_haredi. |
 
-The ChromaDB vector store contains detailed bloc compositions for all 12 Knesset elections (K14-K25), including which specific parties belonged to each bloc in each election, with both Hebrew party codes and English names.
+The vector store includes detailed bloc compositions for all 12 elections with both Hebrew and English party names.
 
 ---
 
@@ -360,30 +322,31 @@ The ChromaDB vector store contains detailed bloc compositions for all 12 Knesset
 
 ```
 election-agent/
-├── agent.py              # Core: 4 routing configs, chat mode, reranker,
+├── agent.py              # Core: 4 routing configs, reranker, query expansion,
 │                         #   embedding router, context_search tool
-├── app.py                # Streamlit chatbot UI with follow-up suggestions
-├── embeddings.py         # Local embedding model wrapper (all-MiniLM-L6-v2)
-├── classifiers.py        # Zero-shot (BART-MNLI) + fine-tuned (DistilBERT) classifiers
-├── ner_preprocessor.py   # BERT-NER entity extraction for Hebrew name resolution
-├── build_db.py           # Israeli JSON -> SQLite ingestion (run once)
-├── build_us_db.py        # U.S. CSV -> SQLite ingestion (run once)
-├── build_vectorstore.py  # ChromaDB vector store builder (22K+ chunks)
-├── elections.db          # SQLite database (Israeli + U.S. data, ~1.2GB)
-├── chroma_db/            # ChromaDB vector store (persisted, local embeddings)
-├── charts/               # Generated chart PNGs (auto-created)
+├── app.py                # Streamlit chatbot UI
+├── db.py                 # Database connection (PostgreSQL primary, SQLite fallback)
+├── embeddings.py         # Local embedding wrappers (MiniLM, MPNet)
+├── classifiers.py        # Zero-shot (BART-MNLI) + fine-tuned (DistilBERT)
+├── ner_preprocessor.py   # BERT-NER for Hebrew city name resolution
+├── build_db.py           # Israeli JSON -> SQLite ingestion
+├── build_us_db.py        # U.S. CSV -> SQLite ingestion
+├── build_vectorstore.py  # ChromaDB builder (22K+ chunks, multi-embedding)
+├── migrate_to_postgres.py # SQLite -> PostgreSQL migration
+├── elections.db          # SQLite database (~1.2GB, fallback)
+├── chroma_db/            # ChromaDB vector store (3 collections)
+├── charts/               # Generated chart PNGs
 ├── data/                 # U.S. election CSV source files (~900MB)
-├── requirements.txt      # Python dependencies
-├── .env                  # OpenAI API key (not in git)
-├── .gitignore            # Excludes elections.db, chroma_db/, data/, charts/
+├── requirements.txt
+├── .env                  # API keys (not in git)
 ├── tools/
-│   ├── data_query.py     # NL -> SQL tool with Reflexion (both datasets)
-│   ├── coalition.py      # Coalition calculator tool
-│   ├── chart.py          # Chart generation tool with Reflexion + Hebrew name mapping
-│   └── web_search.py     # Public web search tool for current events
+│   ├── data_query.py     # NL -> SQL with Reflexion
+│   ├── coalition.py      # Coalition calculator
+│   ├── chart.py          # Chart generation + Hebrew name mapping
+│   └── web_search.py     # DuckDuckGo + Wikipedia search
 └── benchmark/
-    ├── questions.json    # 70 evaluation questions (4 categories)
-    └── run_benchmark.py  # Benchmark runner with LLM-as-judge scoring
+    ├── questions.json    # 70 evaluation questions
+    └── run_benchmark.py  # Benchmark runner with LLM-as-judge
 ```
 
 ---
@@ -396,85 +359,67 @@ election-agent/
 pip install -r requirements.txt
 ```
 
-Dependencies: `langgraph`, `langchain`, `langchain-openai`, `langchain-community`, `chromadb`, `openai`, `streamlit`, `pandas`, `python-dotenv`, `sentence-transformers`, `numpy`, `transformers`, `torch`, `psycopg2-binary`
+### 2. Environment variables
 
-### 2. Set up environment variables
-
-Create a `.env` file in the project root:
+Create `.env` in the project root:
 
 ```
 OPENAI_API_KEY=your-key-here
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/election_agent
 ```
 
-### 3. Download pre-built databases and models
+### 3. Get the data
 
-Download the pre-built files from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0):
+Download pre-built files from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0):
 
-- **`elections.db`** (1.2 GB) — SQLite database with all election data (source for PostgreSQL migration)
-- **`chroma_db.tar.gz`** (47 MB) — ChromaDB vector store with 22,799 embedded chunks
-- **`distilbert-router.tar.gz`** (235 MB) — Fine-tuned DistilBERT question router for Config 3 (fixed routing)
+- **`elections.db`** (1.2 GB) -- SQLite with all election data
+- **`chroma_db.tar.gz`** (47 MB) -- Pre-embedded vector store (22,799 chunks)
+- **`distilbert-router.tar.gz`** (235 MB) -- Fine-tuned question router
 
-Place `elections.db` in the project root and extract the archives:
 ```bash
+# Place elections.db in project root, then:
 tar -xzf chroma_db.tar.gz
 mkdir -p models && tar -xzf distilbert-router.tar.gz -C models/
 ```
 
-Alternatively, build from source:
+Or build everything from source:
 ```bash
 python build_db.py          # Israeli tables
 python build_us_db.py       # U.S. tables
 python build_vectorstore.py # ChromaDB (~5 min)
-python train_classifier.py  # Fine-tune DistilBERT router (~2 min)
+python train_classifier.py  # Fine-tune DistilBERT (~2 min)
 ```
 
-### 4. Set up PostgreSQL
+### 4. PostgreSQL setup
 
-The app uses **PostgreSQL** as its primary database — a real database server with enforced read-only connections, rather than a flat SQLite file. This prevents any LLM-generated SQL from modifying or destroying data.
+The app uses PostgreSQL as its primary database with enforced read-only connections, so LLM-generated SQL can't modify data. If `DATABASE_URL` isn't set, it falls back to SQLite.
 
-1. **Install PostgreSQL** from [postgresql.org/download](https://www.postgresql.org/download/). Remember the password you set for the `postgres` user.
+```bash
+# Create the database
+psql -U postgres -c "CREATE DATABASE election_agent;"
 
-2. **Create the database:**
-   ```bash
-   psql -U postgres -c "CREATE DATABASE election_agent;"
-   ```
+# Build SQLite source (needed for migration)
+python build_db.py
+python build_us_db.py          # Full: ~1.2GB
+# python build_us_db.py --county-only  # Quick: ~8MB
 
-3. **Build the SQLite source** (temporary — used only for migration):
-   ```bash
-   # Build Israeli tables
-   python build_db.py
-
-   # Build U.S. tables (county + precinct, ~900MB CSV -> ~1.2GB DB)
-   python build_us_db.py
-
-   # Or county-only for a quick setup (~8MB CSV)
-   python build_us_db.py --county-only
-   ```
-
-4. **Migrate data from SQLite to PostgreSQL:**
-   ```bash
-   python migrate_to_postgres.py
-   ```
-   This copies all 7.5M rows from `elections.db` into PostgreSQL (~5-10 minutes). Once complete, the SQLite file is no longer used by the app.
-
-**How the database connection works:**
-
-```
-App starts → db.py checks: is DATABASE_URL set in .env?
-    → YES → connects to PostgreSQL (read-only, secure)
-    → NO  → falls back to SQLite file (elections.db, read-only)
+# Migrate to PostgreSQL (~5-10 min for 7.5M rows)
+python migrate_to_postgres.py
 ```
 
-All database connections are read-only. SQL queries are validated before execution — any `DROP`, `DELETE`, `INSERT`, `UPDATE`, or `ALTER` statements are blocked. A `LIMIT 50` clause is automatically appended to queries that don't include one.
+All connections are read-only. Destructive SQL is blocked. `LIMIT 50` is auto-appended.
 
-### 5. Build the vector store (if not downloaded)
+### 5. Build vector store (if not downloaded)
 
 ```bash
 python build_vectorstore.py
+# Optional: additional embedding models for comparison
+python build_vectorstore.py --with-mpnet
+python build_vectorstore.py --with-openai
+python build_vectorstore.py --with-all
 ```
 
-This embeds 22,000+ text chunks into ChromaDB using a local sentence-transformer model (`all-MiniLM-L6-v2`, ~80MB, no API key needed). Takes ~4-5 minutes on CPU. The cross-encoder reranker model (`ms-marco-MiniLM-L-6-v2`, ~80MB), BART-MNLI zero-shot classifier (~1.6GB), and BERT-NER model (~400MB) all download automatically on first use.
+Embeds 22K+ chunks using local sentence-transformers (~5 min on CPU). The cross-encoder, BART-MNLI, and BERT-NER models download automatically on first use.
 
 ---
 
@@ -485,170 +430,129 @@ python -m streamlit run app.py
 ```
 
 ### Chat Mode (Default)
-- Type a question in natural language
-- The agent picks the right tool(s) automatically
-- Ask follow-ups -- the agent remembers the conversation
-- Click the suggested follow-up buttons for quick exploration
-- Ask for charts: "Show me a chart of Republican vs Democrat votes in NY"
-- Tool badges show which tools/models were used
-- Expand "Execution trace" to see the full reasoning chain
+Type questions in natural language. The agent picks tools automatically, remembers conversation history, and suggests follow-ups. Ask for charts, coalition scenarios, or data lookups. Expand "Execution trace" to see the reasoning chain.
 
 ### Comparison Mode
-- Toggle "Compare all 4 configs" in the sidebar
-- The same question runs through all 4 routing strategies
-- Results appear in a 2x2 grid for side-by-side comparison
+Toggle "Compare all 4 configs" in the sidebar. Same question, 4 strategies, side-by-side in a 2x2 grid.
 
 ### Model Selection
-Choose between `gpt-4o-mini` (fastest/cheapest), `gpt-4o`, or `gpt-4-turbo` in the sidebar.
+Choose between `gpt-4o-mini` (default), `gpt-4o`, or `gpt-4-turbo` in the sidebar.
 
 ---
 
 ## Benchmark
 
-The benchmark suite evaluates all 4 routing configurations with two evaluation methods:
-
-### Evaluation Methods
-
-1. **Soft match** -- substring matching + numeric tolerance (5%). Fast, deterministic, but can miss correct answers phrased differently.
-2. **LLM-as-judge** -- a separate LLM call scores each answer 0-5 on a rubric (perfect/good/acceptable/partial/poor/wrong). Handles free-text answers and gives partial credit.
+70 questions evaluated across all 4 configs using soft matching and LLM-as-judge scoring.
 
 ### Running
 
 ```bash
-# Run all configs with LLM-as-judge (280+ API calls)
-python -m benchmark.run_benchmark
-
-# Single config (faster)
-python -m benchmark.run_benchmark --config dynamic_routing
-
-# Different model
-python -m benchmark.run_benchmark --model gpt-4o
-
-# Skip LLM-as-judge (faster, cheaper)
-python -m benchmark.run_benchmark --no-judge
-
-# Keyword ablation (no embeddings — tests retrieval quality)
-python -m benchmark.run_benchmark --config rag_only --retrieval-method keyword
+python -m benchmark.run_benchmark                          # All configs
+python -m benchmark.run_benchmark --config dynamic_routing # Single config
+python -m benchmark.run_benchmark --model gpt-4o           # Different model
+python -m benchmark.run_benchmark --no-judge               # Skip LLM judge
+python -m benchmark.run_benchmark --config rag_only --retrieval-method keyword  # Ablation
 ```
 
-### Question Categories (70 total)
+### Questions (70 total)
 
-| Category | Count | Evaluation | Example |
-|----------|-------|------------|---------|
-| Factual | 23 | Exact match | "Who won Georgia in 2020?" |
-| Numerical | 20 | Tolerance-based | "What was Biden's two-party share in urban counties?" |
-| Multi-step | 21 | Reasoning quality | "Did the urban-rural gap grow between 2000 and 2024?" |
-| Coalition | 6 | Correctness | "Can the right bloc form a government without Shas in K25?" |
+| Category | Count | Example |
+|----------|-------|---------|
+| Factual | 23 | "Who won Georgia in 2020?" |
+| Numerical | 20 | "What was Biden's two-party share in urban counties?" |
+| Multi-step | 21 | "Did the urban-rural gap grow between 2000 and 2024?" |
+| Coalition | 6 | "Can the right bloc form a government without Shas in K25?" |
 
-Results are saved to `benchmark/results*.json` with per-question details, and summary tables are printed for: overall, by category, and by dataset (U.S. / Israel / both).
-
-### Results
-
-All benchmarks run with `gpt-4o-mini`, 70 questions, LLM-as-judge enabled.
+### Results (gpt-4o-mini)
 
 #### Overall
 
-| Config | Soft Match | Judge Score | Avg Time | Errors |
-|--------|-----------|-------------|----------|--------|
-| Single-pass LLM (no tools) | 22.9% (16/70) | 3.6/5 | 2.2s | 0 |
-| RAG-only (embeddings + reranker) | 34.3% (24/70) | 2.5/5 | 2.6s | 0 |
-| Fixed routing (DistilBERT classifier) | 30.0% (21/70) | 3.3/5 | 6.5s | 0 |
-| Dynamic routing (ReAct agent) | 32.9% (23/70) | 3.3/5 | ~8s | 5 |
+| Config | Soft Match | Judge Score | Errors |
+|--------|-----------|-------------|--------|
+| Single-pass (no tools) | 22.9% (16/70) | 3.6/5 | 0 |
+| RAG-only (embeddings + reranker) | 34.3% (24/70) | 2.5/5 | 0 |
+| Fixed routing (DistilBERT) | 30.0% (21/70) | 3.3/5 | 0 |
+| Dynamic routing (ReAct) | 32.9% (23/70) | 3.3/5 | 5 |
 
 #### By Category
 
-| Category | Single-Pass | RAG-Only | Fixed Routing | Dynamic Routing |
-|----------|------------|----------|---------------|-----------------|
+| Category | Single-Pass | RAG-Only | Fixed | Dynamic |
+|----------|------------|----------|-------|---------|
 | Factual (23) | 35% / 3.7 | 52% / 2.9 | 48% / 3.6 | 57% / 3.9 |
 | Numerical (20) | 40% / 3.5 | 55% / 2.5 | 40% / 2.9 | 45% / 3.0 |
 | Multi-step (21) | 0% / 3.6 | 5% / 2.0 | 10% / 3.4 | 5% / 3.0 |
 | Coalition (6) | 0% / 3.2 | 0% / 3.2 | 0% / 3.3 | 0% / 3.5 |
 
-*Format: soft match % / judge score out of 5*
+*Format: soft match % / judge score*
 
 #### By Dataset
 
-| Dataset | Single-Pass | RAG-Only | Fixed Routing | Dynamic Routing |
-|---------|------------|----------|---------------|-----------------|
+| Dataset | Single-Pass | RAG-Only | Fixed | Dynamic |
+|---------|------------|----------|-------|---------|
 | U.S. (39) | 13% / 3.5 | 28% / 1.9 | 21% / 3.1 | 23% / 2.9 |
 | Israel (30) | 37% / 3.6 | 43% / 3.3 | 40% / 3.6 | 43% / 3.8 |
 
-#### Embedding Ablation: Keyword vs. Embedding Retrieval
+#### Embedding Ablation
 
-To measure the impact of dense embeddings vs. naive keyword matching in Config 2 (RAG-only):
+| Retrieval Method | Soft Match | Judge Score | US | Israel |
+|-----------------|-----------|-------------|-----|--------|
+| Keyword (no embeddings) | 20.0% (14/70) | 1.4/5 | 8% | 37% |
+| MiniLM + cross-encoder | 34.3% (24/70) | 2.5/5 | 28% | 43% |
 
-| Retrieval Method | Soft Match | Judge Score | US Match | Israel Match |
-|-----------------|-----------|-------------|----------|--------------|
-| Keyword overlap (no embeddings) | 20.0% (14/70) | 1.4/5 | 8% | 37% |
-| MiniLM embeddings + cross-encoder reranker | 34.3% (24/70) | 2.5/5 | 28% | 43% |
+Embeddings nearly doubled the judge score and added 14 percentage points to soft match. The biggest gains were on U.S. questions (8% -> 28%), where 22K county chunks require semantic understanding that keyword overlap can't provide.
 
-Embeddings nearly doubled the judge score (1.4 → 2.5) and added 14 percentage points to soft match. The improvement is most pronounced on U.S. questions (8% → 28%), where the 22K county-level chunks require semantic understanding to retrieve relevant results — keyword matching fails because questions like "highest vote share" have zero keyword overlap with chunks containing actual percentages.
+#### Takeaways
 
-#### Key Findings
+1. **Dynamic routing is best for factual questions** -- 57% match and 3.9/5 judge, the highest in that category. The agent can chain tools and self-correct.
 
-1. **Dynamic routing excels at factual questions** — 57% match and 3.9/5 judge score, the best of any config in that category. The ReAct agent can chain multiple tools and self-correct, which helps for precise lookups.
+2. **RAG has the best overall recall but worst coherence** -- 34.3% soft match but only 2.5/5 judge. It finds the right data but struggles to synthesize it without SQL.
 
-2. **RAG-only has the highest overall soft match (34.3%) but the lowest judge score (2.5/5)** — it retrieves correct data fragments but the LLM's synthesis without structured SQL is less coherent. This suggests retrieval helps with recall but hurts precision when the model can't run exact queries.
+3. **Single-pass LLM gives the most polished answers** -- highest judge score (3.6/5) despite lowest accuracy (22.9%). Fluent but often wrong.
 
-3. **Single-pass LLM scores highest on judge (3.6/5) despite lowest soft match (22.9%)** — without tools, the LLM gives fluent, well-reasoned answers that score well on coherence, but lacks access to precise data.
+4. **Multi-step and coalition questions are hard for everyone** -- 0-10% across all configs. These need better multi-query chaining.
 
-4. **Multi-step and coalition questions remain hard for all configs (0-10% match)** — these require chaining multiple queries or combinatorial reasoning that current prompts don't handle well.
+5. **Israel is easier than U.S.** -- ~40% vs ~20% across configs. Smaller, more structured dataset.
 
-5. **Israel outperforms U.S. across all configs (~40% vs ~20%)** — the Israeli dataset is smaller and more structured (12 elections, national-level stats), making it easier for both retrieval and SQL generation. The U.S. dataset (75K county rows, 7 elections) requires more precise queries.
-
-6. **Embeddings matter** — the keyword ablation shows that replacing MiniLM embeddings with keyword matching drops performance from 34.3% to 20.0% soft match and from 2.5 to 1.4 judge score. Dense retrieval with cross-encoder reranking is essential for the RAG pipeline.
+6. **Embeddings matter a lot** -- keyword ablation drops from 34% to 20% soft match. Dense retrieval with reranking is doing real work.
 
 ---
 
 ## Example Questions
 
-### U.S. Elections (Data Query)
+**U.S. Elections**
 - "How did Biden perform in suburban counties in 2020 vs 2024?"
 - "Which state had the highest Republican vote share in 2024?"
-- "Compare urban vs rural presidential voting trends from 2000 to 2024"
 - "Which counties flipped from Republican to Democrat between 2016 and 2020?"
-- "What was the two-party vote share in Maricopa County across all elections?"
 
-### Israeli Elections (Data Query)
+**Israeli Elections**
 - "How many seats did Likud win in Knesset 25?"
 - "How did Tel Aviv vote by party in K25?"
-- "What was the turnout in Kiryat Ata in K17?"
 - "What is the correlation between academic degree % and left-bloc voting?"
-- "Which locality had the highest turnout in K25?"
 
-### Coalition Analysis
+**Coalitions**
 - "List all possible 3-party coalitions reaching 61 seats in K25"
 - "Can the right bloc form a government without Shas?"
-- "What is the smallest coalition including both Likud and Yesh Atid?"
 
-### Conceptual (Context Search)
+**Context / Background**
 - "What are the NCHS urban-rural classification codes?"
-- "What election data is available in this system?"
 - "Which parties are in the right bloc in K22?"
-- "What is the center-left-arab bloc?"
 
-### Charts
-- "Show me a chart of Republican vs Democrat votes in NY from 2000 to 2024"
+**Charts**
+- "Show me Republican vs Democrat votes in NY from 2000 to 2024"
 - "Bar chart of party vote percentages in Haifa for K25"
-- "Line chart of right-haredi bloc percentage across all Knesset elections"
 
-### Web Search
+**Web Search**
 - "Who is the current Prime Minister of Israel?"
-- "What were the results of the most recent U.S. midterm elections?"
-- "What is the latest polling data for the next Israeli election?"
 
 ---
 
 ## Course Module Mapping
 
-This project demonstrates techniques from DS-UA 301: Advanced Topics in Data Science (Introduction to LLMs), Spring 2026 at NYU. The course covers deep learning systems with an emphasis on LLM-based generative AI, including transformer architectures, prompt engineering, RAG, tool-augmented LLMs, agentic AI, and benchmarking.
-
-| Module | Topic (from syllabus) | How it's implemented in this project |
-|--------|----------------------|--------------------------------------|
-| 3 | Attention, Transformers, Embeddings | **Local text embeddings** (`all-MiniLM-L6-v2`) encode 22K+ document chunks and user questions into 384-dim dense vectors for semantic similarity search. **BERT-NER** (`dslim/bert-base-NER`) extracts city name entities from questions for Hebrew name resolution. **Zero-shot classification** (`facebook/bart-large-mnli`) routes questions to tools via natural language inference. The same embedding model is used for **embedding-based question classification** in Config 3. |
-| 4 | Prompt Engineering, LangChain | **System prompts** for SQL generation contain full database schemas, query patterns, Hebrew name lookups, and domain-specific rules. **LangChain** provides the tool framework (`@tool` decorator, `ChatOpenAI` wrapper). Prompt design directly determines SQL quality — e.g., including the pattern for "flipped counties" using window functions prevents the LLM from generating incorrect queries. |
-| 5 | RAG (Retrieval-Augmented Generation) | **Two-stage RAG pipeline**: (1) dense retrieval from ChromaDB (25 nearest chunks by cosine similarity), then (2) **cross-encoder reranking** (`ms-marco-MiniLM-L-6-v2`) to top 10. The cross-encoder processes (query, chunk) pairs jointly through BERT attention layers — more accurate than bi-encoder cosine similarity because it captures token-level interactions. The 22K+ chunk vector store covers county summaries, state aggregates, Israeli election data, bloc definitions, and dataset documentation. |
-| 9 | Tool-Assisted LLMs | **Five specialized tools** extend the LLM's capabilities beyond its training knowledge: (1) `data_query` translates natural language to SQL and executes against PostgreSQL (or SQLite fallback), (2) `create_chart` generates SQL + matplotlib chart configs, (3) `coalition_calculator` does brute-force combinatorial search over party seat combinations, (4) `context_search` retrieves from the vector store, (5) `web_search` queries the web for current events and background facts outside the database. Each tool uses **function calling** — the LLM emits structured tool invocations that the system executes and returns results from. This follows the Tool-Augmented Language Model (TALM) paradigm covered in Module 9. |
-| 10 | Agentic AI (ReACT, Reflexion) | **LangGraph ReAct agent** implements the Thought-Action-Observation loop from [Yao et al., 2023]: the LLM reasons about which tool to call, observes the result, and decides next steps autonomously. **Reflexion** pattern enables self-correction: when SQL queries fail or return empty results, the error is fed back to the LLM with diagnostic hints, and it generates a corrected query (up to 2 retries). The **4-config comparison** (single-pass, RAG-only, fixed routing, dynamic routing) directly tests how routing strategy affects answer quality — the central research question from our proposal. |
-| 13 | LLM Benchmarking | **70-question benchmark suite** with two evaluation methods: (1) deterministic soft matching (substring + 5% numeric tolerance) for factual/numerical questions, and (2) **LLM-as-judge** scoring on a 0-5 rubric (perfect/good/acceptable/partial/poor/wrong) for open-ended questions. Results are broken down by question category (factual, numerical, multi-step, coalition) and by dataset (U.S., Israel, both). This follows the benchmarking methodology from Module 13, using LLM evaluation as an alternative to human annotation. |
-
+| Module | Topic | Implementation |
+|--------|-------|----------------|
+| 3 | Embeddings & Transformers | MiniLM/MPNet embeddings for 22K+ chunks, BERT-NER for city name extraction, zero-shot classification for routing, embedding-based question classification |
+| 4 | Prompt Engineering | System prompts with full schemas, query patterns, and domain rules drive SQL generation quality |
+| 5 | RAG | Two-stage pipeline: dense retrieval from ChromaDB + cross-encoder reranking. Cross-encoder processes (query, chunk) pairs jointly for better accuracy than cosine similarity alone |
+| 9 | Tool-Augmented LLMs | Five tools (data_query, context_search, create_chart, coalition_calc, web_search) via LangChain function calling, following the TALM paradigm |
+| 10 | Agentic AI | LangGraph ReAct agent with Thought-Action-Observation loop. Reflexion for self-correction on SQL failures. 4-config comparison tests routing strategies |
+| 13 | Benchmarking | 70-question suite with soft matching + LLM-as-judge (0-5 rubric). Results broken down by category and dataset |
