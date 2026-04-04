@@ -546,6 +546,24 @@ Embeddings nearly doubled the judge score and added 14 percentage points to soft
 
 ---
 
+## Changes Since Initial Review
+
+The original version of the system used keyword-based retrieval, which had several problems flagged during review. Here's what changed:
+
+1. **No semantic understanding** -- Queries like "Which party did best?" had zero keyword overlap with chunks containing "most seats" or "highest vote share." We replaced keyword retrieval with embedding-based search (MiniLM 384-dim by default, with MPNet and OpenAI alternatives). Keyword retrieval remains in the codebase only as an ablation baseline.
+
+2. **No fuzzy matching** -- "Labor" wouldn't match "HaAvoda" (romanized Hebrew) or "עבודה" (Hebrew script). We fixed this at two levels: chunks now include both English and Hebrew names side by side (e.g., "Labor (עבודה)"), and we added query expansion that appends all known aliases before embedding search. Typing "HaAvoda", "Labor", or even "Lieberman" all resolve to the right party chunks.
+
+3. **Embeddings not implemented** -- The proposal claimed RAG with embeddings, but the code was keyword-only. Now fully implemented: three embedding models (MiniLM, MPNet, OpenAI), ChromaDB with 22,799 embedded chunks, and similarity search as the default retrieval path.
+
+4. **Spurious number matching** -- Querying "K25" would match "25" in unrelated population figures or percentages. Embedding-based retrieval doesn't do substring matching, so this is no longer an issue in the default pipeline.
+
+5. **No ranking by relevance** -- A chunk with 3 keyword hits would beat a 2-hit chunk even if the 2-hit chunk was semantically better. We added a cross-encoder reranker (`ms-marco-MiniLM-L-6-v2`) that retrieves 25 candidates and reranks to the top 10 by actual semantic relevance.
+
+6. **RAG vs. baseline comparison weakened** -- With bad retrieval, comparing "RAG" to "no tools" wasn't meaningful. Now RAG-only scores 34.3% soft match vs. 22.9% for single-pass (56% improvement), and the embedding ablation confirms keyword matching only reaches 20% -- barely above the no-tools baseline.
+
+---
+
 ## Course Module Mapping
 
 | Module | Topic | Implementation |
