@@ -27,8 +27,71 @@ from langgraph.prebuilt import create_react_agent
 from tools.data_query import make_data_query_tool, SCHEMA
 from tools.coalition import coalition_calculator
 from tools.web_search import web_search
-from tools.chart import make_chart_tool
+from tools.chart import make_chart_tool, HEBREW_TO_ENGLISH
 from classifiers import classify_question_zeroshot
+
+# ── Party name alias expansion for cross-lingual retrieval ──
+# Romanized Hebrew → English canonical name
+_ROMANIZED_TO_ENGLISH = {
+    "haavoda": "Labor", "avoda": "Labor", "ha'avoda": "Labor", "avodah": "Labor",
+    "likud": "Likud", "haikud": "Likud",
+    "meretz": "Meretz", "marets": "Meretz",
+    "shas": "Shas",
+    "kadima": "Kadima",
+    "yesh atid": "Yesh Atid", "lapid": "Yesh Atid",
+    "kahol lavan": "Blue & White", "kachol lavan": "Blue & White", "gantz": "Blue & White",
+    "yamina": "Yamina",
+    "habayit hayehudi": "Jewish Home", "bayit yehudi": "Jewish Home",
+    "yahadut hatorah": "United Torah Judaism", "utj": "United Torah Judaism",
+    "hatzionut hadatit": "Religious Zionism", "smotrich": "Religious Zionism",
+    "kulanu": "Kulanu", "kahlon": "Kulanu",
+    "yisrael beiteinu": "Yisrael Beiteinu", "lieberman": "Yisrael Beiteinu",
+    "hamachane hamamlachti": "National Unity", "mamlachti": "National Unity",
+    "hamachane hatzioni": "Zionist Camp", "zionist camp": "Zionist Camp",
+    "hareshima hameshutefet": "Joint List", "meshutfet": "Joint List",
+    "raam": "Ra'am", "ra'am": "Ra'am",
+    "hadash": "Hadash",
+    "balad": "Balad",
+    "tikva hadasha": "New Hope", "saar": "New Hope",
+    "otzma yehudit": "Jewish Power (Otzma Yehudit)", "ben gvir": "Jewish Power (Otzma Yehudit)",
+    "shinui": "Shinui",
+    "hatnuah": "HaTnuah", "livni": "HaTnuah",
+    "hamachane hademokrati": "Democrats (Meretz)",
+    "gesher": "Gesher",
+    "mafdal": "NRP (Mafdal)",
+}
+# Reverse: English → Hebrew (from HEBREW_TO_ENGLISH)
+_ENGLISH_TO_HEBREW = {}
+for _heb, _eng in HEBREW_TO_ENGLISH.items():
+    _ENGLISH_TO_HEBREW.setdefault(_eng, _heb)
+
+
+def _expand_party_names(question: str) -> str:
+    """Expand party name aliases in the query for better retrieval.
+
+    If the query mentions a romanized or English party name, appends the
+    canonical English + Hebrew names so the embedding search can match
+    bilingual chunks like 'Labor (עבודה)'.
+    """
+    q_lower = question.lower()
+    expansions = set()
+
+    # Check romanized aliases
+    for alias, eng in _ROMANIZED_TO_ENGLISH.items():
+        if alias in q_lower:
+            expansions.add(eng)
+            heb = _ENGLISH_TO_HEBREW.get(eng)
+            if heb:
+                expansions.add(heb)
+
+    # Check English names directly (e.g., user types "Labor")
+    for eng, heb in _ENGLISH_TO_HEBREW.items():
+        if eng.lower() in q_lower:
+            expansions.add(heb)
+
+    if not expansions:
+        return question
+    return question + " " + " ".join(expansions)
 
 # ── Shared LLM ──
 def get_llm(model: str = "gpt-4o-mini", temperature: float = 0):
@@ -174,6 +237,9 @@ def _vector_retrieve(question: str, top_k: int = 15,
                      embedding_model: str = "minilm") -> list[str]:
     """Retrieve relevant chunks from ChromaDB using embedding similarity.
 
+    Applies party-name expansion so romanized Hebrew (e.g. "HaAvoda")
+    and English names (e.g. "Labor") both match bilingual chunks.
+
     Args:
         embedding_model: "minilm" (local all-MiniLM-L6-v2) or "openai" (text-embedding-3-small)
 
@@ -204,7 +270,8 @@ def _vector_retrieve(question: str, top_k: int = 15,
         embedding_function=embedding_fn,
         persist_directory=chroma_dir,
     )
-    results = vectorstore.similarity_search(question, k=top_k)
+    expanded = _expand_party_names(question)
+    results = vectorstore.similarity_search(expanded, k=top_k)
     return [doc.page_content for doc in results]
 
 
