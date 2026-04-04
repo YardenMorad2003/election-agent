@@ -564,6 +564,28 @@ The original version of the system used keyword-based retrieval, which had sever
 
 ---
 
+## Proposal Milestone Status
+
+All tasks from the original weekly plan have been completed, with one exception:
+
+| Week | Task | Status |
+|------|------|--------|
+| 1 | LangGraph skeleton + tool interfaces | Done |
+| 1 | Benchmark question set (20 questions) | Done (expanded to 70) |
+| 1 | Data Query tool (SQL) | Done |
+| 2 | Coalition Calculator tool | Done |
+| 2 | RAG pipeline with embeddings | Done (3 embedding models) |
+| 2 | Expand benchmark to 40 questions | Done (expanded to 70) |
+| 3 | Fixed routing logic | Done (DistilBERT + zero-shot) |
+| 3 | Dynamic routing (LLM-based) | Done (ReAct agent) |
+| 3 | Vote prediction model (basic regression) | Not implemented |
+| 4 | Run all 4 configs on benchmark | Done |
+| 4 | Collect and analyze results | Done |
+
+The vote prediction model was deprioritized in favor of deeper work on the retrieval pipeline (cross-encoder reranking, cross-lingual query expansion, multi-embedding support) and a more thorough benchmark (70 questions with LLM-as-judge evaluation instead of the originally planned 40 with soft match only).
+
+---
+
 ## Course Module Mapping
 
 | Module | Topic | Implementation |
