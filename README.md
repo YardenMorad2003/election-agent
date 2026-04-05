@@ -436,7 +436,7 @@ Type questions in natural language. The agent picks tools automatically, remembe
 Toggle "Compare all 4 configs" in the sidebar. Same question, 4 strategies, side-by-side in a 2x2 grid.
 
 ### Model Selection
-Choose between `gpt-4o-mini` (default), `gpt-4o`, or `gpt-4-turbo` in the sidebar.
+Choose between `gpt-4o-mini` (default), `gpt-4o`, or `gpt-4.1` in the sidebar.
 
 ---
 
@@ -509,7 +509,7 @@ Embeddings nearly doubled the judge score and added 14 percentage points to soft
 
 3. **Single-pass LLM gives the most polished answers** -- highest judge score (3.6/5) despite lowest accuracy (22.9%). Fluent but often wrong.
 
-4. **Multi-step and coalition questions are hard for everyone** -- 0-10% across all configs. These need better multi-query chaining.
+4. **Multi-step and coalition questions are hard for everyone** -- 0-10% across all configs. Multi-step questions require decomposing a complex question into multiple dependent SQL queries (e.g., "Did the urban-rural gap grow?" needs separate queries for each year, then comparison) -- the agent lacks a planning stage to break these into sub-queries and instead tries to solve them in a single SQL statement that often fails or returns incomplete data. Coalition questions score 0% because the brute-force calculator enumerates valid seat combinations but doesn't perform the political reasoning needed to judge feasibility (e.g., ideological compatibility, historical precedent), while the LLM lacks the exact seat numbers in its training data to answer without tool support. These are known hard cases that would benefit from a multi-hop query planner and a more structured coalition reasoning module.
 
 5. **Israel is easier than U.S.** -- ~40% vs ~20% across configs. Smaller, more structured dataset.
 

@@ -44,7 +44,7 @@ if "suggestions" not in st.session_state:
 # ── Sidebar ──
 with st.sidebar:
     st.header("Settings")
-    model = st.selectbox("LLM Model", ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"], index=0)
+    model = st.selectbox("LLM Model", ["gpt-4o-mini", "gpt-4o", "gpt-4.1"], index=0)
 
     st.divider()
 
