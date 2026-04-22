@@ -14,6 +14,7 @@ import {
   UserRound
 } from "lucide-react";
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import { FormEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 type Role = "user" | "assistant";
@@ -70,6 +71,10 @@ const comparisonLabels: Record<string, string> = {
   dynamic_routing: "Dynamic Routing"
 };
 
+const defaultSidebarWidth = 320;
+const minSidebarWidth = 220;
+const maxSidebarWidth = 520;
+
 function setupNoticeFor(answer: string) {
   if (answer.includes("ChromaDB not built")) {
     return {
@@ -98,6 +103,8 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(defaultSidebarWidth);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -167,8 +174,51 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
   }, [messages, isLoading, suggestions]);
 
+  useEffect(() => {
+    const stored = window.localStorage.getItem("election-agent-sidebar-width");
+    const parsed = Number(stored);
+    if (!Number.isFinite(parsed)) return;
+
+    window.requestAnimationFrame(() => {
+      setSidebarWidth(Math.min(maxSidebarWidth, Math.max(minSidebarWidth, parsed)));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isResizingSidebar) return;
+
+    function resizeSidebar(event: PointerEvent) {
+      const nextWidth = Math.min(
+        maxSidebarWidth,
+        Math.max(minSidebarWidth, event.clientX)
+      );
+      setSidebarWidth(nextWidth);
+      window.localStorage.setItem("election-agent-sidebar-width", String(nextWidth));
+    }
+
+    function stopResize() {
+      setIsResizingSidebar(false);
+    }
+
+    document.body.classList.add("resizingSidebar");
+    window.addEventListener("pointermove", resizeSidebar);
+    window.addEventListener("pointerup", stopResize);
+
+    return () => {
+      document.body.classList.remove("resizingSidebar");
+      window.removeEventListener("pointermove", resizeSidebar);
+      window.removeEventListener("pointerup", stopResize);
+    };
+  }, [isResizingSidebar]);
+
   return (
-    <main className="shell">
+    <main
+      className="shell"
+      style={
+        { "--sidebar-width": `${sidebarWidth}px` } as CSSProperties &
+          Record<"--sidebar-width", string>
+      }
+    >
       <aside className="sidebar">
         <div className="brand">
           <div className="brandMark">
@@ -226,6 +276,25 @@ export default function Home() {
           Clear chat
         </button>
       </aside>
+
+      <button
+        aria-label="Resize sidebar"
+        className="sidebarResizeHandle"
+        onDoubleClick={() => {
+          setSidebarWidth(defaultSidebarWidth);
+          window.localStorage.setItem(
+            "election-agent-sidebar-width",
+            String(defaultSidebarWidth)
+          );
+        }}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          setIsResizingSidebar(true);
+        }}
+        title="Drag to resize sidebar. Double-click to reset."
+        type="button"
+      />
 
       <section className="workspace">
         <header className="topbar">
@@ -443,21 +512,193 @@ function ResultBody({ answer }: { answer: string }) {
 }
 
 function RichText({ text }: { text: string }) {
-  const blocks = text.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+  const blocks = parseMarkdownBlocks(text);
 
   return (
     <div className="markdownText">
       {blocks.map((block, index) => (
-        <FormattedBlock block={block} key={`${block}-${index}`} />
+        <FormattedBlock block={block} key={`${block.lines.join("\n")}-${index}`} />
       ))}
     </div>
   );
 }
 
-function FormattedBlock({ block }: { block: string }) {
-  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-  const isBulleted = lines.length > 0 && lines.every((line) => /^[-*]\s+/.test(line));
-  const isNumbered = lines.length > 0 && lines.every((line) => /^\d+\.\s+/.test(line));
+type MarkdownBlock = {
+  type: "paragraph" | "heading" | "bullet" | "numbered" | "table";
+  lines: string[];
+};
+
+function parseMarkdownBlocks(text: string): MarkdownBlock[] {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const blocks: MarkdownBlock[] = [];
+  let paragraph: string[] = [];
+
+  function flushParagraph() {
+    if (paragraph.length > 0) {
+      blocks.push({ type: "paragraph", lines: paragraph });
+      paragraph = [];
+    }
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].trim();
+
+    if (!line) {
+      flushParagraph();
+      continue;
+    }
+
+    if (/^#{1,4}\s+/.test(line)) {
+      flushParagraph();
+      blocks.push({ type: "heading", lines: [line] });
+      continue;
+    }
+
+    if (isTableStart(lines, index)) {
+      flushParagraph();
+      const tableLines = [lines[index].trim(), lines[index + 1].trim()];
+      index += 2;
+      while (index < lines.length && isTableRow(lines[index])) {
+        tableLines.push(lines[index].trim());
+        index += 1;
+      }
+      index -= 1;
+      blocks.push({ type: "table", lines: tableLines });
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(line)) {
+      flushParagraph();
+      const listLines = [line];
+      while (index + 1 < lines.length && /^[-*]\s+/.test(lines[index + 1].trim())) {
+        index += 1;
+        listLines.push(lines[index].trim());
+      }
+      blocks.push({ type: "bullet", lines: listLines });
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(line)) {
+      flushParagraph();
+      const listLines = [line];
+      while (index + 1 < lines.length) {
+        const nextLine = lines[index + 1].trim();
+
+        if (!nextLine) {
+          const nextContentIndex = findNextContentLine(lines, index + 2);
+          if (
+            nextContentIndex !== -1 &&
+            /^\d+\.\s+/.test(lines[nextContentIndex].trim())
+          ) {
+            index = nextContentIndex - 1;
+            continue;
+          }
+          break;
+        }
+
+        if (/^\d+\.\s+/.test(nextLine)) {
+          index += 1;
+          listLines.push(nextLine);
+          continue;
+        }
+
+        if (
+          /^#{1,4}\s+/.test(nextLine) ||
+          /^[-*]\s+/.test(nextLine) ||
+          isTableStart(lines, index + 1)
+        ) {
+          break;
+        }
+
+        index += 1;
+        listLines[listLines.length - 1] = `${listLines[listLines.length - 1]} ${nextLine}`;
+      }
+      blocks.push({ type: "numbered", lines: listLines });
+      continue;
+    }
+
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  return blocks;
+}
+
+function findNextContentLine(lines: string[], startIndex: number) {
+  for (let index = startIndex; index < lines.length; index += 1) {
+    if (lines[index].trim()) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function isTableRow(line: string) {
+  const trimmed = line.trim();
+  return trimmed.startsWith("|") && trimmed.endsWith("|") && trimmed.split("|").length >= 4;
+}
+
+function isTableDivider(line: string) {
+  return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line.trim());
+}
+
+function isTableStart(lines: string[], index: number) {
+  return isTableRow(lines[index] ?? "") && isTableDivider(lines[index + 1] ?? "");
+}
+
+function tableCells(line: string) {
+  return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+}
+
+function FormattedBlock({ block }: { block: MarkdownBlock }) {
+  const lines = block.lines;
+  const isBulleted = block.type === "bullet";
+  const isNumbered = block.type === "numbered";
+
+  if (block.type === "heading") {
+    const raw = lines[0];
+    const depth = raw.match(/^#+/)?.[0].length ?? 3;
+    const text = raw.replace(/^#{1,4}\s+/, "").replace(/:$/, "");
+    const Tag = depth <= 2 ? "h3" : "h4";
+    return (
+      <Tag>
+        <InlineText text={text} />
+      </Tag>
+    );
+  }
+
+  if (block.type === "table") {
+    const [headerLine, , ...bodyLines] = lines;
+    const headers = tableCells(headerLine);
+    const rows = bodyLines.map(tableCells);
+
+    return (
+      <div className="tableScroll">
+        <table>
+          <thead>
+            <tr>
+              {headers.map((header, index) => (
+                <th key={`${header}-${index}`}>
+                  <InlineText text={header} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, rowIndex) => (
+              <tr key={`${row.join("-")}-${rowIndex}`}>
+                {headers.map((_, cellIndex) => (
+                  <td key={`${rowIndex}-${cellIndex}`}>
+                    <InlineText text={row[cellIndex] ?? ""} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   if (isBulleted) {
     return (
