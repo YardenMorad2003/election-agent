@@ -338,6 +338,8 @@ election-agent/
 ├── charts/               # Generated chart PNGs
 ├── data/                 # U.S. election CSV source files (~900MB)
 ├── requirements.txt
+├── api.py                # FastAPI backend for the Next.js UI
+├── frontend/             # Next.js chat interface
 ├── .env                  # API keys (not in git)
 ├── tools/
 │   ├── data_query.py     # NL -> SQL with Reflexion
@@ -424,6 +426,21 @@ Embeds 22K+ chunks using local sentence-transformers (~5 min on CPU). The cross-
 ---
 
 ## Usage
+
+### Next.js UI
+
+Run the Python API and the frontend in separate terminals:
+
+```bash
+uvicorn api:app --reload --port 8000
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. The frontend proxies `/api/*` and `/charts/*` to the FastAPI server at `http://127.0.0.1:8000` by default.
+
+### Streamlit UI
 
 ```bash
 python -m streamlit run app.py

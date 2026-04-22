@@ -474,9 +474,16 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
                     "embedding" (cosine centroids), or "keyword"
     """
     llm = llm or get_llm()
+    routing_fallback = None
     if routing_method == "finetuned":
         from classifiers import classify_question_finetuned
-        route = classify_question_finetuned(question)
+        try:
+            route = classify_question_finetuned(question)
+        except FileNotFoundError as exc:
+            route = _classify_question(question)
+            routing_fallback = (
+                f"Fine-tuned router unavailable ({exc}); fell back to keyword routing"
+            )
     elif routing_method == "zeroshot":
         route = classify_question_zeroshot(question)
     elif routing_method == "embedding":
@@ -509,8 +516,12 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
         "answer": resp.content,
         "config": "fixed_routing",
         "tools_used": [tool_name],
-        "trace": [f"{routing_method} routing -> {tool_name}", f"Tool returned {len(str(tool_result))} chars",
-                  "LLM synthesized final answer"],
+        "trace": [
+            *([routing_fallback] if routing_fallback else []),
+            f"{routing_method} routing -> {tool_name}",
+            f"Tool returned {len(str(tool_result))} chars",
+            "LLM synthesized final answer",
+        ],
         "tool_output": tool_result,
     }
 

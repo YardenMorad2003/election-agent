@@ -10,3 +10,12 @@ elections.db
 data/
 charts/
 models/
+node_modules/
+.next/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+*.tar.gz
+*.log
+*.pyo
+*.pyd
