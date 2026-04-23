@@ -1,0 +1,648 @@
+year,state,district,district_id,party,party_binary,member,reason,reason_clean
+1996,Alabama,3,Alabama_3,D,0,Glen Browder,to run for U.S. senator,to run for u.s. senator
+1996,Alabama,4,Alabama_4,D,0,Tom Bevill,unknown,unknown
+1996,Arkansas,1,Arkansas_1,D,0,Blanche Lincoln,unknown,unknown
+1996,Arkansas,2,Arkansas_2,D,0,Ray Thornton,unknown,unknown
+1996,Arkansas,3,Arkansas_3,R,1,Tim Hutchinson,to run for U.S. senator,to run for u.s. senator
+1996,California,24,California_24,D,0,Anthony Beilenson,unknown,unknown
+1996,California,27,California_27,R,1,Carlos Moorhead,unknown,unknown
+1996,Colorado,1,Colorado_1,D,0,Pat Schroeder,unknown,unknown
+1996,Colorado,4,Colorado_4,R,1,Wayne Allard,to run for U.S. senator,to run for u.s. senator
+1996,Florida,2,Florida_2,D,0,Pete Peterson,unknown,unknown
+1996,Florida,11,Florida_11,D,0,Sam Gibbons,unknown,unknown
+1996,Florida,19,Florida_19,D,0,Harry Johnston,unknown,unknown
+1996,Illinois,7,Illinois_7,D,0,Cardiss Collins,unknown,unknown
+1996,Illinois,20,Illinois_20,D,0,Dick Durbin,to run for U.S. senator,to run for u.s. senator
+1996,Indiana,7,Indiana_7,R,1,John Myers,unknown,unknown
+1996,Indiana,10,Indiana_10,D,0,Andrew Jacobs Jr.,unknown,unknown
+1996,Iowa,3,Iowa_3,R,1,Jim Ross Lightfoot,to run for U.S. senator,to run for u.s. senator
+1996,Kansas,1,Kansas_1,R,1,Pat Roberts,to run for U.S. senator,to run for u.s. senator
+1996,Kansas,2,Kansas_2,R,1,Sam Brownback,to run for U.S. senator,to run for u.s. senator
+1996,Kansas,3,Kansas_3,R,1,Jan Meyers,unknown,unknown
+1996,Louisiana,5,Louisiana_5,D,0,Cleo Fields,unknown,unknown
+1996,Louisiana,7,Louisiana_7,R,1,Jimmy Hayes,to run for U.S. senator,to run for u.s. senator
+1996,Massachusetts,10,Massachusetts_10,D,0,Gerry Studds,unknown,unknown
+1996,Mississippi,3,Mississippi_3,D,0,Sonny Montgomery,unknown,unknown
+1996,Missouri,7,Missouri_7,R,1,Mel Hancock,unknown,unknown
+1996,Montana,at-large,Montana_at-large,D,0,Pat Williams,unknown,unknown
+1996,Nevada,2,Nevada_2,R,1,Barbara Vucanovich,unknown,unknown
+1996,New Hampshire,1,New Hampshire_1,R,1,Bill Zeliff,to run for governor,to run for governor
+1996,New Jersey,9,New Jersey_9,D,0,Robert Torricelli,to run for U.S. senator,to run for u.s. senator
+1996,New Jersey,12,New Jersey_12,R,1,Dick Zimmer,to run for U.S. senator,to run for u.s. senator
+1996,North Carolina,7,North Carolina_7,D,0,Charlie Rose,unknown,unknown
+1996,Oklahoma,3,Oklahoma_3,D,0,William K. Brewster,unknown,unknown
+1996,Oregon,2,Oregon_2,R,1,Wes Cooley,unknown,unknown
+1996,Pennsylvania,5,Pennsylvania_5,R,1,Bill Clinger,unknown,unknown
+1996,Pennsylvania,16,Pennsylvania_16,R,1,Robert Smith Walker,unknown,unknown
+1996,Rhode Island,2,Rhode Island_2,D,0,Jack Reed,to run for U.S. senator,to run for u.s. senator
+1996,South Dakota,at-large,South Dakota_at-large,D,0,Tim Johnson,to run for U.S. senator,to run for u.s. senator
+1996,Tennessee,1,Tennessee_1,R,1,Jimmy Quillen,unknown,unknown
+1996,Tennessee,9,Tennessee_9,D,0,Harold Ford Sr.,unknown,unknown
+1996,Texas,1,Texas_1,D,0,Jim Chapman,to run for U.S. senator,to run for u.s. senator
+1996,Texas,2,Texas_2,D,0,Charlie Wilson,unknown,unknown
+1996,Texas,5,Texas_5,D,0,John Bryant,to run for U.S. senator,to run for u.s. senator
+1996,Texas,8,Texas_8,R,1,Jack Fields,unknown,unknown
+1996,Texas,12,Texas_12,D,0,Pete Geren,unknown,unknown
+1996,Texas,15,Texas_15,D,0,Kika de la Garza,unknown,unknown
+1996,Texas,16,Texas_16,D,0,Ronald D. Coleman,unknown,unknown
+1996,Utah,2,Utah_2,R,1,Enid Greene,unknown,unknown
+1996,Virginia,5,Virginia_5,D,0,Lewis F. Payne Jr.,unknown,unknown
+1996,Wisconsin,3,Wisconsin_3,R,1,Steve Gunderson,unknown,unknown
+1996,Wisconsin,8,Wisconsin_8,R,1,Toby Roth,unknown,unknown
+1998,California,1,California_1,R,1,Frank Riggs,To run for U.S. Senate,to run for u.s. senate
+1998,California,3,California_3,D,0,Vic Fazio,unknown,unknown
+1998,California,34,California_34,D,0,Esteban Torres,unknown,unknown
+1998,California,36,California_36,D,0,Jane Harman,To run for Governor,to run for governor
+1998,Colorado,2,Colorado_2,D,0,David Skaggs,unknown,unknown
+1998,Colorado,6,Colorado_6,R,1,Daniel Schaefer,unknown,unknown
+1998,Connecticut,1,Connecticut_1,D,0,Barbara B. Kennelly,To run for Governor,to run for governor
+1998,Idaho,2,Idaho_2,R,1,Mike Crapo,To run for U.S. Senate,to run for u.s. senate
+1998,Illinois,9,Illinois_9,D,0,Sidney R. Yates,unknown,unknown
+1998,Illinois,13,Illinois_13,R,1,Harris Fawell,unknown,unknown
+1998,Illinois,19,Illinois_19,D,0,Glenn Poshard,To run for Governor,to run for governor
+1998,Indiana,9,Indiana_9,D,0,Lee Hamilton,unknown,unknown
+1998,Kentucky,4,Kentucky_4,R,1,Jim Bunning,To run for U.S. Senate,to run for u.s. senate
+1998,Kentucky,6,Kentucky_6,D,0,Scotty Baesler,To run for U.S. Senate,to run for u.s. senate
+1998,Massachusetts,8,Massachusetts_8,D,0,Joseph P. Kennedy II,unknown,unknown
+1998,Mississippi,4,Mississippi_4,R,1,Michael Parker,To run for Governor,to run for governor
+1998,Nebraska,2,Nebraska_2,R,1,Jon Christensen,To run for Governor,to run for governor
+1998,Nevada,1,Nevada_1,R,1,John Ensign,To run for U.S. Senate,to run for u.s. senate
+1998,New York,7,New York_7,D,0,Thomas Manton,unknown,unknown
+1998,New York,9,New York_9,D,0,Chuck Schumer,To run for U.S. Senate,to run for u.s. senate
+1998,New York,22,New York_22,R,1,Gerald Solomon,unknown,unknown
+1998,New York,27,New York_27,R,1,Bill Paxon,unknown,unknown
+1998,North Carolina,8,North Carolina_8,D,0,Bill Hefner,unknown,unknown
+1998,Ohio,11,Ohio_11,D,0,Louis Stokes,unknown,unknown
+1998,Oregon,1,Oregon_1,D,0,Elizabeth Furse,unknown,unknown
+1998,Oregon,2,Oregon_2,R,1,Bob Smith,unknown,unknown
+1998,Pennsylvania,10,Pennsylvania_10,R,1,Joseph M. McDade,unknown,unknown
+1998,Pennsylvania,15,Pennsylvania_15,D,0,Paul McHale,unknown,unknown
+1998,South Carolina,4,South Carolina_4,R,1,Bob Inglis,To run for U.S. Senate,to run for u.s. senate
+1998,Texas,20,Texas_20,D,0,Henry B. González,unknown,unknown
+1998,Washington,3,Washington_3,R,1,Linda Smith,To run for U.S. Senate,to run for u.s. senate
+1998,Wisconsin,1,Wisconsin_1,R,1,Mark Neumann,To run for U.S. Senate,to run for u.s. senate
+1998,Wisconsin,2,Wisconsin_2,R,1,Scott Klug,unknown,unknown
+2000,Arizona,1,Arizona_1,R,1,Matt Salmon,to run for Governor of Arizona,to run for governor of arizona
+2000,California,15,California_15,R,1,Tom Campbell,to run for U.S. Senator,to run for u.s. senator
+2000,California,48,California_48,R,1,Ron Packard,unknown,unknown
+2000,Florida,4,Florida_4,R,1,Tillie Fowler,unknown,unknown
+2000,Florida,8,Florida_8,R,1,Bill McCollum,to run for U.S. Senator,to run for u.s. senator
+2000,Florida,12,Florida_12,R,1,Charles T. Canady,unknown,unknown
+2000,Idaho,1,Idaho_1,R,1,Helen Chenoweth,unknown,unknown
+2000,Illinois,10,Illinois_10,R,1,John Porter,unknown,unknown
+2000,Illinois,15,Illinois_15,R,1,Thomas W. Ewing,unknown,unknown
+2000,Indiana,2,Indiana_2,R,1,David M. McIntosh,to run for Governor of Indiana,to run for governor of indiana
+2000,Indiana,7,Indiana_7,R,1,Edward A. Pease,unknown,unknown
+2000,Michigan,8,Michigan_8,D,0,Debbie Stabenow,to run for U.S. Senator,to run for u.s. senator
+2000,Missouri,1,Missouri_1,D,0,Bill Clay,unknown,unknown
+2000,Missouri,2,Missouri_2,R,1,Jim Talent,to run for Governor of Missouri,to run for governor of missouri
+2000,Missouri,6,Missouri_6,D,0,Pat Danner,unknown,unknown
+2000,Montana,at-large,Montana_at-large,R,1,Rick Hill,unknown,unknown
+2000,Nebraska,3,Nebraska_3,R,1,Bill Barrett,unknown,unknown
+2000,New Jersey,7,New Jersey_7,R,1,Bob Franks,to run for U.S. Senator,to run for u.s. senator
+2000,New York,2,New York_2,R,1,Rick Lazio,to run for U.S. Senator,to run for u.s. senator
+2000,Ohio,12,Ohio_12,R,1,John Kasich,to run for U.S. President,to run for u.s. president
+2000,Oklahoma,2,Oklahoma_2,R,1,Tom Coburn,unknown,unknown
+2000,Pennsylvania,4,Pennsylvania_4,D,0,Ron Klink,to run for U.S. Senator,to run for u.s. senator
+2000,Pennsylvania,19,Pennsylvania_19,R,1,William F. Goodling,unknown,unknown
+2000,Rhode Island,2,Rhode Island_2,D,0,Robert Weygand,to run for U.S. Senator,to run for u.s. senator
+2000,South Carolina,1,South Carolina_1,R,1,Mark Sanford,to run for Governor of South Carolina,to run for governor of south carolina
+2000,Texas,7,Texas_7,R,1,Bill Archer,unknown,unknown
+2000,Virginia,2,Virginia_2,D,0,Owen B. Pickett,unknown,unknown
+2000,Virginia,7,Virginia_7,R,1,Thomas J. Bliley Jr.,unknown,unknown
+2000,Washington,2,Washington_2,R,1,Jack Metcalf,unknown,unknown
+2000,West Virginia,2,West Virginia_2,D,0,Bob Wise,to run for Governor of West Virginia,to run for governor of west virginia
+2002,Alabama,1,Alabama_1,R,1,Sonny Callahan,unknown,unknown
+2002,Alabama,3,Alabama_3,R,1,Bob Riley,to run for Governor of Alabama,to run for governor of alabama
+2002,Arizona,2,Arizona_2,R,1,Bob Stump,when redistricted from the 3rd district,when redistricted from the 3rd district
+2002,California,39,California_39,R,1,Steve Horn,when redistricted from the 38th district,when redistricted from the 38th district
+2002,Colorado,4,Colorado_4,R,1,Bob Schaffer,unknown,unknown
+2002,Florida,13,Florida_13,R,1,Dan Miller,unknown,unknown
+2002,Florida,17,Florida_17,D,0,Carrie Meek,unknown,unknown
+2002,Georgia,3,Georgia_3,R,1,Saxby Chambliss,to run for U.S. Senator,to run for u.s. senator
+2002,Illinois,5,Illinois_5,D,0,Rod Blagojevich,to run for Governor of Illinois,to run for governor of illinois
+2002,Indiana,2,Indiana_2,D,0,Tim Roemer,when redistricted from the 3rd district,when redistricted from the 3rd district
+2002,Iowa,5,Iowa_5,R,1,Greg Ganske,to run for U.S. Senator,to run for u.s. senator
+2002,Louisiana,5,Louisiana_5,R,1,John Cooksey,to run for U.S. Senator,to run for u.s. senator
+2002,Maine,2,Maine_2,D,0,John Baldacci,to run successfully for Governor of Maine,to run successfully for governor of maine
+2002,Maryland,2,Maryland_2,R,1,Bob Ehrlich,to run for Governor of Maryland,to run for governor of maryland
+2002,Michigan,5,Michigan_5,D,0,James A. Barcia,to run for Michigan Senate,to run for michigan senate
+2002,Michigan,10,Michigan_10,D,0,David Bonior,to run for Governor of Michigan,to run for governor of michigan
+2002,New Hampshire,1,New Hampshire_1,R,1,John E. Sununu,to run for U.S. Senator,to run for u.s. senator
+2002,New Jersey,5,New Jersey_5,R,1,Marge Roukema,unknown,unknown
+2002,New Mexico,2,New Mexico_2,R,1,Joe Skeen,unknown,unknown
+2002,New York,19,New York_19,R,1,Benjamin Gilman,when redistricted from the 20th district,when redistricted from the 20th district
+2002,New York,28,New York_28,D,0,John J. LaFalce,when redistricted from the 29th district,when redistricted from the 29th district
+2002,North Carolina,1,North Carolina_1,D,0,Eva Clayton,unknown,unknown
+2002,Oklahoma,3,Oklahoma_3,R,1,Wes Watkins,unknown,unknown
+2002,Oklahoma,4,Oklahoma_4,R,1,J. C. Watts,unknown,unknown
+2002,Pennsylvania,13,Pennsylvania_13,D,0,Robert A. Borski Jr.,when redistricted from the 3rd district,when redistricted from the 3rd district
+2002,Pennsylvania,14,Pennsylvania_14,D,0,William J. Coyne,unknown,unknown
+2002,South Carolina,3,South Carolina_3,R,1,Lindsey Graham,to run for U.S. Senator,to run for u.s. senator
+2002,South Dakota,at-large,South Dakota_at-large,R,1,John Thune,to run for U.S. Senator,to run for u.s. senator
+2002,Tennessee,4,Tennessee_4,R,1,Van Hilleary,to run for Governor of Tennessee,to run for governor of tennessee
+2002,Tennessee,5,Tennessee_5,D,0,Bob Clement,to run for U.S. Senator,to run for u.s. senator
+2002,Tennessee,7,Tennessee_7,R,1,Ed Bryant,to run for U.S. Senator,to run for u.s. senator
+2002,Texas,25,Texas_25,D,0,Ken Bentsen Jr.,to run for U.S. Senator,to run for u.s. senator
+2002,Texas,26,Texas_26,R,1,Dick Armey,unknown,unknown
+2002,Utah,1,Utah_1,R,1,James V. Hansen,unknown,unknown
+2002,Wisconsin,4,Wisconsin_4,D,0,Tom Barrett,to run for Governor of Wisconsin,to run for governor of wisconsin
+2004,California,3,California_3,R,1,Doug Ose,unknown,unknown
+2004,California,20,California_20,D,0,Cal Dooley,unknown,unknown
+2004,Colorado,3,Colorado_3,R,1,Scott McInnis,unknown,unknown
+2004,Florida,20,Florida_20,D,0,Peter Deutsch,to run for U.S. Senator,to run for u.s. senator
+2004,Georgia,4,Georgia_4,D,0,Denise Majette,to run for U.S. Senator,to run for u.s. senator
+2004,Georgia,6,Georgia_6,R,1,Johnny Isakson,to run for U.S. Senator,to run for u.s. senator
+2004,Georgia,8,Georgia_8,R,1,Mac Collins,to run for U.S. Senator,to run for u.s. senator
+2004,Illinois,3,Illinois_3,D,0,Bill Lipinski,unknown,unknown
+2004,Kentucky,4,Kentucky_4,D,0,Ken Lucas,unknown,unknown
+2004,Louisiana,1,Louisiana_1,R,1,David Vitter,to run for U.S. Senator,to run for u.s. senator
+2004,Louisiana,3,Louisiana_3,R,1,Billy Tauzin,unknown,unknown
+2004,Louisiana,7,Louisiana_7,D,0,Chris John,to run for U.S. Senator,to run for u.s. senator
+2004,Michigan,7,Michigan_7,R,1,Nick Smith,unknown,unknown
+2004,Missouri,3,Missouri_3,D,0,Dick Gephardt,to run for U.S. president,to run for u.s. president
+2004,Missouri,5,Missouri_5,D,0,Karen McCarthy,unknown,unknown
+2004,New York,27,New York_27,R,1,Jack Quinn,unknown,unknown
+2004,New York,29,New York_29,R,1,Amo Houghton,unknown,unknown
+2004,North Carolina,5,North Carolina_5,R,1,Richard Burr,to run for U.S. Senator,to run for u.s. senator
+2004,North Carolina,10,North Carolina_10,R,1,Cass Ballenger,unknown,unknown
+2004,Oklahoma,2,Oklahoma_2,D,0,Brad Carson,to run for U.S. Senator,to run for u.s. senator
+2004,Pennsylvania,8,Pennsylvania_8,R,1,Jim Greenwood,unknown,unknown
+2004,Pennsylvania,13,Pennsylvania_13,D,0,Joe Hoeffel,to run for U.S. Senator,to run for u.s. senator
+2004,Pennsylvania,15,Pennsylvania_15,R,1,Pat Toomey,to run for U.S. Senator,to run for u.s. senator
+2004,Puerto Rico,at-large,Puerto Rico_at-large,D,0,Aníbal Acevedo Vilá,to run for Governor of Puerto Rico,to run for governor of puerto rico
+2004,South Carolina,4,South Carolina_4,R,1,Jim DeMint,to run for U.S. Senator,to run for u.s. senator
+2004,Texas,8,Texas_8,D,0,Jim Turner,when redistricted from the 2nd district,when redistricted from the 2nd district
+2004,Virginia,2,Virginia_2,R,1,Ed Schrock,unknown,unknown
+2004,Washington,5,Washington_5,R,1,George Nethercutt,to run for U.S. Senator,to run for u.s. senator
+2004,Washington,8,Washington_8,R,1,Jennifer Dunn,unknown,unknown
+2004,Wisconsin,4,Wisconsin_4,D,0,Jerry Kleczka,unknown,unknown
+2006,Arizona,8,Arizona_8,R,1,Jim Kolbe,unknown,unknown
+2006,California,22,California_22,R,1,Bill Thomas,unknown,unknown
+2006,Colorado,5,Colorado_5,R,1,Joel Hefley,unknown,unknown
+2006,Colorado,7,Colorado_7,R,1,Bob Beauprez,unknown,unknown
+2006,Florida,9,Florida_9,R,1,Michael Bilirakis,unknown,unknown
+2006,Florida,11,Florida_11,D,0,Jim Davis,unknown,unknown
+2006,Florida,13,Florida_13,R,1,Katherine Harris,unknown,unknown
+2006,Hawaii,2,Hawaii_2,D,0,Ed Case,unknown,unknown
+2006,Idaho,1,Idaho_1,R,1,Butch Otter,unknown,unknown
+2006,Illinois,6,Illinois_6,R,1,Henry Hyde,unknown,unknown
+2006,Illinois,17,Illinois_17,D,0,Lane Evans,unknown,unknown
+2006,Iowa,1,Iowa_1,R,1,Jim Nussle,unknown,unknown
+2006,Maryland,3,Maryland_3,D,0,Ben Cardin,unknown,unknown
+2006,Minnesota,5,Minnesota_5,D,0,Martin Olav Sabo,unknown,unknown
+2006,Minnesota,6,Minnesota_6,R,1,Mark Kennedy,unknown,unknown
+2006,Nebraska,3,Nebraska_3,R,1,Tom Osborne,unknown,unknown
+2006,Nevada,2,Nevada_2,R,1,Jim Gibbons,unknown,unknown
+2006,New York,11,New York_11,D,0,Major Owens,unknown,unknown
+2006,New York,24,New York_24,R,1,Sherwood Boehlert,unknown,unknown
+2006,Ohio,4,Ohio_4,R,1,Mike Oxley,unknown,unknown
+2006,Ohio,6,Ohio_6,D,0,Ted Strickland,unknown,unknown
+2006,Ohio,13,Ohio_13,D,0,Sherrod Brown,unknown,unknown
+2006,Oklahoma,5,Oklahoma_5,R,1,Ernest Istook,unknown,unknown
+2006,Tennessee,1,Tennessee_1,R,1,Bill Jenkins,unknown,unknown
+2006,Tennessee,9,Tennessee_9,D,0,Harold Ford Jr,unknown,unknown
+2006,Vermont,at-large,Vermont_at-large,I,3,Bernie Sanders,unknown,unknown
+2006,Wisconsin,8,Wisconsin_8,R,1,Mark Andrew Green,unknown,unknown
+2008,Alabama,2,Alabama_2,R,1,Terry Everett,Because of age and health,because of age and health
+2008,Alabama,5,Alabama_5,D,0,Bud Cramer,"""To spend more time with my family and begin another chapter in my life""","""to spend more time with my family and begin another chapter in my life"""
+2008,Arizona,1,Arizona_1,R,1,Rick Renzi,To fight federal criminal charges involving a land-swap deal,to fight federal criminal charges involving a land-swap deal
+2008,California,4,California_4,R,1,John Doolittle,To fight an FBI corruption investigation,to fight an fbi corruption investigation
+2008,California,12,California_12,D,0,Tom Lantos,"died February 11, 2008, having already announced his planned retirement","died february 11, 2008, having already announced his planned retirement"
+2008,California,52,California_52,R,1,Duncan Hunter,Ran for and lost the race for the Republican nomination for president. Already planned to retire,ran for and lost the race for the republican nomination for president. already planned to retire
+2008,Colorado,2,Colorado_2,D,0,Mark Udall,Ran for and won the U.S. Senate seat vacated by Wayne Allard,ran for and won the u.s. senate seat vacated by wayne allard
+2008,Colorado,6,Colorado_6,R,1,Tom Tancredo,Ran for and lost the race for the Republican nomination for President,ran for and lost the race for the republican nomination for president
+2008,Florida,15,Florida_15,R,1,Dave Weldon,To return to his medical practice,to return to his medical practice
+2008,Illinois,11,Illinois_11,R,1,Jerry Weller,"To spend more time with his family, amid questions about his Nicaraguan land dealings","to spend more time with his family, amid questions about his nicaraguan land dealings"
+2008,Illinois,18,Illinois_18,R,1,Ray LaHood,"(On December 19, 2008, President-elect Barack Obama announced his intention to nominate LaHood)","(on december 19, 2008, president-elect barack obama announced his intention to nominate lahood)"
+2008,Kentucky,2,Kentucky_2,R,1,Ron Lewis,unknown,unknown
+2008,Louisiana,4,Louisiana_4,R,1,Jim McCrery,unknown,unknown
+2008,Maine,1,Maine_1,D,0,Tom Allen,Ran against and lost to Susan Collins in the U.S. Senate election,ran against and lost to susan collins in the u.s. senate election
+2008,Minnesota,3,Minnesota_3,R,1,Jim Ramstad,unknown,unknown
+2008,Mississippi,3,Mississippi_3,R,1,Chip Pickering,unknown,unknown
+2008,Missouri,9,Missouri_9,R,1,Kenny Hulshof,Ran for and lost the election for governor,ran for and lost the election for governor
+2008,New Jersey,3,New Jersey_3,R,1,Jim Saxton,Because of age and health,because of age and health
+2008,New Jersey,7,New Jersey_7,R,1,Mike Ferguson,To spend more time with his family,to spend more time with his family
+2008,New Mexico,1,New Mexico_1,R,1,Heather Wilson,Ran in and lost the Republican primary,ran in and lost the republican primary
+2008,New Mexico,2,New Mexico_2,R,1,Steve Pearce,Ran for and lost the election for U.S. Senate,ran for and lost the election for u.s. senate
+2008,New Mexico,3,New Mexico_3,D,0,Tom Udall,Ran for and won the U.S. Senate seat vacated by Pete Domenici,ran for and won the u.s. senate seat vacated by pete domenici
+2008,New York,13,New York_13,R,1,Vito Fossella,Amid scandal following a drunk driving arrest,amid scandal following a drunk driving arrest
+2008,New York,21,New York_21,D,0,Michael McNulty,"""[I]t's not what I want to do for the rest of my life.""","""[i]t's not what i want to do for the rest of my life."""
+2008,New York,25,New York_25,R,1,Jim Walsh,unknown,unknown
+2008,New York,26,New York_26,R,1,Tom Reynolds,unknown,unknown
+2008,Ohio,7,Ohio_7,R,1,Dave Hobson,"""I wanted to go out on top""","""i wanted to go out on top"""
+2008,Ohio,15,Ohio_15,R,1,Deborah Pryce,To spend more time with her family,to spend more time with her family
+2008,Ohio,16,Ohio_16,R,1,Ralph Regula,unknown,unknown
+2008,Oregon,5,Oregon_5,D,0,Darlene Hooley,"Because of the ""cumulative effect of arduous travel, the relentless demands of fund-raising and 32 years of public service""","because of the ""cumulative effect of arduous travel, the relentless demands of fund-raising and 32 years of public service"""
+2008,Pennsylvania,5,Pennsylvania_5,R,1,John Peterson,To spend more time with his family,to spend more time with his family
+2008,Puerto Rico,at-large,Puerto Rico_at-large,R,1,Luis Fortuño,Ran for and won the Governorship of Puerto Rico,ran for and won the governorship of puerto rico
+2008,Virginia,11,Virginia_11,R,1,Thomas M. Davis,"""It's time for me to take a sabbatical""","""it's time for me to take a sabbatical"""
+2008,Wyoming,at-large,Wyoming_at-large,R,1,Barbara Cubin,unknown,unknown
+2010,Alabama,7,Alabama_7,D,0,Artur Davis,To run for Governor of Alabama,to run for governor of alabama
+2010,Arizona,3,Arizona_3,R,1,John Shadegg,to pursue other interests,to pursue other interests
+2010,Arkansas,1,Arkansas_1,D,0,Marion Berry,due to health concerns,due to health concerns
+2010,Arkansas,2,Arkansas_2,D,0,Vic Snyder,to spend more time with family,to spend more time with family
+2010,Arkansas,3,Arkansas_3,R,1,John Boozman,to run for U.S. Senator,to run for u.s. senator
+2010,California,19,California_19,R,1,George Radanovich,to put family obligations first,to put family obligations first
+2010,California,33,California_33,D,0,Diane Watson,It should be a seat inherited by someone who can represent everyone in this district.,it should be a seat inherited by someone who can represent everyone in this district.
+2010,Delaware,at-large,Delaware_at-large,R,1,Mike Castle,to run for U.S. Senator,to run for u.s. senator
+2010,Florida,5,Florida_5,R,1,Ginny Brown-Waite,due to health issues,due to health issues
+2010,Florida,12,Florida_12,R,1,Adam Putnam,to run for Florida Commissioner of Agriculture,to run for florida commissioner of agriculture
+2010,Florida,17,Florida_17,D,0,Kendrick Meek,To run for U.S. Senator,to run for u.s. senator
+2010,Florida,21,Florida_21,R,1,Lincoln Díaz-Balart,to return to law practice,to return to law practice
+2010,Georgia,7,Georgia_7,R,1,John Linder,unknown,unknown
+2010,Illinois,10,Illinois_10,R,1,Mark Kirk,to run for U.S. Senator,to run for u.s. senator
+2010,Indiana,4,Indiana_4,R,1,Steve Buyer,due to wife's illness,due to wife's illness
+2010,Indiana,8,Indiana_8,D,0,Brad Ellsworth,To run for U.S. Senator,to run for u.s. senator
+2010,Kansas,1,Kansas_1,R,1,Jerry Moran,to run for U.S. Senator,to run for u.s. senator
+2010,Kansas,3,Kansas_3,D,0,Dennis Moore,Time for a new generation of leadership.,time for a new generation of leadership.
+2010,Kansas,4,Kansas_4,R,1,Todd Tiahrt,to run for U.S. Senator,to run for u.s. senator
+2010,Louisiana,3,Louisiana_3,D,0,Charlie Melançon,To run for U.S. Senator,to run for u.s. senator
+2010,Massachusetts,10,Massachusetts_10,D,0,Bill Delahunt,Life is about change. I think it's healthy. It's time.,life is about change. i think it's healthy. it's time.
+2010,Michigan,1,Michigan_1,D,0,Bart Stupak,I've accomplished what I want to do.,i've accomplished what i want to do.
+2010,Michigan,2,Michigan_2,R,1,Pete Hoekstra,to run for Governor of Michigan,to run for governor of michigan
+2010,Michigan,3,Michigan_3,R,1,Vern Ehlers,unknown,unknown
+2010,Missouri,7,Missouri_7,R,1,Roy Blunt,to run for U.S. Senator,to run for u.s. senator
+2010,New Hampshire,2,New Hampshire_2,D,0,Paul Hodes,To run for U.S. Senator,to run for u.s. senator
+2010,Oklahoma,5,Oklahoma_5,R,1,Mary Fallin,to run for Governor of Oklahoma,to run for governor of oklahoma
+2010,Pennsylvania,7,Pennsylvania_7,D,0,Joe Sestak,To run for U.S. Senator,to run for u.s. senator
+2010,Rhode Island,1,Rhode Island_1,D,0,Patrick J. Kennedy,"to ""[take] a new direction.""","to ""[take] a new direction."""
+2010,South Carolina,1,South Carolina_1,R,1,Henry E. Brown Jr.,to spend more time with his family,to spend more time with his family
+2010,South Carolina,3,South Carolina_3,R,1,Gresham Barrett,to run for Governor of South Carolina,to run for governor of south carolina
+2010,Tennessee,3,Tennessee_3,R,1,Zach Wamp,to run for Governor of Tennessee,to run for governor of tennessee
+2010,Tennessee,6,Tennessee_6,D,0,Bart Gordon,...it's time for a new chapter.,...it's time for a new chapter.
+2010,Tennessee,8,Tennessee_8,D,0,John S. Tanner,decided 20 years was long enough,decided 20 years was long enough
+2010,Washington,3,Washington_3,D,0,Brian Baird,to pursue other options,to pursue other options
+2010,Wisconsin,7,Wisconsin_7,D,0,Dave Obey,"But even more frankly, I am bone tired.","but even more frankly, i am bone tired."
+2012,Arizona,6,Arizona_6,R,1,Jeff Flake,"to run for U.S. Senate, was succeeded by Matt Salmon","to run for u.s. senate, was succeeded by matt salmon"
+2012,Arkansas,4,Arkansas_4,R,1,Mike Ross,was succeeded by Tom Cotton,was succeeded by tom cotton
+2012,California,2,California_2,R,1,Wally Herger,was succeeded by Doug LaMalfa,was succeeded by doug lamalfa
+2012,California,6,California_6,D,0,Lynn Woolsey,was succeeded by Jared Huffman (with district being renumbered as California 2),was succeeded by jared huffman (with district being renumbered as california 2)
+2012,California,18,California_18,R,1,Dennis Cardoza,unknown,unknown
+2012,California,24,California_24,D,0,Elton Gallegly,was succeeded by Julia Brownley,was succeeded by julia brownley
+2012,California,26,California_26,D,0,David Dreier,unknown,unknown
+2012,California,41,California_41,R,1,Jerry Lewis,was succeeded by Paul Cook,was succeeded by paul cook
+2012,California,51,California_51,D,0,Bob Filner,"to run for mayor of San Diego, was succeeded by Juan Vargas","to run for mayor of san diego, was succeeded by juan vargas"
+2012,Connecticut,5,Connecticut_5,D,0,Chris Murphy,"to run for U.S. Senate, was succeeded by Elizabeth Esty","to run for u.s. senate, was succeeded by elizabeth esty"
+2012,Florida,14,Florida_14,R,1,Connie Mack IV,"to run for U.S. Senate, was succeeded by Trey Radel","to run for u.s. senate, was succeeded by trey radel"
+2012,Hawaii,2,Hawaii_2,D,0,Mazie Hirono,"to run for U.S. Senate, was succeeded by Tulsi Gabbard","to run for u.s. senate, was succeeded by tulsi gabbard"
+2012,Illinois,12,Illinois_12,D,0,Jerry Costello,was succeeded by William Enyart,was succeeded by william enyart
+2012,Illinois,15,Illinois_15,R,1,Tim Johnson,was succeeded by Rodney L. Davis,was succeeded by rodney l. davis
+2012,Indiana,2,Indiana_2,R,1,Joe Donnelly,"to run for U.S. Senate, was succeeded by Jackie Walorski","to run for u.s. senate, was succeeded by jackie walorski"
+2012,Indiana,5,Indiana_5,R,1,Dan Burton,was succeeded by Susan Brooks,was succeeded by susan brooks
+2012,Indiana,6,Indiana_6,R,1,Mike Pence,"to run for Governor of Indiana, was succeeded by Luke Messer","to run for governor of indiana, was succeeded by luke messer"
+2012,Massachusetts,1,Massachusetts_1,R,1,John Olver,unknown,unknown
+2012,Massachusetts,4,Massachusetts_4,D,0,Barney Frank,was succeeded by Joseph P. Kennedy III,was succeeded by joseph p. kennedy iii
+2012,Michigan,5,Michigan_5,D,0,Dale Kildee,was succeeded by Dan Kildee,was succeeded by dan kildee
+2012,Michigan,11,Michigan_11,R,1,Thaddeus McCotter: failed to make the ballot for renomination due to fraudulent signatures,"resigned July 6, 2012","resigned july 6, 2012"
+2012,Missouri,2,Missouri_2,R,1,Todd Akin,"to run for U.S. Senate, was succeeded by Ann Wagner","to run for u.s. senate, was succeeded by ann wagner"
+2012,Montana,at-large,Montana_at-large,R,1,Denny Rehberg,"to run for U.S. Senate, was succeeded by Steve Daines","to run for u.s. senate, was succeeded by steve daines"
+2012,Nevada,1,Nevada_1,D,0,Shelley Berkley,"to run for U.S. Senate, was succeeded by Dina Titus","to run for u.s. senate, was succeeded by dina titus"
+2012,New Mexico,1,New Mexico_1,D,0,Martin Heinrich,"to run for U.S. Senate, was succeeded by Michelle Lujan Grisham","to run for u.s. senate, was succeeded by michelle lujan grisham"
+2012,New York,5,New York_5,D,0,Gary Ackerman,was succeeded by Grace Meng,was succeeded by grace meng
+2012,New York,9,New York_9,D,0,Bob Turner,unknown,unknown
+2012,New York,10,New York_10,D,0,Edolphus Towns,was succeeded by Hakeem Jeffries,was succeeded by hakeem jeffries
+2012,New York,22,New York_22,R,1,Maurice Hinchey,unknown,unknown
+2012,North Carolina,9,North Carolina_9,R,1,Sue Myrick,was succeeded by Robert Pittenger,was succeeded by robert pittenger
+2012,North Carolina,11,North Carolina_11,R,1,Heath Shuler,was succeeded by Mark Meadows,was succeeded by mark meadows
+2012,North Carolina,13,North Carolina_13,R,1,Brad Miller,was succeeded by George Holding,was succeeded by george holding
+2012,North Dakota,at-large,North Dakota_at-large,R,1,Rick Berg,"to run for U.S. Senate, was succeeded by Kevin Cramer","to run for u.s. senate, was succeeded by kevin cramer"
+2012,Ohio,7,Ohio_7,D,0,Steve Austria,unknown,unknown
+2012,Ohio,14,Ohio_14,R,1,Steve LaTourette,was succeeded by David Joyce,was succeeded by david joyce
+2012,Oklahoma,2,Oklahoma_2,R,1,Dan Boren,was succeeded by Markwayne Mullin,was succeeded by markwayne mullin
+2012,Pennsylvania,19,Pennsylvania_19,R,1,Todd Russell Platts,was succeeded by Scott Perry,was succeeded by scott perry
+2012,Texas,14,Texas_14,R,1,Ron Paul,"to run for U.S. President, was succeeded by Randy Weber","to run for u.s. president, was succeeded by randy weber"
+2012,Texas,20,Texas_20,D,0,Charlie Gonzalez,was succeeded by Joaquín Castro,was succeeded by joaquín castro
+2012,Washington,6,Washington_6,D,0,Norm Dicks,was succeeded by Derek Kilmer,was succeeded by derek kilmer
+2012,Wisconsin,2,Wisconsin_2,D,0,Tammy Baldwin,"to run for U.S. Senate, was succeeded by Mark Pocan","to run for u.s. senate, was succeeded by mark pocan"
+2014,Alabama,6,Alabama_6,R,1,Spencer Bachus,unknown,unknown
+2014,Arizona,7,Arizona_7,D,0,Ed Pastor,unknown,unknown
+2014,Arkansas,2,Arkansas_2,R,1,Tim Griffin,to run for Lieutenant Governor of Arkansas,to run for lieutenant governor of arkansas
+2014,Arkansas,4,Arkansas_4,R,1,Tom Cotton,to run for U.S. Senator,to run for u.s. senator
+2014,California,11,California_11,D,0,George Miller,unknown,unknown
+2014,California,25,California_25,R,1,Buck McKeon,unknown,unknown
+2014,California,31,California_31,R,1,Gary Miller,unknown,unknown
+2014,California,33,California_33,D,0,Henry Waxman,unknown,unknown
+2014,California,35,California_35,D,0,Gloria Negrete McLeod,to run for the San Bernardino County Board of Supervisors,to run for the san bernardino county board of supervisors
+2014,California,45,California_45,R,1,John B. T. Campbell III,unknown,unknown
+2014,Colorado,4,Colorado_4,R,1,Cory Gardner,to run for U.S. Senator,to run for u.s. senator
+2014,Georgia,1,Georgia_1,R,1,Jack Kingston,to run for U.S. Senator,to run for u.s. senator
+2014,Georgia,10,Georgia_10,R,1,Paul Broun,to run for U.S. Senator,to run for u.s. senator
+2014,Georgia,11,Georgia_11,R,1,Phil Gingrey,to run for U.S. Senator,to run for u.s. senator
+2014,Hawaii,1,Hawaii_1,D,0,Colleen Hanabusa,to run for U.S. Senator,to run for u.s. senator
+2014,Iowa,1,Iowa_1,D,0,Bruce Braley,to run for U.S. Senator,to run for u.s. senator
+2014,Iowa,3,Iowa_3,R,1,Tom Latham,unknown,unknown
+2014,Louisiana,6,Louisiana_6,R,1,Bill Cassidy,to run for U.S. Senator,to run for u.s. senator
+2014,Maine,2,Maine_2,D,0,Mike Michaud,to run for Governor of Maine,to run for governor of maine
+2014,Michigan,4,Michigan_4,R,1,Dave Camp,unknown,unknown
+2014,Michigan,8,Michigan_8,R,1,Mike Rogers,unknown,unknown
+2014,Michigan,12,Michigan_12,D,0,John Dingell,unknown,unknown
+2014,Michigan,14,Michigan_14,D,0,Gary Peters,to run for U.S. Senator,to run for u.s. senator
+2014,Minnesota,6,Minnesota_6,R,1,Michele Bachmann,unknown,unknown
+2014,Montana,at-large,Montana_at-large,R,1,Steve Daines,to run for U.S. Senator,to run for u.s. senator
+2014,New Jersey,3,New Jersey_3,R,1,Jon Runyan,unknown,unknown
+2014,New Jersey,12,New Jersey_12,D,0,Rush Holt Jr.,unknown,unknown
+2014,New York,4,New York_4,D,0,Carolyn McCarthy,unknown,unknown
+2014,New York,21,New York_21,D,0,Bill Owens,unknown,unknown
+2014,North Carolina,6,North Carolina_6,R,1,Howard Coble,unknown,unknown
+2014,North Carolina,7,North Carolina_7,D,0,Mike McIntyre,unknown,unknown
+2014,Oklahoma,5,Oklahoma_5,R,1,James Lankford,to run for U.S. Senator,to run for u.s. senator
+2014,Pennsylvania,6,Pennsylvania_6,R,1,Jim Gerlach,unknown,unknown
+2014,Pennsylvania,13,Pennsylvania_13,D,0,Allyson Schwartz,to run for Governor of Pennsylvania,to run for governor of pennsylvania
+2014,Texas,36,Texas_36,R,1,Steve Stockman,to run for U.S. Senator,to run for u.s. senator
+2014,Utah,4,Utah_4,D,0,Jim Matheson,unknown,unknown
+2014,Virgin Islands,at-large,Virgin Islands_at-large,D,0,Donna Christian-Christensen,to run for Governor of the Virgin Islands,to run for governor of the virgin islands
+2014,Virginia,8,Virginia_8,D,0,Jim Moran,unknown,unknown
+2014,Virginia,10,Virginia_10,R,1,Frank Wolf,unknown,unknown
+2014,Washington,4,Washington_4,R,1,Doc Hastings,unknown,unknown
+2014,West Virginia,2,West Virginia_2,R,1,Shelley Moore Capito,to run for U.S. Senator,to run for u.s. senator
+2014,Wisconsin,6,Wisconsin_6,R,1,Tom Petri,unknown,unknown
+2016,Arizona,1,Arizona_1,D,0,Ann Kirkpatrick,to run for U.S. senator,to run for u.s. senator
+2016,Arizona,5,Arizona_5,R,1,Matt Salmon,unknown,unknown
+2016,California,20,California_20,D,0,Sam Farr,unknown,unknown
+2016,California,24,California_24,D,0,Lois Capps,unknown,unknown
+2016,California,44,California_44,D,0,Janice Hahn,to run for the Los Angeles County Board of Supervisors,to run for the los angeles county board of supervisors
+2016,California,46,California_46,D,0,Loretta Sanchez,to run for U.S. senator,to run for u.s. senator
+2016,Delaware,at-large,Delaware_at-large,D,0,John Carney,to run for governor of Delaware,to run for governor of delaware
+2016,Florida,1,Florida_1,R,1,Jeff Miller,unknown,unknown
+2016,Florida,2,Florida_2,D,0,Gwen Graham,unknown,unknown
+2016,Florida,4,Florida_4,R,1,Ander Crenshaw,unknown,unknown
+2016,Florida,9,Florida_9,D,0,Alan Grayson,to run for U.S. senator,to run for u.s. senator
+2016,Florida,11,Florida_11,R,1,Rich Nugent,unknown,unknown
+2016,Florida,18,Florida_18,D,0,Patrick Murphy,to run for U.S. senator,to run for u.s. senator
+2016,Florida,19,Florida_19,R,1,Curt Clawson,unknown,unknown
+2016,Georgia,3,Georgia_3,R,1,Lynn Westmoreland,unknown,unknown
+2016,Hawaii,1,Hawaii_1,D,0,Mark Takai,"July 20, 2016, having already announced his planned retirement","july 20, 2016, having already announced his planned retirement"
+2016,Illinois,8,Illinois_8,D,0,Tammy Duckworth,to run for U.S. senator,to run for u.s. senator
+2016,Indiana,3,Indiana_3,R,1,Marlin Stutzman,to run for U.S. senator,to run for u.s. senator
+2016,Indiana,9,Indiana_9,R,1,Todd Young,to run for U.S. senator,to run for u.s. senator
+2016,Kentucky,1,Kentucky_1,R,1,Ed Whitfield,"September 6, 2016, having previously announced his planned retirement","september 6, 2016, having previously announced his planned retirement"
+2016,Louisiana,3,Louisiana_3,R,1,Charles Boustany,to run for U.S. senator,to run for u.s. senator
+2016,Louisiana,4,Louisiana_4,R,1,John Fleming,to run for U.S. senator,to run for u.s. senator
+2016,Maryland,4,Maryland_4,D,0,Donna Edwards,to run for U.S. senator,to run for u.s. senator
+2016,Maryland,8,Maryland_8,D,0,Chris Van Hollen,to run for U.S. senator,to run for u.s. senator
+2016,Michigan,1,Michigan_1,R,1,Dan Benishek,unknown,unknown
+2016,Michigan,10,Michigan_10,R,1,Candice Miller,unknown,unknown
+2016,Minnesota,2,Minnesota_2,R,1,John Kline,unknown,unknown
+2016,Nevada,3,Nevada_3,R,1,Joe Heck,to run for U.S. senator,to run for u.s. senator
+2016,New York,3,New York_3,D,0,Steve Israel,unknown,unknown
+2016,New York,13,New York_13,D,0,Charles Rangel,unknown,unknown
+2016,New York,19,New York_19,R,1,Chris Gibson,unknown,unknown
+2016,New York,22,New York_22,R,1,Richard Hanna,unknown,unknown
+2016,Pennsylvania,8,Pennsylvania_8,R,1,Mike Fitzpatrick,unknown,unknown
+2016,Pennsylvania,16,Pennsylvania_16,R,1,Joe Pitts,unknown,unknown
+2016,Puerto Rico,at-large,Puerto Rico_at-large,D,0,Pedro Pierluisi,to run for governor of Puerto Rico,to run for governor of puerto rico
+2016,Tennessee,8,Tennessee_8,R,1,Stephen Fincher,unknown,unknown
+2016,Texas,15,Texas_15,D,0,Rubén Hinojosa,unknown,unknown
+2016,Texas,19,Texas_19,R,1,Randy Neugebauer,unknown,unknown
+2016,Virginia,2,Virginia_2,R,1,Scott Rigell,unknown,unknown
+2016,Virginia,5,Virginia_5,R,1,Robert Hurt,unknown,unknown
+2016,Washington,7,Washington_7,D,0,Jim McDermott,unknown,unknown
+2016,Wisconsin,8,Wisconsin_8,R,1,Reid Ribble,unknown,unknown
+2016,Wyoming,at-large,Wyoming_at-large,R,1,Cynthia Lummis,unknown,unknown
+2018,Arizona,2,Arizona_2,R,1,Martha McSally,to run for U.S. senator,to run for u.s. senator
+2018,Arizona,9,Arizona_9,D,0,Kyrsten Sinema,to run for U.S. senator,to run for u.s. senator
+2018,California,39,California_39,R,1,Ed Royce,unknown,unknown
+2018,California,49,California_49,R,1,Darrell Issa,nominated by President Donald Trump to be the director of the United States Trade and Development Agency,nominated by president donald trump to be the director of the united states trade and development agency
+2018,Colorado,2,Colorado_2,D,0,Jared Polis,to run for governor of Colorado,to run for governor of colorado
+2018,Connecticut,5,Connecticut_5,D,0,Elizabeth Esty,after involvement in sexual harassment allegations against an employee,after involvement in sexual harassment allegations against an employee
+2018,Florida,6,Florida_6,R,1,Ron DeSantis,to run for governor of Florida,to run for governor of florida
+2018,Florida,15,Florida_15,R,1,Dennis Ross,unknown,unknown
+2018,Florida,17,Florida_17,R,1,Tom Rooney,unknown,unknown
+2018,Florida,27,Florida_27,R,1,Ileana Ros-Lehtinen,unknown,unknown
+2018,Hawaii,1,Hawaii_1,D,0,Colleen Hanabusa,to run for governor of Hawaii,to run for governor of hawaii
+2018,Idaho,1,Idaho_1,R,1,Raúl Labrador,to run for governor of Idaho,to run for governor of idaho
+2018,Illinois,4,Illinois_4,D,0,Luis Gutiérrez,unknown,unknown
+2018,Indiana,4,Indiana_4,R,1,Todd Rokita,to run for U.S. senator,to run for u.s. senator
+2018,Indiana,6,Indiana_6,R,1,Luke Messer,to run for U.S. senator,to run for u.s. senator
+2018,Kansas,2,Kansas_2,R,1,Lynn Jenkins,unknown,unknown
+2018,Maryland,6,Maryland_6,D,0,John Delaney,to run for U.S. president,to run for u.s. president
+2018,Massachusetts,3,Massachusetts_3,D,0,Niki Tsongas,unknown,unknown
+2018,Michigan,9,Michigan_9,D,0,Sander Levin,unknown,unknown
+2018,Michigan,11,Michigan_11,R,1,Dave Trott,unknown,unknown
+2018,Minnesota,1,Minnesota_1,D,0,Tim Walz,to run for governor of Minnesota,to run for governor of minnesota
+2018,Minnesota,5,Minnesota_5,D,0,Keith Ellison,to run for Minnesota attorney general,to run for minnesota attorney general
+2018,Minnesota,8,Minnesota_8,D,0,Rick Nolan,to run for lieutenant governor of Minnesota,to run for lieutenant governor of minnesota
+2018,Mississippi,3,Mississippi_3,R,1,Gregg Harper,unknown,unknown
+2018,Nevada,3,Nevada_3,D,0,Jacky Rosen,to run for U.S. senator,to run for u.s. senator
+2018,Nevada,4,Nevada_4,D,0,Rubén Kihuen,due to sexual harassment allegations,due to sexual harassment allegations
+2018,New Hampshire,1,New Hampshire_1,D,0,Carol Shea-Porter,unknown,unknown
+2018,New Jersey,2,New Jersey_2,R,1,Frank LoBiondo,"""due to the increased political polarization of Congress.""","""due to the increased political polarization of congress."""
+2018,New Jersey,11,New Jersey_11,R,1,Rodney Frelinghuysen,unknown,unknown
+2018,New Mexico,1,New Mexico_1,D,0,Michelle Lujan Grisham,to run for governor of New Mexico,to run for governor of new mexico
+2018,New Mexico,2,New Mexico_2,R,1,Steve Pearce,to run for governor of New Mexico,to run for governor of new mexico
+2018,North Dakota,at-large,North Dakota_at-large,R,1,Kevin Cramer,to run for U.S. senator,to run for u.s. senator
+2018,Ohio,16,Ohio_16,R,1,Jim Renacci,to run for U.S. senator,to run for u.s. senator
+2018,Oklahoma,1,Oklahoma_1,R,1,Jim Bridenstine,unknown,unknown
+2018,Pennsylvania,2,Pennsylvania_2,D,0,Bob Brady,after being redistricted from the 1st district,after being redistricted from the 1st district
+2018,Pennsylvania,6,Pennsylvania_6,R,1,Ryan Costello,"due to ""family, the political environment and redistricting.""","due to ""family, the political environment and redistricting."""
+2018,Pennsylvania,9,Pennsylvania_9,R,1,Lou Barletta,to run for U.S. senator,to run for u.s. senator
+2018,Pennsylvania,13,Pennsylvania_13,R,1,Bill Shuster,when redistricted from the 9th district,when redistricted from the 9th district
+2018,South Carolina,4,South Carolina_4,R,1,Trey Gowdy,"to ""return to the justice system.""","to ""return to the justice system."""
+2018,South Dakota,at-large,South Dakota_at-large,R,1,Kristi Noem,to run for governor of South Dakota,to run for governor of south dakota
+2018,Tennessee,2,Tennessee_2,R,1,Jimmy Duncan,unknown,unknown
+2018,Tennessee,6,Tennessee_6,R,1,Diane Black,to run for governor of Tennessee,to run for governor of tennessee
+2018,Tennessee,7,Tennessee_7,R,1,Marsha Blackburn,to run for U.S. senator,to run for u.s. senator
+2018,Texas,2,Texas_2,R,1,Ted Poe,unknown,unknown
+2018,Texas,3,Texas_3,R,1,Sam Johnson,unknown,unknown
+2018,Texas,5,Texas_5,R,1,Jeb Hensarling,unknown,unknown
+2018,Texas,6,Texas_6,R,1,Joe Barton,unknown,unknown
+2018,Texas,16,Texas_16,D,0,Beto O'Rourke,to run for U.S. senator,to run for u.s. senator
+2018,Texas,21,Texas_21,R,1,Lamar Smith,unknown,unknown
+2018,Texas,29,Texas_29,D,0,Gene Green,unknown,unknown
+2018,Virginia,5,Virginia_5,R,1,Tom Garrett,due to alcoholism,due to alcoholism
+2018,Virginia,6,Virginia_6,R,1,Bob Goodlatte,unknown,unknown
+2018,Washington,8,Washington_8,R,1,Dave Reichert,unknown,unknown
+2018,West Virginia,3,West Virginia_3,R,1,Evan Jenkins,to run for U.S. senator,to run for u.s. senator
+2018,Wisconsin,1,Wisconsin_1,R,1,Paul Ryan,unknown,unknown
+2020,Alabama,1,Alabama_1,R,1,Bradley Byrne,to run for U.S. senator,to run for u.s. senator
+2020,Alabama,2,Alabama_2,R,1,Martha Roby,unknown,unknown
+2020,California,8,California_8,R,1,Paul Cook,to run for San Bernardino County supervisor,to run for san bernardino county supervisor
+2020,California,53,California_53,D,0,Susan Davis,unknown,unknown
+2020,Florida,3,Florida_3,R,1,Ted Yoho,unknown,unknown
+2020,Florida,19,Florida_19,R,1,Francis Rooney,unknown,unknown
+2020,Georgia,7,Georgia_7,R,1,Rob Woodall,unknown,unknown
+2020,Georgia,9,Georgia_9,R,1,Doug Collins,to run for U.S. senator,to run for u.s. senator
+2020,Hawaii,2,Hawaii_2,D,0,Tulsi Gabbard,to run for U.S. president,to run for u.s. president
+2020,Illinois,15,Illinois_15,R,1,John Shimkus,unknown,unknown
+2020,Indiana,1,Indiana_1,D,0,Pete Visclosky,unknown,unknown
+2020,Indiana,5,Indiana_5,R,1,Susan Brooks,unknown,unknown
+2020,Iowa,2,Iowa_2,D,0,Dave Loebsack,unknown,unknown
+2020,Kansas,1,Kansas_1,R,1,Roger Marshall,to run for U.S. senator,to run for u.s. senator
+2020,Louisiana,5,Louisiana_5,R,1,Ralph Abraham,unknown,unknown
+2020,Massachusetts,4,Massachusetts_4,D,0,Joe Kennedy III,to run for U.S. senator,to run for u.s. senator
+2020,Michigan,3,Michigan_3,L,2,Justin Amash,unknown,unknown
+2020,Michigan,10,Michigan_10,R,1,Paul Mitchell,unknown,unknown
+2020,Montana,at-large,Montana_at-large,R,1,Greg Gianforte,to run for governor of Montana,to run for governor of montana
+2020,New Mexico,3,New Mexico_3,D,0,Ben Ray Luján,to run for U.S. senator,to run for u.s. senator
+2020,New York,2,New York_2,R,1,Peter T. King,unknown,unknown
+2020,New York,15,New York_15,D,0,José Serrano,unknown,unknown
+2020,New York,17,New York_17,D,0,Nita Lowey,unknown,unknown
+2020,North Carolina,2,North Carolina_2,R,1,George Holding,due to court ordered redistricting,due to court ordered redistricting
+2020,North Carolina,6,North Carolina_6,R,1,Mark Walker,due to court ordered redistricting,due to court ordered redistricting
+2020,Oregon,2,Oregon_2,R,1,Greg Walden,unknown,unknown
+2020,Tennessee,1,Tennessee_1,R,1,Phil Roe,unknown,unknown
+2020,Texas,11,Texas_11,R,1,Mike Conaway,unknown,unknown
+2020,Texas,13,Texas_13,R,1,Mac Thornberry,unknown,unknown
+2020,Texas,17,Texas_17,R,1,Bill Flores,unknown,unknown
+2020,Texas,22,Texas_22,R,1,Pete Olson,unknown,unknown
+2020,Texas,23,Texas_23,R,1,Will Hurd,unknown,unknown
+2020,Texas,24,Texas_24,R,1,Kenny Marchant,unknown,unknown
+2020,Utah,1,Utah_1,R,1,Rob Bishop,to run for lieutenant governor of Utah,to run for lieutenant governor of utah
+2020,Washington,10,Washington_10,D,0,Denny Heck,to run for lieutenant governor of Washington,to run for lieutenant governor of washington
+2020,Wisconsin,5,Wisconsin_5,R,1,Jim Sensenbrenner,unknown,unknown
+2022,Alabama,5,Alabama_5,R,1,Mo Brooks,to run for U.S. Senate,to run for u.s. senate
+2022,Arizona,2,Arizona_2,D,0,Ann Kirkpatrick,unknown,unknown
+2022,California,9,California_9,D,0,Jerry McNerney,unknown,unknown
+2022,California,14,California_14,D,0,Jackie Speier,unknown,unknown
+2022,California,22,California_22,R,1,Connie Conway,unknown,unknown
+2022,California,37,California_37,D,0,Karen Bass,to run for mayor of Los Angeles,to run for mayor of los angeles
+2022,California,40,California_40,D,0,Lucille Roybal-Allard,unknown,unknown
+2022,California,47,California_47,D,0,Alan Lowenthal,unknown,unknown
+2022,Colorado,7,Colorado_7,D,0,Ed Perlmutter,unknown,unknown
+2022,Florida,7,Florida_7,D,0,Stephanie Murphy,unknown,unknown
+2022,Florida,10,Florida_10,D,0,Val Demings,to run for U.S. Senate,to run for u.s. senate
+2022,Georgia,10,Georgia_10,R,1,Jody Hice,to run for secretary of state of Georgia,to run for secretary of state of georgia
+2022,Guam,at-large,Guam_at-large,D,0,Michael San Nicolas,to run for governor of Guam,to run for governor of guam
+2022,Hawaii,2,Hawaii_2,D,0,Kai Kahele,to run for governor of Hawaii,to run for governor of hawaii
+2022,Illinois,1,Illinois_1,D,0,Bobby Rush,unknown,unknown
+2022,Illinois,16,Illinois_16,R,1,Adam Kinzinger,unknown,unknown
+2022,Illinois,17,Illinois_17,D,0,Cheri Bustos,unknown,unknown
+2022,Indiana,9,Indiana_9,R,1,Trey Hollingsworth,unknown,unknown
+2022,Kentucky,3,Kentucky_3,D,0,John Yarmuth,unknown,unknown
+2022,Maryland,4,Maryland_4,D,0,Anthony Brown,to run for attorney general of Maryland,to run for attorney general of maryland
+2022,Michigan,6,Michigan_6,R,1,Fred Upton,unknown,unknown
+2022,Michigan,14,Michigan_14,D,0,Brenda Lawrence,unknown,unknown
+2022,Missouri,4,Missouri_4,R,1,Vicky Hartzler,to run for U.S. Senate,to run for u.s. senate
+2022,Missouri,7,Missouri_7,R,1,Billy Long,to run for U.S. Senate,to run for u.s. senate
+2022,New Jersey,8,New Jersey_8,D,0,Albio Sires,unknown,unknown
+2022,New York,1,New York_1,R,1,Lee Zeldin,to run for governor of New York,to run for governor of new york
+2022,New York,3,New York_3,D,0,Thomas Suozzi,to run for governor of New York,to run for governor of new york
+2022,New York,4,New York_4,D,0,Kathleen Rice,unknown,unknown
+2022,New York,23,New York_23,R,1,Joe Sempolinski,unknown,unknown
+2022,New York,24,New York_24,R,1,John Katko,unknown,unknown
+2022,New York,27,New York_27,R,1,Chris Jacobs,unknown,unknown
+2022,North Carolina,1,North Carolina_1,D,0,G. K. Butterfield,unknown,unknown
+2022,North Carolina,4,North Carolina_4,D,0,David Price,unknown,unknown
+2022,North Carolina,13,North Carolina_13,R,1,Ted Budd,to run for U.S. Senate,to run for u.s. senate
+2022,Ohio,7,Ohio_7,R,1,Bob Gibbs,unknown,unknown
+2022,Ohio,13,Ohio_13,D,0,Tim Ryan,to run for U.S. Senate,to run for u.s. senate
+2022,Ohio,16,Ohio_16,R,1,Anthony Gonzalez,unknown,unknown
+2022,Oklahoma,2,Oklahoma_2,R,1,Markwayne Mullin,to run for U.S. Senate,to run for u.s. senate
+2022,Oregon,4,Oregon_4,D,0,Peter DeFazio,unknown,unknown
+2022,Pennsylvania,12,Pennsylvania_12,R,1,Fred Keller,unknown,unknown
+2022,Pennsylvania,17,Pennsylvania_17,D,0,Conor Lamb,to run for U.S. Senate,to run for u.s. senate
+2022,Pennsylvania,18,Pennsylvania_18,D,0,Mike Doyle,unknown,unknown
+2022,Rhode Island,2,Rhode Island_2,D,0,Jim Langevin,unknown,unknown
+2022,Tennessee,5,Tennessee_5,D,0,Jim Cooper,due to redistricting,due to redistricting
+2022,Texas,1,Texas_1,R,1,Louie Gohmert,to run for attorney general of Texas,to run for attorney general of texas
+2022,Texas,3,Texas_3,R,1,Van Taylor,after admitting to an affair,after admitting to an affair
+2022,Texas,8,Texas_8,R,1,Kevin Brady,unknown,unknown
+2022,Texas,30,Texas_30,D,0,Eddie Bernice Johnson,unknown,unknown
+2022,Vermont,at-large,Vermont_at-large,D,0,Peter Welch,to run for U.S. Senate,to run for u.s. senate
+2022,Wisconsin,3,Wisconsin_3,D,0,Ron Kind,unknown,unknown
+2024,Arizona,3,Arizona_3,D,0,Ruben Gallego,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,Arizona,8,Arizona_8,R,1,Debbie Lesko,to run successfully for the Maricopa County Board of Supervisors,to run successfully for the maricopa county board of supervisors
+2024,California,12,California_12,D,0,Barbara Lee,to run unsuccessfully for the U.S. Senate,to run unsuccessfully for the u.s. senate
+2024,California,16,California_16,D,0,Anna Eshoo,unknown,unknown
+2024,California,29,California_29,D,0,Tony Cárdenas,unknown,unknown
+2024,California,30,California_30,D,0,Adam Schiff,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,California,31,California_31,D,0,Grace Napolitano,unknown,unknown
+2024,California,47,California_47,D,0,Katie Porter,to run unsuccessfully for the U.S. Senate,to run unsuccessfully for the u.s. senate
+2024,Colorado,4,Colorado_4,R,1,Greg Lopez,unknown,unknown
+2024,Colorado,5,Colorado_5,R,1,Doug Lamborn,unknown,unknown
+2024,Delaware,at-large,Delaware_at-large,D,0,Lisa Blunt Rochester,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,Florida,8,Florida_8,R,1,Bill Posey,unknown,unknown
+2024,Georgia,3,Georgia_3,R,1,Drew Ferguson,unknown,unknown
+2024,Indiana,3,Indiana_3,R,1,Jim Banks,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,Indiana,6,Indiana_6,R,1,Greg Pence,unknown,unknown
+2024,Indiana,8,Indiana_8,R,1,Larry Bucshon,unknown,unknown
+2024,Kansas,2,Kansas_2,R,1,Jake LaTurner,unknown,unknown
+2024,Louisiana,6,Louisiana_6,R,1,Garret Graves,due to redistricting,due to redistricting
+2024,Maryland,2,Maryland_2,D,0,Dutch Ruppersberger,unknown,unknown
+2024,Maryland,3,Maryland_3,D,0,John Sarbanes,unknown,unknown
+2024,Maryland,6,Maryland_6,D,0,David Trone,to run unsuccessfully for the U.S. Senate,to run unsuccessfully for the u.s. senate
+2024,Michigan,7,Michigan_7,D,0,Elissa Slotkin,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,Michigan,8,Michigan_8,D,0,Dan Kildee,unknown,unknown
+2024,Minnesota,3,Minnesota_3,D,0,Dean Phillips,to run unsuccessfully for president,to run unsuccessfully for president
+2024,Missouri,3,Missouri_3,R,1,Blaine Luetkemeyer,unknown,unknown
+2024,Montana,2,Montana_2,R,1,Matt Rosendale,(initially ran for U.S. Senate in Montana),(initially ran for u.s. senate in montana)
+2024,New Hampshire,2,New Hampshire_2,D,0,Annie Kuster,unknown,unknown
+2024,New Jersey,3,New Jersey_3,D,0,Andy Kim,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,North Carolina,6,North Carolina_6,D,0,Kathy Manning,due to redistricting,due to redistricting
+2024,North Carolina,8,North Carolina_8,R,1,Dan Bishop,to run unsuccessfully for attorney general of North Carolina,to run unsuccessfully for attorney general of north carolina
+2024,North Carolina,10,North Carolina_10,R,1,Patrick McHenry,unknown,unknown
+2024,North Carolina,13,North Carolina_13,D,0,Wiley Nickel,due to redistricting,due to redistricting
+2024,North Carolina,14,North Carolina_14,D,0,Jeff Jackson,to run successfully for attorney general of North Carolina due to redistricting,to run successfully for attorney general of north carolina due to redistricting
+2024,North Dakota,at-large,North Dakota_at-large,R,1,Kelly Armstrong,to run successfully for governor of North Dakota,to run successfully for governor of north dakota
+2024,Northern Mariana Islands,at-large,Northern Mariana Islands_at-large,D,0,Gregorio Sablan,unknown,unknown
+2024,Ohio,2,Ohio_2,R,1,Brad Wenstrup,unknown,unknown
+2024,Oregon,3,Oregon_3,D,0,Earl Blumenauer,unknown,unknown
+2024,Puerto Rico,at-large,Puerto Rico_at-large,R,1,Jenniffer González-Colón,to run successfully for governor of Puerto Rico,to run successfully for governor of puerto rico
+2024,South Carolina,3,South Carolina_3,R,1,Jeff Duncan,unknown,unknown
+2024,Texas,12,Texas_12,R,1,Kay Granger,unknown,unknown
+2024,Texas,26,Texas_26,R,1,Michael C. Burgess,unknown,unknown
+2024,Texas,32,Texas_32,D,0,Colin Allred,to run unsuccessfully for the U.S. Senate,to run unsuccessfully for the u.s. senate
+2024,Utah,3,Utah_3,R,1,John Curtis,to run successfully for the U.S. Senate,to run successfully for the u.s. senate
+2024,Virginia,7,Virginia_7,D,0,Abigail Spanberger,to run successfully for governor of Virginia,to run successfully for governor of virginia
+2024,Virginia,10,Virginia_10,D,0,Jennifer Wexton,unknown,unknown
+2024,Washington,5,Washington_5,R,1,Cathy McMorris Rodgers,unknown,unknown
+2024,Washington,6,Washington_6,D,0,Derek Kilmer,unknown,unknown
+2024,West Virginia,2,West Virginia_2,R,1,Alex Mooney,to run unsuccessfully for the U.S. Senate,to run unsuccessfully for the u.s. senate
+2026,Alabama,1,Alabama_1,R,1,Barry Moore,to run for the U.S. Senate,to run for the u.s. senate
+2026,Arizona,1,Arizona_1,R,1,David Schweikert,to run for governor of Arizona,to run for governor of arizona
+2026,Arizona,5,Arizona_5,R,1,Andy Biggs,to run for governor of Arizona,to run for governor of arizona
+2026,California,11,California_11,D,0,Nancy Pelosi,unknown,unknown
+2026,California,26,California_26,D,0,Julia Brownley,unknown,unknown
+2026,California,48,California_48,R,1,Darrell Issa,unknown,unknown
+2026,District of Columbia,at-large,District of Columbia_at-large,D,0,Eleanor Holmes Norton,unknown,unknown
+2026,Florida,2,Florida_2,R,1,Neal Dunn,unknown,unknown
+2026,Florida,16,Florida_16,R,1,Vern Buchanan,unknown,unknown
+2026,Florida,19,Florida_19,R,1,Byron Donalds,to run for governor of Florida,to run for governor of florida
+2026,Georgia,1,Georgia_1,R,1,Buddy Carter,to run for the U.S. Senate,to run for the u.s. senate
+2026,Georgia,10,Georgia_10,R,1,Mike Collins,to run for the U.S. Senate,to run for the u.s. senate
+2026,Georgia,11,Georgia_11,R,1,Barry Loudermilk,unknown,unknown
+2026,Illinois,2,Illinois_2,D,0,Robin Kelly,to run for the U.S. Senate,to run for the u.s. senate
+2026,Illinois,4,Illinois_4,D,0,Chuy García,unknown,unknown
+2026,Illinois,7,Illinois_7,D,0,Danny Davis,unknown,unknown
+2026,Illinois,8,Illinois_8,D,0,Raja Krishnamoorthi,to run for the U.S. Senate,to run for the u.s. senate
+2026,Illinois,9,Illinois_9,D,0,Jan Schakowsky,unknown,unknown
+2026,Iowa,2,Iowa_2,R,1,Ashley Hinson,to run for the U.S. Senate,to run for the u.s. senate
+2026,Iowa,4,Iowa_4,R,1,Randy Feenstra,to run for governor of Iowa,to run for governor of iowa
+2026,Kentucky,6,Kentucky_6,R,1,Andy Barr,to run for the U.S. Senate,to run for the u.s. senate
+2026,Louisiana,5,Louisiana_5,R,1,Julia Letlow,to run for the U.S. Senate,to run for the u.s. senate
+2026,Maine,2,Maine_2,D,0,Jared Golden,unknown,unknown
+2026,Maryland,5,Maryland_5,D,0,Steny Hoyer,unknown,unknown
+2026,Massachusetts,6,Massachusetts_6,D,0,Seth Moulton,to run for the U.S. Senate,to run for the u.s. senate
+2026,Michigan,10,Michigan_10,R,1,John James,to run for governor of Michigan,to run for governor of michigan
+2026,Michigan,11,Michigan_11,D,0,Haley Stevens,to run for the U.S. Senate,to run for the u.s. senate
+2026,Minnesota,2,Minnesota_2,D,0,Angie Craig,to run for the U.S. Senate,to run for the u.s. senate
+2026,Missouri,6,Missouri_6,R,1,Sam Graves,unknown,unknown
+2026,Montana,1,Montana_1,R,1,Ryan Zinke,unknown,unknown
+2026,Nebraska,2,Nebraska_2,R,1,Don Bacon,unknown,unknown
+2026,Nevada,2,Nevada_2,R,1,Mark Amodei,unknown,unknown
+2026,New Hampshire,1,New Hampshire_1,D,0,Chris Pappas,to run for the U.S. Senate,to run for the u.s. senate
+2026,New Jersey,12,New Jersey_12,D,0,Bonnie Watson Coleman,unknown,unknown
+2026,New York,7,New York_7,D,0,Nydia Velázquez,unknown,unknown
+2026,New York,12,New York_12,D,0,Jerry Nadler,unknown,unknown
+2026,New York,21,New York_21,R,1,Elise Stefanik,previously ran for governor of New York,previously ran for governor of new york
+2026,Oklahoma,1,Oklahoma_1,R,1,Kevin Hern,to run for the U.S. Senate,to run for the u.s. senate
+2026,Pennsylvania,3,Pennsylvania_3,D,0,Dwight Evans,unknown,unknown
+2026,South Carolina,1,South Carolina_1,R,1,Nancy Mace,to run for governor of South Carolina,to run for governor of south carolina
+2026,South Carolina,5,South Carolina_5,R,1,Ralph Norman,to run for governor of South Carolina,to run for governor of south carolina
+2026,South Dakota,at-large,South Dakota_at-large,R,1,Dusty Johnson,to run for governor of South Dakota,to run for governor of south dakota
+2026,Tennessee,6,Tennessee_6,R,1,John Rose,to run for governor of Tennessee,to run for governor of tennessee
+2026,Texas,8,Texas_8,R,1,Morgan Luttrell,unknown,unknown
+2026,Texas,10,Texas_10,R,1,Michael McCaul,unknown,unknown
+2026,Texas,19,Texas_19,R,1,Jodey Arrington,unknown,unknown
+2026,Texas,21,Texas_21,R,1,Chip Roy,to run for attorney general of Texas,to run for attorney general of texas
+2026,Texas,22,Texas_22,R,1,Troy Nehls,unknown,unknown
+2026,Texas,30,Texas_30,D,0,Jasmine Crockett,to run for the U.S. Senate,to run for the u.s. senate
+2026,Texas,33,Texas_33,D,0,Marc Veasey,unknown,unknown
+2026,Texas,37,Texas_37,D,0,Lloyd Doggett,due to redistricting,due to redistricting
+2026,Texas,38,Texas_38,R,1,Wesley Hunt,to run for the U.S. Senate,to run for the u.s. senate
+2026,U.S. Virgin Islands,at-large,U.S. Virgin Islands_at-large,D,0,Stacey Plaskett,to run for governor of the U.S. Virgin Islands,to run for governor of the u.s. virgin islands
+2026,Utah,4,Utah_4,R,1,Burgess Owens,unknown,unknown
+2026,Washington,4,Washington_4,R,1,Dan Newhouse,unknown,unknown
+2026,Wisconsin,7,Wisconsin_7,R,1,Tom Tiffany,to run for governor of Wisconsin,to run for governor of wisconsin
+2026,Wyoming,at-large,Wyoming_at-large,R,1,Harriet Hageman,to run for the U.S. Senate,to run for the u.s. senate

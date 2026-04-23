@@ -29,6 +29,7 @@ from tools.coalition import coalition_calculator
 from tools.web_search import web_search
 from tools.chart import make_chart_tool, HEBREW_TO_ENGLISH
 from classifiers import classify_question_zeroshot
+from tools.predict_vote import predict_vote_share
 
 # ── Party name alias expansion for cross-lingual retrieval ──
 # Romanized Hebrew → English canonical name
@@ -123,6 +124,7 @@ When answering:
 - Never say you cannot browse the web or mention a knowledge cutoff after using a tool.
 - Do not call the same tool repeatedly with the exact same query unless the previous call returned an error or no results.
 - Show your reasoning step by step.
+- Use the predict_vote_share tool when the user asks about future election outcomes, forecasts, or predictions.
 """
 
 
@@ -533,7 +535,7 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
     data_query_tool = make_data_query_tool(llm)
     chart_tool = make_chart_tool(llm)
-    tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search]
+    tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search, predict_vote_share]
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
@@ -604,7 +606,7 @@ def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
     llm = get_llm(model=model)
     data_query_tool = make_data_query_tool(llm)
     chart_tool = make_chart_tool(llm)
-    tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search]
+    tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search, predict_vote_share]
 
     agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
