@@ -52,7 +52,8 @@ const usExamples = [
   "How did Biden perform in suburban counties in 2020?",
   "Which state had the highest Republican vote share in 2024?",
   "Compare urban vs rural voting trends from 2000 to 2024",
-  "Which counties flipped from R to D between 2016 and 2020?"
+  "Which counties flipped from R to D between 2016 and 2020?",
+  "What is the latest news about the Republican Party?"
 ];
 
 const israelExamples = [
@@ -61,7 +62,8 @@ const israelExamples = [
   "How did right-bloc share change from K14 to K25?",
   "Which locality had the highest turnout in K25?",
   "Who is the current Prime Minister of Israel?",
-  "Give me background on the Joint List party from the web"
+  "Give me background on the Joint List party from the web",
+  "What is the latest news on the upcoming Israeli election?",
 ];
 
 const comparisonLabels: Record<string, string> = {
@@ -139,7 +141,23 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed with ${response.status}`);
+        let message = `API request failed with ${response.status}`;
+
+        try {
+          const payload = (await response.json()) as {
+            error?: string;
+            detail?: string | null;
+          };
+          if (payload.error) {
+            message = payload.detail
+              ? `${payload.error} ${payload.detail}`
+              : payload.error;
+          }
+        } catch {
+          // Keep the generic status-based message when the error body is not JSON.
+        }
+
+        throw new Error(message);
       }
 
       const data = (await response.json()) as AskResponse;

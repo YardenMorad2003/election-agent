@@ -26,7 +26,7 @@ from langgraph.prebuilt import create_react_agent
 
 from tools.data_query import make_data_query_tool, SCHEMA
 from tools.coalition import coalition_calculator
-from tools.web_search import web_search
+from tools.operational_web_search import web_search
 from tools.chart import make_chart_tool, HEBREW_TO_ENGLISH
 from classifiers import classify_question_zeroshot
 
@@ -115,12 +115,17 @@ When answering:
 - Use the create chart tool when the user asks for a graph, plot, chart, visualization, or trend line.
 - Use the coalition calculator for Israeli coalition questions.
 - For current events, external background, or facts outside the database, use web search.
+- When calling web search, preserve the user's timeframe exactly. Do not append guessed years
+  like 2023, 2024, 2025, or 2026 unless the user explicitly asked for that year.
+- Preserve the user's semantics exactly. Do not rewrite "when was X appointed?" into
+  "current X appointment date" unless the user explicitly asked about the current officeholder.
 - The database only covers election data through 2022. Do not use the data query tool for current office holders, biographies, general background, or news.
 - Be precise with numbers — always look them up, don't guess.
 - Cite the year and geography you're referencing.
 - For U.S. questions, leverage the urban_rural classification to provide urbanization analysis.
 - If a tool has already returned useful information, trust that tool output instead of falling back to training knowledge.
 - Never say you cannot browse the web or mention a knowledge cutoff after using a tool.
+- After a successful web search, synthesize from it instead of issuing multiple paraphrased web searches.
 - Do not call the same tool repeatedly with the exact same query unless the previous call returned an error or no results.
 - Show your reasoning step by step.
 """
@@ -133,8 +138,370 @@ Rules:
 - If the tool output starts with STATUS: OK, answer directly from those results.
 - If the tool output starts with STATUS: NO_RESULTS or STATUS: ERROR, say the web search tool did not return usable results.
 - Do NOT mention training data, knowledge cutoffs, or lack of internet access.
+- If the results are news items, summarize the latest developments directly instead of telling the user to visit websites.
+- If the results are news items, format them as concise bullets.
+- For each news bullet, include: headline, publisher, publication date if available, and a direct article link.
+- Prefer markdown links on the publisher name, linking directly to the article URL.
+- Prefer 3-5 concrete developments with source names and dates when available.
+- Never say "various sources" or "sources like".
+- Always end with a `Sources:` section listing the source names and URLs found in the tool output.
 - Keep the answer concise and cite the source names or URLs when available.
 """
+
+
+def _parse_web_tool_output(tool_output: str) -> dict:
+    parsed = {
+        "status": "",
+        "method": "",
+        "window": "",
+        "query_used": "",
+        "items": [],
+    }
+    current_item = None
+    for raw_line in str(tool_output).splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("STATUS:"):
+            parsed["status"] = line.replace("STATUS:", "", 1).strip()
+            continue
+        if line.startswith("Method:"):
+            parsed["method"] = line.replace("Method:", "", 1).strip()
+            continue
+        if line.startswith("Window:"):
+            parsed["window"] = line.replace("Window:", "", 1).strip()
+            continue
+        if line.startswith("Query Used:"):
+            parsed["query_used"] = line.replace("Query Used:", "", 1).strip()
+            continue
+        if re.match(r"^\d+\.\s+", line):
+            if current_item:
+                parsed["items"].append(current_item)
+            current_item = {
+                "title": re.sub(r"^\d+\.\s+", "", line).strip(),
+                "source": "",
+                "snippet": "",
+                "published": "",
+                "url": "",
+            }
+            continue
+        if current_item is None:
+            continue
+        if line.startswith("Source:"):
+            current_item["source"] = line.replace("Source:", "", 1).strip()
+        elif line.startswith("Snippet:"):
+            current_item["snippet"] = line.replace("Snippet:", "", 1).strip()
+        elif line.startswith("Published:"):
+            current_item["published"] = line.replace("Published:", "", 1).strip()
+        elif line.startswith("URL:"):
+            current_item["url"] = line.replace("URL:", "", 1).strip()
+    if current_item:
+        parsed["items"].append(current_item)
+    return parsed
+
+
+def _is_news_web_result(parsed: dict) -> bool:
+    return parsed.get("method") == "RSS news search" or bool(parsed.get("window"))
+
+
+def _has_fresh_news_intent(question: str) -> bool:
+    q = question.lower()
+    freshness_hints = (
+        "latest", "recent", "today", "current", "breaking",
+        "last 24 hours", "last day", "last week", "this week",
+    )
+    news_hints = ("news", "headline", "headlines", "update", "updates", "developments")
+    return any(hint in q for hint in freshness_hints) or any(hint in q for hint in news_hints)
+
+
+def _is_background_web_question(question: str) -> bool:
+    q = question.lower()
+    if _has_fresh_news_intent(q):
+        return False
+    return any(phrase in q for phrase in [
+        "background on", "tell me about", "give me background", "overview of",
+        "history of", "who are the", "explain the",
+    ])
+
+
+def _format_sources(items: list[dict], inline: bool = False, prefer_title: bool = False) -> str:
+    seen_urls = set()
+    entries = []
+    for item in items:
+        url = item.get("url", "")
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+        if prefer_title:
+            label = item.get("title") or item.get("source") or url
+        else:
+            label = item.get("source") or item.get("title") or url
+        entries.append(f"[{label}]({url})")
+
+    if not entries:
+        return "Sources: unavailable"
+    if inline:
+        return "Sources: " + ", ".join(entries)
+    lines = ["Sources:"]
+    lines.extend(f"- {entry}" for entry in entries)
+    return "\n".join(lines)
+
+
+def _normalized_word_set(text: str) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[a-zA-Z]{3,}", str(text).lower())
+        if token not in {
+            "the", "and", "for", "with", "that", "this", "from", "into", "about",
+            "after", "before", "over", "under", "amid", "latest", "news", "article",
+            "report", "reports",
+        }
+    }
+
+
+def _is_title_heavy_summary(summary: str, title: str) -> bool:
+    summary_words = _normalized_word_set(summary)
+    title_words = _normalized_word_set(title)
+    if not summary_words or not title_words:
+        return False
+    overlap = len(summary_words & title_words)
+    ratio = overlap / max(1, len(summary_words))
+    return ratio >= 0.7
+
+
+def _summarize_news_items(items: list[dict], llm: ChatOpenAI) -> list[str]:
+    if not items:
+        return []
+
+    def _extract_detail_terms(text: str) -> set[str]:
+        tokens = re.findall(r"[A-Za-z][A-Za-z'’.-]{2,}", str(text))
+        return {
+            token.lower()
+            for token in tokens
+            if token.lower() not in {
+                "the", "and", "for", "with", "that", "this", "from", "into", "about",
+                "after", "before", "over", "under", "amid", "latest", "news", "article",
+                "report", "reports", "said", "says",
+            }
+        }
+
+    def _snippet_sentence(item: dict) -> str | None:
+        snippet = str(item.get("snippet", "")).strip()
+        if not snippet:
+            return None
+        parts = [part.strip() for part in re.split(r"(?<=[.!?])\s+", snippet) if part.strip()]
+        if not parts:
+            return None
+        selected = " ".join(parts[: min(3, len(parts))])
+        selected = re.sub(r"^[\-\u2022]\s*", "", selected)
+        selected = re.sub(r"\s+", " ", selected).strip()
+        if len(selected) < 40:
+            return None
+        lowered = selected.lower()
+        banned_starts = (
+            "the article", "this article", "the piece", "this piece",
+            "the report", "this report", "read more", "click here",
+        )
+        if lowered.startswith(banned_starts):
+            return None
+        if _is_title_heavy_summary(selected, item.get("title", "")):
+            return None
+        if not selected.endswith((".", "!", "?")):
+            selected += "."
+        return selected
+
+    item_blocks = []
+    for idx, item in enumerate(items, 1):
+        block = [f"Item {idx}"]
+        if item.get("title"):
+            block.append(f"Title: {item['title']}")
+        if item.get("snippet"):
+            block.append(f"Snippet: {item['snippet']}")
+        if item.get("source"):
+            block.append(f"Source: {item['source']}")
+        item_blocks.append("\n".join(block))
+
+    fallback = []
+    need_model = []
+    for item in items:
+        snippet_summary = _snippet_sentence(item)
+        if snippet_summary:
+            fallback.append(snippet_summary)
+            need_model.append(False)
+        else:
+            fallback.append(item.get("title", "").strip().rstrip(".") + ".")
+            need_model.append(True)
+
+    def _clean_summary(text: str, fallback_text: str, title: str, snippet: str) -> str:
+        cleaned = str(text).strip()
+        generic_prefixes = (
+            "the article discusses",
+            "the article explores",
+            "the article describes",
+            "the article reports",
+            "the piece discusses",
+            "the piece explores",
+            "the report discusses",
+            "this article discusses",
+            "this article explores",
+            "this piece discusses",
+        )
+        lower = cleaned.lower()
+        if any(lower.startswith(prefix) for prefix in generic_prefixes):
+            cleaned = fallback_text.strip()
+        cleaned = re.sub(r"^(the article|this article|the piece|this piece|the report)\s+", "", cleaned, flags=re.IGNORECASE)
+        cleaned = cleaned.strip()
+        if not cleaned:
+            cleaned = fallback_text.strip()
+        if _is_title_heavy_summary(cleaned, title):
+            cleaned = fallback_text.strip()
+        snippet_terms = _extract_detail_terms(snippet)
+        cleaned_terms = _extract_detail_terms(cleaned)
+        if snippet_terms and len(cleaned_terms & snippet_terms) < max(2, min(4, len(snippet_terms) // 3 or 1)):
+            cleaned = fallback_text.strip()
+        if not cleaned.endswith("."):
+            cleaned += "."
+        return cleaned
+
+    if not any(need_model):
+        return fallback
+
+    try:
+        resp = llm.invoke([
+            SystemMessage(content=(
+                "You are summarizing individual news articles from search results. "
+                "For each item, write a short factual summary of what happened in 1-3 sentences. "
+                "Do not write phrases like 'the article discusses', 'the piece explores', "
+                "or 'the report describes'. Start directly with the event or development. "
+                "Each sentence must have a clear subject and verb and sound like a news brief. "
+                "Do not repeat or closely paraphrase the article title. Prefer the concrete development "
+                "described in the snippet. Preserve concrete names, places, institutions, decisions, "
+                "and actions from the snippet whenever available. "
+                "Return ONLY a JSON array of strings in the same order as the items."
+            )),
+            HumanMessage(content="\n\n".join(item_blocks)),
+        ])
+        summaries = json.loads(str(resp.content).strip())
+        if isinstance(summaries, list) and len(summaries) == len(items):
+            cleaned = []
+            for idx, summary in enumerate(summaries):
+                if need_model[idx]:
+                    cleaned.append(_clean_summary(
+                        summary,
+                        fallback[idx],
+                        items[idx].get("title", ""),
+                        items[idx].get("snippet", ""),
+                    ))
+                else:
+                    cleaned.append(fallback[idx])
+            return cleaned
+    except Exception:
+        pass
+
+    return fallback
+
+
+def _format_news_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
+    items = parsed.get("items", [])[:5]
+    if not items:
+        return "The web search tool did not return usable results."
+    excerpt_blocks = []
+    for idx, item in enumerate(items):
+        block_lines = [f"{idx + 1}. {item.get('title', '')}"]
+        if item.get("source"):
+            block_lines.append(f"Source: {item['source']}")
+        if item.get("published"):
+            block_lines.append(f"Published: {item['published']}")
+        if item.get("snippet"):
+            block_lines.append(f"Snippet: {item['snippet']}")
+        if item.get("url"):
+            block_lines.append(f"URL: {item['url']}")
+        excerpt_blocks.append("\n".join(block_lines))
+    news_excerpt = "\n\n".join(excerpt_blocks)
+    resp = llm.invoke([
+        SystemMessage(content=(
+            "You are summarizing recent news results. Using only the provided results, write a concise "
+            "2-4 sentence overview of the main developments and the biggest themes across the articles. "
+            "Focus on what happened, not on the article titles. Do not mention training data or say "
+            "'various sources'."
+        )),
+        HumanMessage(content=f"Question: {question}\n\nNews Results:\n{news_excerpt}"),
+    ])
+    item_summaries = _summarize_news_items(items, llm)
+    lines = [resp.content.strip(), "", "Recent coverage:"]
+    for item, detail in zip(items, item_summaries):
+        source = item.get("source") or "Source"
+        url = item.get("url", "")
+        published = item.get("published", "")
+        meta = f"[{source}]({url})" if url else source
+        if published:
+            meta = f"{meta} ({published})"
+        lines.append(f"- {detail} {meta}")
+    return "\n".join(lines)
+
+
+def _format_fact_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
+    items = parsed.get("items", [])
+    if not items:
+        return "The web search tool did not return usable results."
+    top_items = items[:3]
+    excerpt_blocks = []
+    for idx, item in enumerate(top_items):
+        block_lines = [f"{idx + 1}. {item['title']}"]
+        if item.get("source"):
+            block_lines.append(f"Source: {item['source']}")
+        if item.get("snippet"):
+            block_lines.append(f"Snippet: {item['snippet']}")
+        if item.get("url"):
+            block_lines.append(f"URL: {item['url']}")
+        excerpt_blocks.append("\n".join(block_lines))
+    tool_excerpt = "\n\n".join(excerpt_blocks)
+    resp = llm.invoke([
+        SystemMessage(content=(
+            "Answer the user's factual web question concisely using only the provided search results. "
+            "State the answer directly in 1-2 sentences. Do not say 'various sources'."
+        )),
+        HumanMessage(content=f"Question: {question}\n\nResults:\n{tool_excerpt}"),
+    ])
+    return f"{resp.content.strip()}\n\n{_format_sources(top_items, inline=True, prefer_title=True)}"
+
+
+def _format_background_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
+    items = parsed.get("items", [])
+    if not items:
+        return "The web search tool did not return usable results."
+    top_items = items[:3]
+    excerpt_blocks = []
+    for idx, item in enumerate(top_items):
+        block_lines = [f"{idx + 1}. {item['title']}"]
+        if item.get("source"):
+            block_lines.append(f"Source: {item['source']}")
+        if item.get("snippet"):
+            block_lines.append(f"Snippet: {item['snippet']}")
+        if item.get("url"):
+            block_lines.append(f"URL: {item['url']}")
+        excerpt_blocks.append("\n".join(block_lines))
+    tool_excerpt = "\n\n".join(excerpt_blocks)
+    resp = llm.invoke([
+        SystemMessage(content=(
+            "Answer the user's background question using only the provided search results. "
+            "Write a concise overview in 3-5 flat bullet points covering the main facts or history. "
+            "Do not say 'various sources'."
+        )),
+        HumanMessage(content=f"Question: {question}\n\nResults:\n{tool_excerpt}"),
+    ])
+    return f"{resp.content.strip()}\n\n{_format_sources(top_items, inline=True, prefer_title=True)}"
+
+
+def _format_web_answer(question: str, tool_output: str, llm: ChatOpenAI) -> str:
+    parsed = _parse_web_tool_output(tool_output)
+    if parsed.get("status") != "OK":
+        return "The web search tool did not return usable results."
+    if _is_news_web_result(parsed):
+        return _format_news_answer(question, parsed, llm)
+    if _is_background_web_question(question):
+        return _format_background_answer(question, parsed, llm)
+    return _format_fact_answer(question, parsed, llm)
 
 
 # ═══════════════════════════════════════════════════════
@@ -466,6 +833,126 @@ def _classify_question(question: str) -> str:
     return "data_query"
 
 
+def _should_direct_web_lookup(question: str) -> bool:
+    q = question.lower().strip()
+    prefixes = (
+        "who is", "who's", "what is", "what's", "which is",
+        "when was", "when did", "where is", "name",
+    )
+    web_fact_terms = (
+        "current", "currently", "today", "latest", "appointed",
+        "appointment", "minister", "secretary", "president",
+        "prime minister", "leader", "governor", "mayor",
+    )
+    return q.startswith(prefixes) and any(term in q for term in web_fact_terms)
+
+
+def _should_direct_news_lookup(question: str) -> bool:
+    q = question.lower().strip()
+    return _has_fresh_news_intent(q) or any(phrase in q for phrase in [
+        "latest news", "recent news", "current news", "economic news",
+        "political news", "headlines", "latest economic", "latest political",
+        "news on the", "news about the", "give me the latest",
+    ])
+
+
+def _is_pronoun_followup(question: str) -> bool:
+    q = question.lower()
+    return any(token in q for token in [" he ", " she ", " they ", " it ", " his ", " her ", " their "]) or q.startswith(
+        ("he ", "she ", "they ", "it ", "his ", "her ", "their ")
+    )
+
+
+def _extract_subject_from_fact_question(question: str) -> str | None:
+    q = question.strip().rstrip("?.! ")
+    lower = q.lower()
+    prefixes = ("who is ", "who's ", "what is ", "what's ", "which is ", "where is ", "name ")
+    for prefix in prefixes:
+        if lower.startswith(prefix):
+            return q[len(prefix):].strip()
+    return None
+
+
+def _normalize_role_phrase(subject: str) -> str:
+    role = subject.strip()
+    role = re.sub(r"^(the)\s+", "", role, flags=re.IGNORECASE)
+    role = re.sub(r"^(current|latest|today'?s)\s+", "", role, flags=re.IGNORECASE)
+    role = re.sub(r"\s+", " ", role).strip(" ,")
+    return role
+
+
+def _extract_entity_from_answer(answer: str) -> str | None:
+    patterns = [
+        r"\bis\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b",
+        r"\bwas\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, answer)
+        if match:
+            return match.group(1).strip()
+    return None
+
+
+def _resolve_followup_web_question(messages: list[dict], latest_question: str) -> str:
+    if not _is_pronoun_followup(f" {latest_question.lower()} "):
+        return latest_question
+
+    previous_user_questions = [m["content"] for m in messages if m["role"] == "user"]
+    previous_assistant_answers = [m["content"] for m in messages if m["role"] == "assistant"]
+    if len(previous_user_questions) < 2 or not previous_assistant_answers:
+        return latest_question
+
+    previous_question = previous_user_questions[-2]
+    previous_answer = previous_assistant_answers[-1]
+    subject = _extract_subject_from_fact_question(previous_question) or ""
+    role = _normalize_role_phrase(subject) if subject else ""
+    entity = _extract_entity_from_answer(previous_answer)
+
+    resolved = latest_question.strip()
+
+    if entity and role:
+        appointment_phrase = f"{entity} appointed as {role}"
+        resolved = re.sub(
+            r"\bwhen was (he|she|they) appointed\b",
+            f"when was {appointment_phrase}",
+            resolved,
+            flags=re.IGNORECASE,
+        )
+        resolved = re.sub(
+            r"\bwhen did (he|she|they) become\b",
+            f"when did {entity} become {role}",
+            resolved,
+            flags=re.IGNORECASE,
+        )
+    replacement = entity or role
+    if replacement:
+        resolved = re.sub(r"\bhe\b", replacement, resolved, flags=re.IGNORECASE)
+        resolved = re.sub(r"\bshe\b", replacement, resolved, flags=re.IGNORECASE)
+        resolved = re.sub(r"\bthey\b", replacement, resolved, flags=re.IGNORECASE)
+        resolved = re.sub(r"\bit\b", replacement, resolved, flags=re.IGNORECASE)
+
+    resolved = re.sub(r"\s+", " ", resolved).strip()
+    return resolved
+
+
+def _run_direct_web_lookup(question: str, llm: ChatOpenAI) -> dict:
+    tool_result = web_search.invoke(question)
+    answer = _format_web_answer(question, str(tool_result), llm)
+    trace = ["Direct web lookup from original user question"]
+    for line in str(tool_result).splitlines():
+        if line.startswith("Query Used: "):
+            trace.append(f"Web search executed query: {line.replace('Query Used: ', '', 1)}")
+            break
+    trace.append(f"Tool 'web_search' returned {len(str(tool_result))} chars")
+    trace.append("Structured web formatter rendered final answer")
+    return {
+        "answer": answer,
+        "tools_used": ["web_search"],
+        "trace": trace,
+        "chart_paths": [],
+    }
+
+
 def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
                       routing_method: str = "finetuned") -> dict:
     """Config 3: Fixed routing with configurable classification method.
@@ -506,21 +993,24 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
         tool_name = "data_query"
 
     # synthesize final answer
-    synthesis_prompt = WEB_SYNTHESIS_PROMPT if tool_name == "web_search" else SYSTEM_PROMPT
-    resp = llm.invoke([
-        SystemMessage(content=synthesis_prompt),
-        HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
-                     "Provide a clear, well-formatted answer based on the tool output."),
-    ])
+    if tool_name == "web_search":
+        answer = _format_web_answer(question, str(tool_result), llm)
+    else:
+        resp = llm.invoke([
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=f"Question: {question}\n\nTool ({tool_name}) returned:\n{tool_result}\n\n"
+                         "Provide a clear, well-formatted answer based on the tool output."),
+        ])
+        answer = resp.content
     return {
-        "answer": resp.content,
+        "answer": answer,
         "config": "fixed_routing",
         "tools_used": [tool_name],
         "trace": [
             *([routing_fallback] if routing_fallback else []),
             f"{routing_method} routing -> {tool_name}",
             f"Tool returned {len(str(tool_result))} chars",
-            "LLM synthesized final answer",
+            "Structured web formatter rendered final answer" if tool_name == "web_search" else "LLM synthesized final answer",
         ],
         "tool_output": tool_result,
     }
@@ -531,6 +1021,11 @@ def run_fixed_routing(question: str, llm: ChatOpenAI | None = None,
 # ═══════════════════════════════════════════════════════
 def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     llm = llm or get_llm()
+    if _should_direct_web_lookup(question) or _should_direct_news_lookup(question):
+        result = _run_direct_web_lookup(question, llm)
+        result["config"] = "dynamic_routing"
+        return result
+
     data_query_tool = make_data_query_tool(llm)
     chart_tool = make_chart_tool(llm)
     tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search]
@@ -548,12 +1043,28 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
     tools_used = []
     chart_paths = []
     final_answer = ""
+    last_web_tool_output = None
+
+    def _extract_query_used(content: str) -> str | None:
+        for line in content.split("\n"):
+            if line.startswith("Query Used: "):
+                return line.replace("Query Used: ", "", 1).strip()
+        return None
+
     for msg in messages:
         if hasattr(msg, "tool_calls") and msg.tool_calls:
             for tc in msg.tool_calls:
-                trace.append(f"LLM decided to call: {tc['name']}({json.dumps(tc['args'], ensure_ascii=False)[:200]})")
+                if tc["name"] == "web_search":
+                    trace.append("LLM decided to call: web_search(...)")
+                else:
+                    trace.append(f"LLM decided to call: {tc['name']}({json.dumps(tc['args'], ensure_ascii=False)[:200]})")
                 tools_used.append(tc["name"])
         if msg.type == "tool":
+            if msg.name == "web_search":
+                last_web_tool_output = msg.content
+                query_used = _extract_query_used(msg.content)
+                if query_used:
+                    trace.append(f"Web search executed query: {query_used}")
             trace.append(f"Tool '{msg.name}' returned {len(msg.content)} chars")
             # Extract chart paths from tool output
             if "CHART_PATH:" in msg.content:
@@ -563,10 +1074,15 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
         if msg.type == "ai" and not getattr(msg, "tool_calls", None):
             final_answer = msg.content
 
+    unique_tools = list(dict.fromkeys(tools_used))
+    if unique_tools == ["web_search"] and last_web_tool_output:
+        final_answer = _format_web_answer(question, str(last_web_tool_output), llm)
+        trace.append("Structured web formatter rendered final answer")
+
     return {
         "answer": final_answer,
         "config": "dynamic_routing",
-        "tools_used": list(dict.fromkeys(tools_used)),
+        "tools_used": unique_tools,
         "trace": trace,
         "chart_paths": chart_paths,
     }
@@ -602,6 +1118,23 @@ def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
         dict with 'answer', 'tools_used', 'trace'
     """
     llm = get_llm(model=model)
+    latest_user_question = next(
+        (msg["content"] for msg in reversed(messages) if msg["role"] == "user"),
+        "",
+    )
+    if latest_user_question and (
+        _should_direct_web_lookup(latest_user_question)
+        or _should_direct_news_lookup(latest_user_question)
+    ):
+        resolved_question = _resolve_followup_web_question(messages, latest_user_question)
+        result = _run_direct_web_lookup(resolved_question, llm)
+        if resolved_question != latest_user_question:
+            result["trace"] = [
+                f"Resolved follow-up question: {resolved_question}",
+                *result["trace"],
+            ]
+        return result
+
     data_query_tool = make_data_query_tool(llm)
     chart_tool = make_chart_tool(llm)
     tools = [data_query_tool, coalition_calculator, context_search, chart_tool, web_search]
@@ -627,12 +1160,28 @@ def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
     tools_used = []
     chart_paths = []
     final_answer = ""
+    last_web_tool_output = None
+
+    def _extract_query_used(content: str) -> str | None:
+        for line in content.split("\n"):
+            if line.startswith("Query Used: "):
+                return line.replace("Query Used: ", "", 1).strip()
+        return None
+
     for msg in out_messages:
         if hasattr(msg, "tool_calls") and msg.tool_calls:
             for tc in msg.tool_calls:
-                trace.append(f"Called: {tc['name']}({json.dumps(tc['args'], ensure_ascii=False)[:200]})")
+                if tc["name"] == "web_search":
+                    trace.append("Called: web_search(...)")
+                else:
+                    trace.append(f"Called: {tc['name']}({json.dumps(tc['args'], ensure_ascii=False)[:200]})")
                 tools_used.append(tc["name"])
         if msg.type == "tool":
+            if msg.name == "web_search":
+                last_web_tool_output = msg.content
+                query_used = _extract_query_used(msg.content)
+                if query_used:
+                    trace.append(f"Web search executed query: {query_used}")
             trace.append(f"Tool '{msg.name}' returned {len(msg.content)} chars")
             # Extract chart paths from tool output
             if "CHART_PATH:" in msg.content:
@@ -642,9 +1191,14 @@ def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
         if msg.type == "ai" and not getattr(msg, "tool_calls", None):
             final_answer = msg.content
 
+    unique_tools = list(dict.fromkeys(tools_used))
+    if unique_tools == ["web_search"] and last_web_tool_output:
+        final_answer = _format_web_answer(latest_user_question, str(last_web_tool_output), llm)
+        trace.append("Structured web formatter rendered final answer")
+
     return {
         "answer": final_answer,
-        "tools_used": tools_used,
+        "tools_used": unique_tools,
         "trace": trace,
         "chart_paths": chart_paths,
     }
