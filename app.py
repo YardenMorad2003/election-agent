@@ -59,6 +59,8 @@ with st.sidebar:
         "Which state had the highest Republican vote share in 2024?",
         "Compare urban vs rural voting trends from 2000 to 2024",
         "Which counties flipped from R to D between 2016 and 2020?",
+        "What is the latest news about the Republican Party?",
+        "What is the latest U.S. economic news?",
     ]
     il_examples = [
         "How many seats did Likud win in Knesset 25?",
@@ -67,6 +69,7 @@ with st.sidebar:
         "Which locality had the highest turnout in K25?",
         "Who is the current Prime Minister of Israel?",
         "Give me background on the Joint List party from the web",
+        "What is the latest news on the Israeli stock market?",
     ]
 
     st.caption("U.S. Elections")

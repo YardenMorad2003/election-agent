@@ -43,7 +43,7 @@ EXPLICIT_PRESENT_TIME_PHRASES = ("as of today", "right now", "at the moment")
 STOPWORDS = {
     "the", "a", "an", "and", "or", "of", "on", "in", "to", "for", "about",
     "give", "me", "latest", "recent", "current", "news", "what", "who", "when",
-    "where", "why", "how", "is", "are", "was", "were", "us",
+    "where", "why", "how", "is", "are", "was", "were",
 }
 LOW_QUALITY_TITLE_HINTS = (
     "opinion", "analysis", "explainer", "live updates", "newsletter",
@@ -71,6 +71,8 @@ def _infer_window(query: str) -> Literal["24h", "7d"] | None:
 
 def _is_simple_current_fact_query(query: str) -> bool:
     q = query.lower()
+    if any(term in q for term in ("news", "headline", "headlines", "update", "updates", "developments")):
+        return False
     return (
         any(q.startswith(prefix) for prefix in FACT_QUERY_PREFIXES)
         and _has_present_time_intent(q)
@@ -120,9 +122,47 @@ def _normalize_search_query(query: str) -> str:
     return normalized or query
 
 
-def _google_news_query(query: str, window: Literal["24h", "7d"]) -> str:
+def _compact_news_topic(query: str) -> str:
+    tokens = re.findall(r"[A-Za-z][A-Za-z.'-]*", query)
+    kept = []
+    for token in tokens:
+        lowered = token.lower().strip(".")
+        if lowered in STOPWORDS:
+            continue
+        kept.append(token.strip("."))
+    compact = " ".join(kept)
+    compact = re.sub(r"\s+", " ", compact).strip(" ?,")
+    return compact or query.strip()
+
+
+def _news_query_candidates(query: str) -> list[str]:
+    original = query.strip()
+    compact = _compact_news_topic(query)
+    lowered = query.lower()
+
+    candidates = []
+    for candidate in [compact, original]:
+        cleaned = candidate.strip()
+        if cleaned and cleaned not in candidates:
+            candidates.append(cleaned)
+
+    if any(term in lowered for term in ["political", "politics", "party", "campaign", "election"]):
+        politics_variant = f"{compact} politics".strip()
+        if politics_variant not in candidates:
+            candidates.append(politics_variant)
+
+    if any(term in lowered for term in ["economic", "economy", "market", "inflation", "jobs", "fed"]):
+        economy_variant = f"{compact} economy".strip()
+        if economy_variant not in candidates:
+            candidates.append(economy_variant)
+
+    return candidates
+
+
+def _google_news_query(query: str, window: Literal["24h", "7d"], include_time_filter: bool = True) -> str:
     time_filter = "when:1d" if window == "24h" else "when:7d"
-    return GOOGLE_NEWS_RSS.format(query=quote_plus(f"{query} {time_filter}"))
+    final_query = f"{query} {time_filter}" if include_time_filter else query
+    return GOOGLE_NEWS_RSS.format(query=quote_plus(final_query))
 
 
 def _parse_pubdate(raw: str) -> datetime | None:
@@ -273,14 +313,28 @@ def _format_rss_results(query: str, window: Literal["24h", "7d"], results: list[
 
 
 def _search_recent_news_rss(query: str, window: Literal["24h", "7d"]) -> str | None:
-    rss_url = _google_news_query(query, window)
-    xml_text = _http_get(rss_url)
-    parsed = _parse_rss_feed(xml_text)
-    recent = _filter_recent(parsed, window)
-    ranked = _rank_news_items(query, recent, limit=5)
-    if not ranked:
+    candidates = _news_query_candidates(query)
+
+    best_results: list[dict] = []
+    best_query = query
+    for candidate in candidates:
+        for include_time_filter in (True, False):
+            rss_url = _google_news_query(candidate, window, include_time_filter=include_time_filter)
+            xml_text = _http_get(rss_url)
+            parsed = _parse_rss_feed(xml_text)
+            recent = _filter_recent(parsed, window)
+            ranked = _rank_news_items(candidate, recent, limit=5)
+            if len(ranked) > len(best_results):
+                best_results = ranked
+                best_query = candidate
+            if ranked:
+                break
+        if best_results:
+            break
+
+    if not best_results:
         return None
-    return _format_rss_results(query, window, ranked)
+    return _format_rss_results(best_query, window, best_results)
 
 
 def _with_query_used(result: str, query_used: str) -> str:
@@ -314,8 +368,11 @@ def web_search(query: str) -> str:
             rss_result = _search_recent_news_rss(normalized_query, window)
             if rss_result:
                 return _with_query_used(rss_result, normalized_query)
+            return "STATUS: NO_RESULTS\nQuery Used: " + normalized_query + "\nNo recent news articles were found."
         return _with_query_used(legacy_web_search.invoke(normalized_query), normalized_query)
     except Exception as exc:
+        if should_use_rss_news_search(query):
+            return f"STATUS: ERROR\nQuery Used: {_normalize_search_query(query)}\nOperational news search failed. Error: {exc}"
         try:
             normalized_query = _normalize_search_query(query)
             return _with_query_used(legacy_web_search.invoke(normalized_query), normalized_query)

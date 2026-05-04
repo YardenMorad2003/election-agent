@@ -204,11 +204,23 @@ def _is_news_web_result(parsed: dict) -> bool:
     return parsed.get("method") == "RSS news search" or bool(parsed.get("window"))
 
 
+def _has_fresh_news_intent(question: str) -> bool:
+    q = question.lower()
+    freshness_hints = (
+        "latest", "recent", "today", "current", "breaking",
+        "last 24 hours", "last day", "last week", "this week",
+    )
+    news_hints = ("news", "headline", "headlines", "update", "updates", "developments")
+    return any(hint in q for hint in freshness_hints) or any(hint in q for hint in news_hints)
+
+
 def _is_background_web_question(question: str) -> bool:
     q = question.lower()
+    if _has_fresh_news_intent(q):
+        return False
     return any(phrase in q for phrase in [
         "background on", "tell me about", "give me background", "overview of",
-        "history of", "what is the", "who are the", "explain the",
+        "history of", "who are the", "explain the",
     ])
 
 
@@ -837,7 +849,7 @@ def _should_direct_web_lookup(question: str) -> bool:
 
 def _should_direct_news_lookup(question: str) -> bool:
     q = question.lower().strip()
-    return any(phrase in q for phrase in [
+    return _has_fresh_news_intent(q) or any(phrase in q for phrase in [
         "latest news", "recent news", "current news", "economic news",
         "political news", "headlines", "latest economic", "latest political",
         "news on the", "news about the", "give me the latest",
