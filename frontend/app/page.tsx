@@ -139,7 +139,23 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed with ${response.status}`);
+        let message = `API request failed with ${response.status}`;
+
+        try {
+          const payload = (await response.json()) as {
+            error?: string;
+            detail?: string | null;
+          };
+          if (payload.error) {
+            message = payload.detail
+              ? `${payload.error} ${payload.detail}`
+              : payload.error;
+          }
+        } catch {
+          // Keep the generic status-based message when the error body is not JSON.
+        }
+
+        throw new Error(message);
       }
 
       const data = (await response.json()) as AskResponse;

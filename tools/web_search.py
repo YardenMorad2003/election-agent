@@ -179,17 +179,34 @@ def _format_results(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def _is_fact_lookup(query: str) -> bool:
+    q = query.lower().strip()
+    prefixes = (
+        "who is", "who's", "what is", "what's", "which is",
+        "when was", "when did", "when is", "name",
+    )
+    fact_terms = (
+        "current", "appointed", "appointment", "minister", "secretary",
+        "president", "prime minister", "governor", "leader", "mayor",
+    )
+    return q.startswith(prefixes) or any(term in q for term in fact_terms)
+
+
 @tool
 def web_search(query: str) -> str:
     """Search the public web for context not covered by the local election database.
     Use for current events, external background, party history, leaders, or
     questions that explicitly ask for web/search/news results."""
     try:
-        results = _search_duckduckgo_instant(query)
+        results = []
+        if _is_fact_lookup(query):
+            results = _search_wikipedia_summary(query)
         if not results:
-            results = _search_duckduckgo_lite(query)
+            results = _search_duckduckgo_instant(query)
         if not results:
             results = _search_wikipedia_summary(query)
+        if not results:
+            results = _search_duckduckgo_lite(query)
         if not results:
             results = _search_wikipedia(query)
         if not results and any(token in query.lower() for token in ["current", "currently", "latest", "today"]):
