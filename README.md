@@ -12,6 +12,7 @@ Built for DS-UA 301 (LLMs) at NYU.
 - [ML Pipeline](#ml-pipeline)
 - [Tools](#tools)
 - [Routing Configurations](#routing-configurations)
+- [Milestone 2 → 3 Updates](#milestone-2--3-updates)
 - [Data Coverage](#data-coverage)
 - [Database Schema](#database-schema)
 - [Israeli Political Blocs](#israeli-political-blocs)
@@ -189,10 +190,17 @@ Three embedding models are available for comparison: MiniLM (default), MPNet (76
 The LLM writes both the SQL and a chart config (type, title, axes, grouping). Supports bar, grouped bar, stacked bar, line, pie, and scatter. Hebrew party names auto-translate to English (54 mappings). Charts render inline in the Streamlit chat. Reflexion retries on failure.
 
 ### Coalition Calculator (`coalition_calculator`)
-Brute-force search over Israeli party seat combinations to find coalitions reaching 61+ seats. Supports must-include parties, max coalition size, and bloc filters.
+Brute-force search over Israeli party seat combinations to find coalitions reaching 61+ seats. Supports must-include parties, max coalition size, bloc filters, and `must_exclude` parsing for "without X" / "no arab" / "without haredi" phrasing.
+
+Coalitions are tagged with **feasibility tiers** based on a hand-curated `tools/party_ideology.json` (27 parties K14–K25, axis/religious scores, hard incompatibility blacklists):
+- `plausible` — no blocked pairs, tight ideological spread
+- `novel` — no blocked pairs but wide ideological spread (would require unusual compromise)
+- `incompatible` — at least one ideologically blocked pair (e.g., Religious Zionism + any Arab party); filtered out by default
+
+Output is sorted plausible-first and includes per-coalition `axis_spread`. The 100-coalition early-return cap was removed so counts ("how many coalitions can the right form?") are exact. *(Yarden)*
 
 ### Web Search (`web_search`)
-DuckDuckGo + Wikipedia for current events and background facts outside the database's coverage.
+Operational news search built around Google News RSS for time-sensitive queries, with DuckDuckGo + Wikipedia fallback for evergreen facts. Recency window (last 24h vs. last 7d) is inferred from phrasing ("today", "this week", "breaking"). For present-tense factual queries ("who is the current X"), stale year hints are stripped before search; ranking favors recent, on-topic items and penalizes opinion/analysis/photo/video pages. *(Mohamed)*
 
 ---
 
@@ -211,6 +219,9 @@ An embedding classifier (or zero-shot NLI) decides which single tool to run base
 
 ### Config 4: Dynamic Routing (ReAct) -- Default
 Full ReAct agent with all 5 tools. The LLM decides what to call, can chain tools, and reasons step by step. Tests whether full autonomy beats fixed routing.
+
+### Config 5: Plan-and-Execute (Multi-hop Planner)
+A planner LLM emits a JSON plan of ordered sub-queries (`step`, `tool`, `input`, `depends_on`). An executor runs steps in order, threading prior outputs as context into dependents, and a synthesizer LLM produces the final answer from accumulated step outputs. Falls back to ReAct if the plan fails to parse or a majority of steps error. Targets the 0–10% multi-step accuracy gap that ReAct alone struggles with on questions like "Did the urban-rural gap grow between 2000 and 2024?". Run with `--config planned_routing`. *(Yarden)*
 
 **Compare mode**: Toggle in the sidebar to run all 4 configs on the same question in a 2x2 grid.
 
@@ -241,6 +252,20 @@ Every U.S. record includes **NCHS urban-rural classification**:
 | `localities` | Per-locality bloc breakdowns | 1,384 localities x 12 elections | ~14K |
 | `party_locality` | Per-locality party votes | 1,384 localities x 12 elections | ~179K |
 | `socioeconomic` | Municipal indicators | 201 municipalities | 201 |
+
+### Macro & Prediction-Model Inputs *(Preston)*
+
+Source files for the in-progress 2026-midterm prediction tool, staged under `data/macro/` and `data/elections_extra/` (gitignored — fetched separately):
+
+| Group | Files | Coverage |
+|-------|-------|----------|
+| Approval | `pres_approval_data.csv`, `trump_approval_raw.csv`, `trump_net_raw.csv` | Daily Trump approval (2025–) with confidence intervals + historical presidential approval |
+| FRED macro | `fred_cpi.csv`, `fred_unrate.csv`, `fred_mortgage30us.csv`, `fred_umcsent.csv` | CPI, unemployment, 30y mortgage, U Mich consumer sentiment |
+| Markets / fuel | `sp500.csv`, `gas_prices.csv` | S&P 500 history, weekly retail gas (1993–) |
+| Elections | `presidents/1976-2020-president.csv` (MIT Election Lab), `house_elections.csv`, `special_elections.csv` (1996–) | Long historical election panels |
+| Pre-engineered features | `house_features.csv`, `house_retirements_features.csv` | Per-cycle: avg margin, competitive seats, dem win rate; retirement rate by party, net retirement advantage |
+| Control panels | `chamber_control.csv`, `senate_control.csv`, `seat_count.csv` | Yearly D/R control of House/Senate/presidency, seat counts |
+| Polling / events | `generic_topline_historical.csv`, `events.csv` | Generic ballot polling; political/economic/geopolitical event log with intensity ratings |
 
 ---
 
@@ -338,14 +363,18 @@ election-agent/
 ├── charts/               # Generated chart PNGs
 ├── data/                 # U.S. election CSV source files (~900MB)
 ├── requirements.txt
-├── api.py                # FastAPI backend for the Next.js UI
-├── frontend/             # Next.js chat interface
+├── api.py                # FastAPI backend for the Next.js UI (Mohamed)
+├── frontend/             # Next.js chat interface (Mohamed)
+├── data/macro/           # Macroeconomic + approval + polling inputs (Preston)
+├── data/elections_extra/ # Long historical election panels (Preston)
 ├── .env                  # API keys (not in git)
 ├── tools/
-│   ├── data_query.py     # NL -> SQL with Reflexion
-│   ├── coalition.py      # Coalition calculator
-│   ├── chart.py          # Chart generation + Hebrew name mapping
-│   └── web_search.py     # DuckDuckGo + Wikipedia search
+│   ├── data_query.py            # NL -> SQL with Reflexion
+│   ├── coalition.py             # Coalition calculator + feasibility tiers (Yarden)
+│   ├── party_ideology.json      # Hand-curated party axis/religious/blacklist (Yarden)
+│   ├── chart.py                 # Chart generation + Hebrew name mapping
+│   ├── operational_web_search.py # Google News RSS + recency logic (Mohamed)
+│   └── web_search.py            # Legacy DuckDuckGo + Wikipedia (fallback)
 └── benchmark/
     ├── questions.json    # 70 evaluation questions
     └── run_benchmark.py  # Benchmark runner with LLM-as-judge
@@ -560,6 +589,20 @@ Embeddings nearly doubled the judge score and added 14 percentage points to soft
 
 **Web Search**
 - "Who is the current Prime Minister of Israel?"
+- "Latest news on the Knesset coalition this week"
+- "Breaking developments on Israeli elections in the last 24 hours"
+
+---
+
+## Milestone 2 → 3 Updates
+
+Targeted improvements since the Milestone 2 report:
+
+- **Multi-hop query planner (Config 5)** — *Yarden*. New `planned_routing` config that decomposes complex questions into ordered sub-queries before tool execution. Targets the 0–10% multi-step accuracy gap.
+- **Coalition feasibility reasoning** — *Yarden*. `tools/coalition.py` augmented with `plausible/novel/incompatible` tiers backed by a hand-curated `tools/party_ideology.json` (axis scores + hard incompatibility blacklists). Removed the 100-coalition early-return cap so counts are exact, tightened `right_bloc` filter, and added `must_exclude` parsing for "without X" phrasing.
+- **Operational web search** — *Mohamed*. `tools/operational_web_search.py` replaces the experimental DuckDuckGo path with a Google News RSS pipeline that infers recency windows (24h / 7d) from query phrasing, strips stale year hints, ranks by topical overlap × recency, and falls back to the legacy search for evergreen queries.
+- **Frontend migration** — *Mohamed*. Next.js UI under `frontend/` with a FastAPI bridge in `api.py`; Streamlit remains as the primary local UI.
+- **Prediction-model data pipeline** — *Preston*. Approval, FRED macro, gas, S&P 500, presidential / house / special-election panels, retirement features, and a political/economic event log staged under `data/macro/` and `data/elections_extra/` for the upcoming 2026-midterm forecasting tool.
 
 ---
 
