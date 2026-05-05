@@ -1,0 +1,33 @@
+{
+  "_version": "1.0-draft",
+  "_description": "Per-party ideology for Knesset K14-K25 coalition feasibility scoring. Keyed by party code. axis_score: -1 far-right, +1 far-left. religious_score: -1 religious, +1 secular. incompatible_with: hard blacklist of party codes that will not share a coalition (ideologically impossible, not just unlikely). Several codes are reused across historically distinct parties (e.g. ב = Jewish Home AND later Yamina); scores reflect the dominant interpretation. Draft for audit.",
+  "parties": {
+    "מחל": {"label_en": "Likud", "axis_score": -0.6, "religious_score": 0.0, "is_arab": false, "incompatible_with": ["ד", "ודעם"]},
+    "ב":   {"label_en": "Jewish Home / Yamina (right-religious)", "axis_score": -0.7, "religious_score": -0.7, "is_arab": false, "incompatible_with": ["ד", "ו", "ודעם", "ום"]},
+    "ט":   {"label_en": "Religious Zionism / Otzma Yehudit / National Union", "axis_score": -0.9, "religious_score": -0.85, "is_arab": false, "incompatible_with": ["ד", "דעם", "ו", "ודעם", "ום", "ע", "עם", "מרץ", "מרצ"]},
+    "טב":  {"label_en": "Union of Right-Wing Parties / Jewish Home merger", "axis_score": -0.8, "religious_score": -0.75, "is_arab": false, "incompatible_with": ["ד", "דעם", "ו", "ודעם", "ום"]},
+    "יט":  {"label_en": "National Union", "axis_score": -0.8, "religious_score": -0.7, "is_arab": false, "incompatible_with": ["ד", "דעם", "ו", "ודעם", "ום"]},
+    "שס":  {"label_en": "Shas (haredi Sephardi)", "axis_score": -0.4, "religious_score": -1.0, "is_arab": false, "incompatible_with": []},
+    "ג":   {"label_en": "United Torah Judaism (haredi Ashkenazi)", "axis_score": -0.3, "religious_score": -1.0, "is_arab": false, "incompatible_with": []},
+    "ל":   {"label_en": "Yisrael Beiteinu (secular right / opposition_right)", "axis_score": -0.3, "religious_score": 0.8, "is_arab": false, "incompatible_with": ["ד"]},
+    "ת":   {"label_en": "New Hope", "axis_score": -0.3, "religious_score": 0.2, "is_arab": false, "incompatible_with": []},
+    "פה":  {"label_en": "Yesh Atid / Blue & White (2019-2020 only)", "axis_score": 0.3, "religious_score": 0.8, "is_arab": false, "incompatible_with": ["ט"]},
+    "כן":  {"label_en": "Kadima / Blue & White / National Unity", "axis_score": 0.0, "religious_score": 0.5, "is_arab": false, "incompatible_with": []},
+    "אמת": {"label_en": "Labor / Zionist Camp / Labor-Gesher-Meretz", "axis_score": 0.5, "religious_score": 0.4, "is_arab": false, "incompatible_with": ["ט"]},
+    "מרץ": {"label_en": "Meretz", "axis_score": 0.85, "religious_score": 0.9, "is_arab": false, "incompatible_with": ["ט"]},
+    "מרצ": {"label_en": "Meretz / Democratic Union", "axis_score": 0.85, "religious_score": 0.9, "is_arab": false, "incompatible_with": ["ט"]},
+    "כ":   {"label_en": "Kulanu", "axis_score": -0.1, "religious_score": 0.4, "is_arab": false, "incompatible_with": []},
+    "יש":  {"label_en": "Shinui (secular liberal)", "axis_score": 0.1, "religious_score": 1.0, "is_arab": false, "incompatible_with": ["שס", "ג"]},
+    "הד":  {"label_en": "Third Way", "axis_score": 0.0, "religious_score": 0.5, "is_arab": false, "incompatible_with": []},
+    "זך":  {"label_en": "Gil (Pensioners)", "axis_score": 0.1, "religious_score": 0.6, "is_arab": false, "incompatible_with": []},
+    "ם":   {"label_en": "One Nation (Am Echad)", "axis_score": 0.4, "religious_score": 0.5, "is_arab": false, "incompatible_with": []},
+    "צפ":  {"label_en": "HaTnuah (The Movement)", "axis_score": 0.3, "religious_score": 0.5, "is_arab": false, "incompatible_with": []},
+    "עם":  {"label_en": "Ra'am / Ra'am-Ta'al (Islamist Arab)", "axis_score": 0.4, "religious_score": -0.6, "is_arab": true, "incompatible_with": ["ט"]},
+    "ו":   {"label_en": "Hadash / Hadash-Ta'al / Hadash-Balad", "axis_score": 0.9, "religious_score": 0.3, "is_arab": true, "incompatible_with": ["ט", "ב", "טב", "יט"]},
+    "ד":   {"label_en": "Balad (anti-Zionist Arab)", "axis_score": 0.6, "religious_score": 0.0, "is_arab": true, "incompatible_with": ["ט", "ב", "טב", "יט", "מחל", "ל"]},
+    "ודעם": {"label_en": "Joint List (Hadash+Ra'am+Balad+Ta'al merger)", "axis_score": 0.75, "religious_score": 0.0, "is_arab": true, "incompatible_with": ["ט", "ב", "טב", "יט", "מחל"]},
+    "ום":  {"label_en": "Hadash-Ta'al", "axis_score": 0.85, "religious_score": 0.3, "is_arab": true, "incompatible_with": ["ט", "ב", "טב", "יט"]},
+    "ע":   {"label_en": "Mada-Ra'am", "axis_score": 0.5, "religious_score": -0.5, "is_arab": true, "incompatible_with": ["ט"]},
+    "דעם": {"label_en": "Ra'am-Balad", "axis_score": 0.6, "religious_score": -0.3, "is_arab": true, "incompatible_with": ["ט", "ב"]}
+  }
+}

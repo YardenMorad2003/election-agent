@@ -1089,6 +1089,172 @@ def run_dynamic_routing(question: str, llm: ChatOpenAI | None = None) -> dict:
 
 
 # ═══════════════════════════════════════════════════════
+# CONFIG 5: Plan-and-Execute (multi-hop decomposition)
+# ═══════════════════════════════════════════════════════
+PLANNER_PROMPT = """You are a query planner for an electoral analyst system.
+
+Decompose the user's question into an ordered list of sub-queries. Each step executes one tool call; earlier step outputs are injected as context into dependent steps.
+
+Available tools:
+- data_query: NL to SQL over the US/Israel election database. Use for factual/numerical lookups.
+- context_search: RAG retrieval over 22K election chunks. Use for background, definitions, urban-rural classifications, bloc composition context.
+- coalition_calculator: finds 61+ seat Israeli coalitions, feasibility-tagged. Israeli coalition questions only.
+- web_search: Google News RSS / DuckDuckGo / Wikipedia for current events or facts outside the DB.
+
+Output a JSON object with a 'plan' array. Each step has:
+  step (int, 1-indexed), tool (one of the names above), input (self-contained NL input to the tool),
+  depends_on (list of step numbers that provide context), rationale (one short sentence).
+
+Rules:
+- Simple single-lookup questions: ONE step.
+- Comparison questions ("A vs B", "change from X to Y", "grew/shrank"): emit separate lookup steps; the synthesizer does the comparison.
+- Multi-part filters ("biggest swing states 2016 to 2020"): separate step per year, then synthesis.
+- Max 5 steps.
+- Each step input must be executable standalone. Do NOT write "compare to step 1" as input.
+
+Output ONLY the JSON object, no prose, no markdown fences.
+
+Example:
+{"plan": [
+  {"step": 1, "tool": "data_query", "input": "Democrat vote share by urban/rural in 2000 US presidential election", "depends_on": [], "rationale": "baseline year"},
+  {"step": 2, "tool": "data_query", "input": "Democrat vote share by urban/rural in 2024 US presidential election", "depends_on": [], "rationale": "comparison year"}
+]}
+"""
+
+
+SYNTHESIZER_PROMPT = """You are producing the final answer from a multi-step plan's outputs.
+
+Use ONLY the numbers and facts from the step outputs. Do not invent data.
+- Perform the comparison / calculation / conclusion the question asks for.
+- If a step failed or returned nothing, say so briefly and answer from remaining evidence.
+- Cite years and geography.
+- Be concise; do not re-list all intermediate data unless the question asked for it.
+"""
+
+
+def run_plan_and_execute(question: str, llm: ChatOpenAI | None = None,
+                         fallback_to_react: bool = True) -> dict:
+    """Config 5: Planner -> Executor -> Synthesizer.
+
+    A planner LLM emits a JSON plan of ordered sub-queries. Each step calls one tool,
+    threading prior outputs into later steps via depends_on. A synthesizer LLM then
+    produces the final answer from accumulated step outputs.
+
+    Falls back to ReAct (Config 4) if plan parsing fails or too many steps error out.
+    """
+    llm = llm or get_llm()
+    data_query_tool = make_data_query_tool(llm)
+    chart_tool = make_chart_tool(llm)
+    tool_registry = {
+        "data_query": data_query_tool,
+        "context_search": context_search,
+        "coalition_calculator": coalition_calculator,
+        "web_search": web_search,
+        "create_chart": chart_tool,
+    }
+
+    # ── Phase 1: plan ──
+    plan_resp = llm.invoke([
+        SystemMessage(content=PLANNER_PROMPT),
+        HumanMessage(content=question),
+    ])
+    plan_text = plan_resp.content.strip()
+    if plan_text.startswith("```"):
+        plan_text = "\n".join(plan_text.split("\n")[1:])
+        if plan_text.endswith("```"):
+            plan_text = plan_text.rsplit("```", 1)[0]
+    plan_text = plan_text.strip()
+
+    try:
+        plan_obj = json.loads(plan_text)
+        plan = plan_obj.get("plan", [])
+        if not plan:
+            raise ValueError("empty plan")
+    except Exception as e:
+        if fallback_to_react:
+            fallback = run_dynamic_routing(question, llm)
+            fallback["config"] = "planned_routing"
+            fallback["trace"] = [f"Planner parse failed ({e}); fell back to ReAct"] + fallback.get("trace", [])
+            fallback["fallback_used"] = True
+            fallback["plan"] = []
+            return fallback
+        raise
+
+    # ── Phase 2: execute ──
+    step_outputs: dict[int, str] = {}
+    trace = [f"Planner emitted {len(plan)} step(s)"]
+    tools_used: list[str] = []
+    step_errors = 0
+
+    for step in plan:
+        sid = step.get("step")
+        tool_name = step.get("tool")
+        step_input = step.get("input", "")
+        deps = step.get("depends_on", []) or []
+
+        trace.append(f"Step {sid}: {tool_name}({(step_input or '')[:80]}{'...' if len(step_input)>80 else ''})")
+
+        if deps:
+            ctx_chunks = []
+            for d in deps:
+                if d in step_outputs:
+                    ctx_chunks.append(f"[Step {d} returned]\n{str(step_outputs[d])[:500]}")
+            if ctx_chunks:
+                step_input = f"{step_input}\n\nPrior step context:\n" + "\n\n".join(ctx_chunks)
+
+        tool_obj = tool_registry.get(tool_name)
+        if tool_obj is None:
+            step_outputs[sid] = f"ERROR: unknown tool '{tool_name}'"
+            step_errors += 1
+            trace.append(f"Step {sid} ERROR: unknown tool")
+            continue
+
+        try:
+            output = tool_obj.invoke(step_input)
+            step_outputs[sid] = output
+            tools_used.append(tool_name)
+            trace.append(f"Step {sid} returned {len(str(output))} chars")
+        except Exception as e:
+            step_outputs[sid] = f"ERROR: {e}"
+            step_errors += 1
+            trace.append(f"Step {sid} ERROR: {e}")
+
+    # Fallback if majority of steps errored
+    if fallback_to_react and len(plan) > 0 and step_errors > len(plan) / 2:
+        fallback = run_dynamic_routing(question, llm)
+        fallback["config"] = "planned_routing"
+        fallback["trace"] = trace + [f"{step_errors} step errors; fell back to ReAct"] + fallback.get("trace", [])
+        fallback["fallback_used"] = True
+        fallback["plan"] = plan
+        return fallback
+
+    # ── Phase 3: synthesize ──
+    step_lookup = {s["step"]: s for s in plan}
+    step_summary = "\n\n".join(
+        f"Step {sid} ({step_lookup.get(sid, {}).get('tool', '?')}):\n{str(out)[:1500]}"
+        for sid, out in step_outputs.items()
+    )
+    synth_resp = llm.invoke([
+        SystemMessage(content=SYNTHESIZER_PROMPT),
+        HumanMessage(content=(
+            f"Original question: {question}\n\n"
+            f"Step outputs:\n{step_summary}\n\n"
+            f"Final answer:"
+        )),
+    ])
+
+    return {
+        "answer": synth_resp.content,
+        "config": "planned_routing",
+        "tools_used": list(dict.fromkeys(tools_used)),
+        "trace": trace,
+        "plan": plan,
+        "step_outputs": {str(k): str(v)[:400] for k, v in step_outputs.items()},
+        "fallback_used": False,
+    }
+
+
+# ═══════════════════════════════════════════════════════
 # Unified runner
 # ═══════════════════════════════════════════════════════
 CONFIGS = {
@@ -1096,6 +1262,7 @@ CONFIGS = {
     "rag_only": run_rag_only,
     "fixed_routing": run_fixed_routing,
     "dynamic_routing": run_dynamic_routing,
+    "planned_routing": run_plan_and_execute,
 }
 
 def run_question(question: str, config: str = "dynamic_routing",
