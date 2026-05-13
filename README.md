@@ -1,658 +1,352 @@
 # Agentic Electoral Analyst
 
-An AI-powered chatbot for exploring **U.S. federal elections (2000-2024)** and **Israeli Knesset elections (1996-2022)**. It chains together vector embeddings, cross-encoder reranking, NER, zero-shot classification, and LLM-driven tool selection to answer questions, generate charts, and calculate coalition scenarios — all through natural language.
+**DS-UA 301: Advanced Topics in Data Science · NYU · Spring 2026**
+**Mohamed Alremeithi · Preston Delgadillo · Yarden Morad**
 
-Built for DS-UA 301 (LLMs) at NYU.
-
----
-
-## Table of Contents
-
-- [How It Works](#how-it-works)
-- [ML Pipeline](#ml-pipeline)
-- [Tools](#tools)
-- [Routing Configurations](#routing-configurations)
-- [Milestone 2 → 3 Updates](#milestone-2--3-updates)
-- [Data Coverage](#data-coverage)
-- [Database Schema](#database-schema)
-- [Israeli Political Blocs](#israeli-political-blocs)
-- [Project Structure](#project-structure)
-- [Setup](#setup)
-- [Usage](#usage)
-- [Benchmark](#benchmark)
-- [Example Questions](#example-questions)
+An LLM-powered analyst for **U.S. federal elections (2000–2020)** and **Israeli Knesset elections (1996–2022, K14–K25)**, plus a fundamentals model that forecasts the **2026 U.S. House midterm**. Five routing configurations — from a no-tools LLM baseline to a plan-and-execute multi-hop agent — are compared head-to-head on a 70-question benchmark. The chat UI is Streamlit; an alternative Next.js front-end calls the same agent via a FastAPI bridge.
 
 ---
 
-## How It Works
+## Table of contents
 
-You type a question about elections. A LangGraph ReAct agent figures out how to answer it — maybe it writes a SQL query, maybe it searches the vector store, maybe it builds a chart, or some combination. The whole thing runs in a Streamlit chat interface.
-
-### Architecture
-
-```
-User question
-     |
-     v
-[LangGraph ReAct Agent] ---- conversation history maintained across turns
-     |
-     |  Agent decides which tool(s) to call (can chain multiple)
-     |
-     +---> [Data Query]        NL -> SQL -> PostgreSQL -> exact results
-     |         |                   (with Reflexion: retries on error/empty)
-     |
-     +---> [Context Search]    Question -> embeddings -> ChromaDB (25 chunks)
-     |         |                   -> cross-encoder rerank (top 10) -> context
-     |
-     +---> [Create Chart]      NL -> SQL + chart config -> matplotlib -> PNG
-     |         |                   (with Reflexion: retries on error/empty)
-     |
-     +---> [Coalition Calc]    Brute-force search over party combos (61+ seats)
-     |
-     v
-[LangGraph ReAct Agent] ---- synthesizes final answer from tool results
-     |
-     v
-Chat response
-  - Answer text
-  - Inline chart (if generated)
-  - Tool badges showing which tools were used
-  - Expandable execution trace
-  - 3 contextual follow-up suggestions (LLM-generated)
-```
-
-### What makes it interesting
-
-- **Conversational memory** -- follow-ups work naturally ("What about 2024?" after asking about 2020)
-- **Follow-up suggestions** -- 3 contextual follow-ups generated after every response, shown as clickable buttons
-- **Inline charts** -- ask for a visualization and it writes SQL, builds a matplotlib chart, and renders it in the chat
-- **Reflexion** -- when a SQL query fails or returns nothing, the agent reflects on what went wrong and retries with a corrected query (up to 2 times)
-- **Hebrew city name resolution** -- Israeli localities are stored in Hebrew; a BERT-NER model + lookup table translates English city names so queries like "How did Kiryat Ata vote?" just work
-- **Cross-lingual party name expansion** -- queries mentioning romanized Hebrew ("HaAvoda"), English ("Labor"), or Hebrew party names all resolve correctly through query expansion before embedding search
-- **4-config comparison** -- run the same question through all 4 routing strategies side by side
+1. [Quick start](#quick-start)
+2. [Data scope](#data-scope)
+3. [Architecture](#architecture)
+4. [Tools](#tools)
+5. [Routing configurations](#routing-configurations)
+6. [May 2026 session changelog](#may-2026-session-changelog)
+7. [2026 House forecast](#2026-house-forecast)
+8. [Benchmark](#benchmark)
+9. [Regression test](#regression-test)
+10. [Limitations](#limitations)
+11. [Project structure](#project-structure)
+12. [Member contributions](#member-contributions)
+13. [Appendix A: Map assumption for the 2026 forecast](#appendix-a-map-assumption-for-the-2026-forecast)
 
 ---
 
-## ML Pipeline
+## Quick start
 
-We chain **7 ML models** through the pipeline — 6 local HuggingFace models plus GPT-4o-mini as the core LLM. The research question driving the project: *How does tool routing strategy affect answer quality for complex electoral analysis questions?*
-
-| # | Model | Type | Where it's used |
-|---|-------|------|-----------------|
-| 1 | `all-MiniLM-L6-v2` | Text embeddings (384-dim, local) | ChromaDB retrieval, embedding-based routing |
-| 2 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-encoder reranker (local) | Reranks 25 retrieved chunks down to top 10 |
-| 3 | `facebook/bart-large-mnli` | Zero-shot NLI classifier (local) | Routes questions to tools in Config 3 |
-| 4 | `dslim/bert-base-NER` | Named Entity Recognition (local) | Extracts city names for Hebrew resolution |
-| 5 | `distilbert-base-uncased` (fine-tuned) | Sequence classifier (local) | Alternative question router for Config 3 |
-| 6 | `all-mpnet-base-v2` | Text embeddings (768-dim, local) | Higher-quality embedding alternative |
-| 7 | `gpt-4o-mini` / `gpt-4o` | LLM (OpenAI API) | SQL generation, reasoning, synthesis, evaluation |
-
-### How they connect in practice (Config 4)
-
-```
-User question
-     |
-     v
-+-----------------------------------------------------------------+
-| STEP 0: NER Preprocessing                                       |
-| BERT-NER extracts city names, maps to Hebrew via lookup table.  |
-| "Kiryat Ata" -> "Kiryat Ata (Hebrew: קרית אתא)"               |
-+-----------------------------------------------------------------+
-     |
-     v
-+-----------------------------------------------------------------+
-| STEP 1: ReAct Agent (Yao et al., 2023)                         |
-| Thought -> Action -> Observation -> Thought -> ...              |
-| Autonomously picks tool(s), can chain multiple in one turn.     |
-+-----------------------------------------------------------------+
-     |               |              |               |
-     v               v              v               v
-+-----------+ +-------------+ +----------+ +--------------+
-| data_query| |context_search| |create_chart| |coalition_calc|
-+-----------+ +-------------+ +----------+ +--------------+
-     |               |               |               |
-     v               v               v               v
-  LLM writes    Embeddings      LLM writes      Brute-force
-  SQL           encode query    SQL + chart     seat combos
-     |               |          config           (>=61)
-     v               v               v
-  PostgreSQL    ChromaDB        PostgreSQL
-  execute       retrieve 25     execute
-     |               |               |
-     |               v               v
-     |          Cross-encoder    matplotlib
-     |          rerank -> 10    render chart
-     |
-     v
-  On error/empty: Reflexion
-  LLM reflects on failure, generates corrected SQL (up to 2 retries)
-     |
-     v
-+-----------------------------------------------------------------+
-| STEP 2: Synthesis                                                |
-| Agent combines tool outputs into a natural language answer.      |
-+-----------------------------------------------------------------+
-     |
-     v
-+-----------------------------------------------------------------+
-| STEP 3: Follow-Up Generation                                    |
-| Separate LLM call produces 3 contextual follow-up suggestions.  |
-+-----------------------------------------------------------------+
-```
-
-### Step-by-step breakdown
-
-1. **NER preprocessing** -- Before anything else, BERT-NER (`dslim/bert-base-NER`) pulls location entities out of the question. If it finds "Kiryat Ata", it looks up the Hebrew equivalent (`קרית אתא`) and injects it. This prevents the LLM from guessing (usually wrong) Hebrew strings in SQL.
-
-2. **ReAct reasoning** -- The LangGraph agent follows the Thought-Action-Observation loop. It sees the conversation history and available tools, reasons about what to do, calls a tool, observes the result, and either calls another tool or produces a final answer. In Config 4 (the default), the LLM has full autonomy over tool selection.
-
-3. **SQL generation** -- The data_query and create_chart tools use system prompts containing the full database schema, query patterns, Hebrew name lookups, and domain rules. The LLM writes SQL from natural language that gets executed against PostgreSQL.
-
-4. **Reflexion** -- When SQL fails or comes back empty, the error gets fed back to the LLM with hints ("candidate names must be UPPERCASE", "use exact Hebrew locality names"). It figures out what went wrong and tries again, up to 2 times.
-
-5. **Dense retrieval + reranking** -- The context_search tool encodes the question with MiniLM (locally, no API calls), pulls the 25 nearest chunks from ChromaDB, then a cross-encoder reranks them to the top 10. The cross-encoder is more accurate because it processes each (query, chunk) pair jointly through BERT's attention layers, rather than comparing independent embeddings.
-
-6. **Zero-shot routing** -- In Config 3, questions get classified to tools using `bart-large-mnli`. The model checks entailment between the question and descriptive labels for each tool ("looking up election results, vote counts" -> data_query). An embedding-based alternative (cosine similarity to pre-computed centroids) is also available.
-
-7. **LLM-as-judge** -- The benchmark evaluates answers with both soft matching and a separate LLM scoring call on a 0-5 rubric, giving partial credit for answers that are directionally right but imprecise.
-
----
-
-## Tools
-
-### Data Query (`data_query`)
-Natural language to SQL, executed against PostgreSQL (SQLite fallback if `DATABASE_URL` isn't set). Covers both U.S. and Israeli datasets. The LLM picks the right table from context clues.
-
-- **Security**: Read-only connections. `DROP`, `DELETE`, `INSERT`, `UPDATE`, `ALTER` are blocked. `LIMIT 50` auto-appended.
-- **NER**: BERT-NER extracts city names and injects Hebrew equivalents before SQL generation.
-- **Reflexion**: Failed queries get fed back with diagnostic hints; the LLM retries up to 2 times.
-
-### Context Search (`context_search`)
-Two-stage RAG over **22,799 embedded chunks** in ChromaDB. Each chunk is a 1-3 sentence fact about the election data, pre-generated from the database at build time.
-
-#### What's in the chunks
-
-| Type | Count | Example |
-|------|-------|---------|
-| County summaries | 22,083 | *"In 2020, Maricopa, AZ (Large central metro): JOSEPH R BIDEN (DEMOCRAT) received 1,040,774 votes (50.3%)..."* |
-| State summaries | 357 | *"In 2020, GA: DEMOCRAT won with 2,473,633 votes (49.5%). Urban: 72% Dem."* |
-| Israeli data | 349 | *"K25: Likud (הליכוד) (right) - 23.4% of votes, 32 seats."* |
-| Documentation | 7 | Bloc definitions, table descriptions, coalition context |
-| NCHS context | 3 | Urban-rural classification codes and coverage |
-
-#### Retrieval pipeline
-
-Question comes in -> party name expansion (romanized/English/Hebrew aliases appended) -> MiniLM encodes to 384-dim vector -> 25 nearest chunks from ChromaDB -> cross-encoder reranks to top 10 -> passed to LLM as context.
-
-Three embedding models are available for comparison: MiniLM (default), MPNet (768-dim), and OpenAI `text-embedding-3-small` (1536-dim).
-
-### Create Chart (`create_chart`)
-The LLM writes both the SQL and a chart config (type, title, axes, grouping). Supports bar, grouped bar, stacked bar, line, pie, and scatter. Hebrew party names auto-translate to English (54 mappings). Charts render inline in the Streamlit chat. Reflexion retries on failure.
-
-### Coalition Calculator (`coalition_calculator`)
-Brute-force search over Israeli party seat combinations to find coalitions reaching 61+ seats. Supports must-include parties, max coalition size, bloc filters, and `must_exclude` parsing for "without X" / "no arab" / "without haredi" phrasing.
-
-Coalitions are tagged with **feasibility tiers** based on a hand-curated `tools/party_ideology.json` (27 parties K14–K25, axis/religious scores, hard incompatibility blacklists):
-- `plausible` — no blocked pairs, tight ideological spread
-- `novel` — no blocked pairs but wide ideological spread (would require unusual compromise)
-- `incompatible` — at least one ideologically blocked pair (e.g., Religious Zionism + any Arab party); filtered out by default
-
-Output is sorted plausible-first and includes per-coalition `axis_spread`. The 100-coalition early-return cap was removed so counts ("how many coalitions can the right form?") are exact. *(Yarden)*
-
-### Web Search (`web_search`)
-Operational news search built around Google News RSS for time-sensitive queries, with DuckDuckGo + Wikipedia fallback for evergreen facts. Recency window (last 24h vs. last 7d) is inferred from phrasing ("today", "this week", "breaking"). For present-tense factual queries ("who is the current X"), stale year hints are stripped before search; ranking favors recent, on-topic items and penalizes opinion/analysis/photo/video pages. *(Mohamed)*
-
----
-
-## Routing Configurations
-
-Four strategies, compared head-to-head in the benchmark:
-
-### Config 1: Single-Pass LLM (Baseline)
-No tools, no retrieval. The LLM answers from training knowledge only. Tests what the model knows without data access.
-
-### Config 2: RAG-Only
-ChromaDB retrieval with MiniLM embeddings + cross-encoder reranking. No SQL. Tests whether retrieval alone can provide accurate answers.
-
-### Config 3: Fixed Routing
-An embedding classifier (or zero-shot NLI) decides which single tool to run based on the question. The tool executes, then the LLM synthesizes the answer. Tests ML-based routing vs. LLM autonomy.
-
-### Config 4: Dynamic Routing (ReAct) -- Default
-Full ReAct agent with all 5 tools. The LLM decides what to call, can chain tools, and reasons step by step. Tests whether full autonomy beats fixed routing.
-
-### Config 5: Plan-and-Execute (Multi-hop Planner)
-A planner LLM emits a JSON plan of ordered sub-queries (`step`, `tool`, `input`, `depends_on`). An executor runs steps in order, threading prior outputs as context into dependents, and a synthesizer LLM produces the final answer from accumulated step outputs. Falls back to ReAct if the plan fails to parse or a majority of steps error. Targets the 0–10% multi-step accuracy gap that ReAct alone struggles with on questions like "Did the urban-rural gap grow between 2000 and 2024?". Run with `--config planned_routing`. *(Yarden)*
-
-**Compare mode**: Toggle in the sidebar to run all 4 configs on the same question in a 2x2 grid.
-
----
-
-## Data Coverage
-
-### U.S. Federal Elections
-
-| Table | Scope | Years | Rows |
-|-------|-------|-------|------|
-| `us_president_county` | County-level presidential | 2000-2024 (7 elections) | ~75K |
-| `us_president_precinct` | Precinct-level presidential | 2016, 2020, 2024 | ~3.4M |
-| `us_house_precinct` | Precinct-level House | 2016, 2018, 2020 | ~2.2M |
-| `us_senate_precinct` | Precinct-level Senate | 2016, 2018, 2020 | ~1.9M |
-
-Every U.S. record includes **NCHS urban-rural classification**:
-- **Urban** -- Large central metro (code 1) + Medium metro (code 3)
-- **Suburban** -- Large fringe metro (code 2) + Small metro (code 4)
-- **Rural** -- Micropolitan (code 5) + Noncore (code 6)
-
-### Israeli Knesset Elections
-
-| Table | Scope | Coverage | Rows |
-|-------|-------|----------|------|
-| `elections` | National stats per election | K14-K25 (1996-2022) | 12 |
-| `parties` | National party results | K14-K25 | 151 |
-| `localities` | Per-locality bloc breakdowns | 1,384 localities x 12 elections | ~14K |
-| `party_locality` | Per-locality party votes | 1,384 localities x 12 elections | ~179K |
-| `socioeconomic` | Municipal indicators | 201 municipalities | 201 |
-
-### Macro & Prediction-Model Inputs *(Preston)*
-
-Source files for the in-progress 2026-midterm prediction tool, staged under `data/macro/` and `data/elections_extra/` (gitignored — fetched separately):
-
-| Group | Files | Coverage |
-|-------|-------|----------|
-| Approval | `pres_approval_data.csv`, `trump_approval_raw.csv`, `trump_net_raw.csv` | Daily Trump approval (2025–) with confidence intervals + historical presidential approval |
-| FRED macro | `fred_cpi.csv`, `fred_unrate.csv`, `fred_mortgage30us.csv`, `fred_umcsent.csv` | CPI, unemployment, 30y mortgage, U Mich consumer sentiment |
-| Markets / fuel | `sp500.csv`, `gas_prices.csv` | S&P 500 history, weekly retail gas (1993–) |
-| Elections | `presidents/1976-2020-president.csv` (MIT Election Lab), `house_elections.csv`, `special_elections.csv` (1996–) | Long historical election panels |
-| Pre-engineered features | `house_features.csv`, `house_retirements_features.csv` | Per-cycle: avg margin, competitive seats, dem win rate; retirement rate by party, net retirement advantage |
-| Control panels | `chamber_control.csv`, `senate_control.csv`, `seat_count.csv` | Yearly D/R control of House/Senate/presidency, seat counts |
-| Polling / events | `generic_topline_historical.csv`, `events.csv` | Generic ballot polling; political/economic/geopolitical event log with intensity ratings |
-
----
-
-## Database Schema
-
-### U.S. Tables
-
-```sql
-us_president_county(
-    year, state, state_fips, county_name, county_fips,
-    candidate, party, votes,
-    nchs_code, nchs_label, urban_rural, cbsa_title
-)
--- party: DEMOCRAT, REPUBLICAN, LIBERTARIAN, OTHER
--- candidate names are UPPERCASE (e.g., 'JOSEPH R BIDEN', 'DONALD J TRUMP')
--- state is 2-letter code (e.g., 'GA', 'PA')
--- county_fips is zero-padded 5-digit TEXT
--- PRIMARY KEY (year, county_fips, candidate)
-
--- Precinct tables have the same schema plus: precinct, district
-```
-
-### Israeli Tables
-
-```sql
-elections(knesset PK, year, total_eligible, localities_count, turnout_pct,
-         right_pct, haredi_pct, center_pct, left_pct, arab_pct,
-         opposition_right_pct, right_haredi_pct, center_left_arab_pct)
--- National-level only
-
-parties(knesset, code, name, bloc, vote_pct, votes, seats)
--- NATIONAL-level party results. Do NOT use for city/locality queries.
--- bloc: right, left, center, haredi, arab, opposition_right
-
-localities(name, knesset, eligible, turnout_pct,
-          right_pct, haredi_pct, center_pct, left_pct, arab_pct,
-          right_haredi_pct, center_left_arab_pct)
--- Per-locality BLOC-level breakdowns. Names are in Hebrew.
-
-party_locality(knesset, locality, party_code, vote_pct)
--- Per-locality PARTY-level vote percentages.
--- Use this for "how did [city] vote by party?" questions.
--- JOIN with parties ON code = party_code AND knesset = knesset to get party names.
-
-socioeconomic(name PK, population, median_age, dependency_ratio,
-             pct_academic_degree, avg_years_schooling, pct_with_work_income,
-             avg_monthly_income_per_capita, pct_below_min_wage,
-             pct_above_2x_avg_wage, vehicles_per_100)
--- JOIN with localities ON name for socioeconomic + voting correlations.
-```
-
----
-
-## Israeli Political Blocs
-
-Israeli parties fall into 6 blocs, with two aggregate groupings used throughout the database:
-
-| Bloc | Parties (K25 example) | Description |
-|------|----------------------|-------------|
-| **right** | Likud, Religious Zionism, Jewish Home | Nationalist right |
-| **haredi** | Shas, United Torah Judaism | Ultra-Orthodox religious |
-| **center** | Yesh Atid, National Unity | Centrist / liberal |
-| **left** | Labor, Meretz | Social-democratic |
-| **arab** | Ra'am, Hadash-Ta'al, Balad | Arab-majority parties |
-| **opposition_right** | Yisrael Beiteinu | Right-leaning secular, historically in opposition |
-
-### Aggregate Groupings
-
-| Field | Formula | Meaning |
-|-------|---------|---------|
-| `right_haredi_pct` | right + haredi | Natural coalition partners (e.g., K25: Likud + RZ + Shas + UTJ = 64 seats) |
-| `center_left_arab_pct` | center + left + arab + **opposition_right** | The opposition bloc. Yisrael Beiteinu is counted here, NOT in right_haredi. |
-
-The vector store includes detailed bloc compositions for all 12 elections with both Hebrew and English party names.
-
----
-
-## Project Structure
-
-```
-election-agent/
-├── agent.py              # Core: 4 routing configs, reranker, query expansion,
-│                         #   embedding router, context_search tool
-├── app.py                # Streamlit chatbot UI
-├── db.py                 # Database connection (PostgreSQL primary, SQLite fallback)
-├── embeddings.py         # Local embedding wrappers (MiniLM, MPNet)
-├── classifiers.py        # Zero-shot (BART-MNLI) + fine-tuned (DistilBERT)
-├── ner_preprocessor.py   # BERT-NER for Hebrew city name resolution
-├── build_db.py           # Israeli JSON -> SQLite ingestion
-├── build_us_db.py        # U.S. CSV -> SQLite ingestion
-├── build_vectorstore.py  # ChromaDB builder (22K+ chunks, multi-embedding)
-├── migrate_to_postgres.py # SQLite -> PostgreSQL migration
-├── elections.db          # SQLite database (~1.2GB, fallback)
-├── chroma_db/            # ChromaDB vector store (3 collections)
-├── charts/               # Generated chart PNGs
-├── data/                 # U.S. election CSV source files (~900MB)
-├── requirements.txt
-├── api.py                # FastAPI backend for the Next.js UI (Mohamed)
-├── frontend/             # Next.js chat interface (Mohamed)
-├── data/macro/           # Macroeconomic + approval + polling inputs (Preston)
-├── data/elections_extra/ # Long historical election panels (Preston)
-├── .env                  # API keys (not in git)
-├── tools/
-│   ├── data_query.py            # NL -> SQL with Reflexion
-│   ├── coalition.py             # Coalition calculator + feasibility tiers (Yarden)
-│   ├── party_ideology.json      # Hand-curated party axis/religious/blacklist (Yarden)
-│   ├── chart.py                 # Chart generation + Hebrew name mapping
-│   ├── operational_web_search.py # Google News RSS + recency logic (Mohamed)
-│   └── web_search.py            # Legacy DuckDuckGo + Wikipedia (fallback)
-└── benchmark/
-    ├── questions.json    # 70 evaluation questions
-    └── run_benchmark.py  # Benchmark runner with LLM-as-judge
-```
-
----
-
-## Setup
-
-### 1. Install dependencies
+### Streamlit (primary UI)
 
 ```bash
-pip install -r requirements.txt
+cd ~/election-agent
+python -m streamlit run app.py
 ```
 
-### 2. Environment variables
+Open http://localhost:8501. Sidebar has a "+ New chat" button, model selector (`gpt-4o-mini` / `gpt-4o` / `gpt-4.1`), and a "Compare all 5 configs" toggle. A green model-chip badge on each assistant turn confirms which model actually ran.
 
-Create `.env` in the project root:
-
-```
-OPENAI_API_KEY=your-key-here
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/election_agent
-```
-
-### 3. Get the data
-
-Download pre-built files from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0):
-
-- **`elections.db`** (1.2 GB) -- SQLite with all election data
-- **`chroma_db.tar.gz`** (47 MB) -- Pre-embedded vector store (22,799 chunks)
-- **`distilbert-router.tar.gz`** (235 MB) -- Fine-tuned question router
+### Next.js + FastAPI (alternative UI)
 
 ```bash
-# Place elections.db in project root, then:
-tar -xzf chroma_db.tar.gz
-mkdir -p models && tar -xzf distilbert-router.tar.gz -C models/
-```
+# Terminal 1: FastAPI backend
+python -m uvicorn api:app --reload --port 8000
 
-Or build everything from source:
-```bash
-python build_db.py          # Israeli tables
-python build_us_db.py       # U.S. tables
-python build_vectorstore.py # ChromaDB (~5 min)
-python train_classifier.py  # Fine-tune DistilBERT (~2 min)
-```
-
-### 4. PostgreSQL setup
-
-The app uses PostgreSQL as its primary database with enforced read-only connections, so LLM-generated SQL can't modify data. If `DATABASE_URL` isn't set, it falls back to SQLite.
-
-```bash
-# Create the database
-psql -U postgres -c "CREATE DATABASE election_agent;"
-
-# Build SQLite source (needed for migration)
-python build_db.py
-python build_us_db.py          # Full: ~1.2GB
-# python build_us_db.py --county-only  # Quick: ~8MB
-
-# Migrate to PostgreSQL (~5-10 min for 7.5M rows)
-python migrate_to_postgres.py
-```
-
-All connections are read-only. Destructive SQL is blocked. `LIMIT 50` is auto-appended.
-
-### 5. Build vector store (if not downloaded)
-
-```bash
-python build_vectorstore.py
-# Optional: additional embedding models for comparison
-python build_vectorstore.py --with-mpnet
-python build_vectorstore.py --with-openai
-python build_vectorstore.py --with-all
-```
-
-Embeds 22K+ chunks using local sentence-transformers (~5 min on CPU). The cross-encoder, BART-MNLI, and BERT-NER models download automatically on first use.
-
----
-
-## Usage
-
-### Next.js UI
-
-Run the Python API and the frontend in separate terminals:
-
-```bash
-uvicorn api:app --reload --port 8000
+# Terminal 2: Next.js dev server
 cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000. The frontend proxies `/api/*` and `/charts/*` to the FastAPI server at `http://127.0.0.1:8000` by default.
+Next.js dev server: http://localhost:3000. FastAPI: http://127.0.0.1:8000.
 
-### Streamlit UI
+### Forecast CLI
 
 ```bash
-python -m streamlit run app.py
+python predict_house.py                              # baseline 2026 forecast
+python predict_house.py --approval-delta=10          # +10pt approval scenario
+python predict_house.py --approval-delta=10 --unrate-delta=-1 --all-specs
+python predict_house.py --scenario-only --no-save    # don't overwrite the JSON
 ```
 
-### Chat Mode (Default)
-Type questions in natural language. The agent picks tools automatically, remembers conversation history, and suggests follow-ups. Ask for charts, coalition scenarios, or data lookups. Expand "Execution trace" to see the reasoning chain.
+### Benchmark
 
-### Comparison Mode
-Toggle "Compare all 4 configs" in the sidebar. Same question, 4 strategies, side-by-side in a 2x2 grid.
+```bash
+python -m benchmark.run_benchmark                          # all 5 configs
+python -m benchmark.run_benchmark --config planned_routing # Config 5 only
+python -m benchmark.compute_mape                           # MAPE from existing results
+python -m benchmark.test_web_search_synthesis              # 50-query web-search regression test
+```
 
-### Model Selection
-Choose between `gpt-4o-mini` (default), `gpt-4o`, or `gpt-4.1` in the sidebar.
+### Environment
+
+- Python 3.14, no venv (system Python).
+- After `requirements.txt` updates: `pip install --upgrade -r requirements.txt`.
+- `langgraph==1.1.10` + `langgraph-prebuilt==1.0.13` pin (earlier `1.1.3` was broken on Python 3.14).
+- `elections.db` is 1.2 GB and gitignored. PostgreSQL is the primary DB; SQLite is the fallback. Set `DATABASE_URL` to use Postgres.
+- `.streamlit/secrets.toml` overrides `.env` for `OPENAI_API_KEY` (because `agent.py:16–20` prefers `st.secrets`). Restart Streamlit after changing the key — browser refresh isn't enough.
+
+---
+
+## Data scope
+
+### Israeli Knesset elections — K14 to K25 (1996–2022)
+
+- 12 election cycles: K14 (1996), K15 (1999), K16 (2003), K17 (2006), K18 (2009), K19 (2013), K20 (2015), K21 (April 2019), K22 (Sep 2019), K23 (2020), K24 (2021), K25 (2022).
+- 1,384 localities, party-level results, socioeconomic data for 201 municipalities.
+- Tables: `elections`, `parties`, `localities`, `party_locality`, `socioeconomic`.
+- **Out-of-range Knesset numbers (K1–K13, K26+) are blocked at the tool layer** — `data_query` returns a clear "outside coverage" message instead of running empty/wrong SQL.
+- **Pseudo-localities filtered**: `מעטפות כפולות` (double envelopes / overseas votes) and `מעטפות חיצוניות` (external envelopes / military) are administrative tallies with `turnout_pct = 100%` by construction. The schema instructs the LLM to exclude them from any locality-level query, and to add `turnout_pct <= 100` for "highest turnout" questions (a handful of evacuated settlements have stale eligible counts producing turnouts of 101–142%).
+- **Party codes are stable across alliances; names are not.** Multi-Knesset queries filter by `code` (`מחל`=Likud, `אמת`=Labor, `פה`=Yesh Atid, `שס`=Shas, `ג`=UTJ, `טב`=Religious Zionism, `ל`=Yisrael Beiteinu, `מרצ`=Meretz, etc.) and inject canonical English labels via `CASE WHEN`.
+
+### U.S. federal elections — 2000 to 2020 (reliable coverage)
+
+- Presidential results by **county** (2000–2020, ~3,143 counties × 6 cycles).
+- Presidential, House, Senate results by **precinct** (2016, 2020).
+- Per-row NCHS urban–rural classification (`Urban` / `Suburban` / `Rural`, six-level NCHS code 1–6) and CBSA metadata.
+- **2024 presidential data is blocked.** It exists in the database but `us_president_county` has duplicate vote-count inflation for AR, AZ, IA, LA, NM, OK, PA, SC, SD, TX, VT (TX shows 11.5M Trump vs. real 6.4M; PA shows 7.1M vs. real 3.5M). `us_president_precinct` 2024 totals match reality (Trump 76.7M, Harris 74.5M) but coverage gaps remain. Until the data is re-loaded, **any question that combines `2024` with US presidential context** (president, election, vote, county, state, swing, flip, Trump/Harris/Biden, etc.) **returns a "Data coverage" refusal** instead of risking a wrong answer. See [Limitations](#limitations) for the permanent fix path.
+- **Pseudo-candidates excluded**: rows where `candidate IN ('TOTAL VOTES CAST', 'UNDERVOTES', 'OVERVOTES', 'SPOILED')` are admin tallies, not real candidates — every aggregate SQL the agent writes excludes them.
+- **Alaska is excluded from county-flip queries.** AK reports by state-house district (1–40), not by county/borough — those rows would otherwise pollute flip lists as "District 5", "District 23", etc.
+
+### Out of scope (refused by the agent)
+
+Stock markets, indices, bonds, commodities, FX, weather, climate, sports, biographies, any non-election time series. The agent declines politely: *"I don't have that data — my dataset only covers Israeli Knesset and U.S. federal elections. I can search the web for recent news on this if you want."* News questions ("latest stock news") still route through web search.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[User] --> UI{UI}
+    UI -- Streamlit --> A[Agent]
+    UI -- "Next.js + FastAPI" --> A
+    A --> R[Router]
+    R --> C1[Single-Pass]
+    R --> C2[RAG-Only]
+    R --> C3[Fixed Routing]
+    R --> C4[Dynamic Routing]
+    R --> C5[Plan-and-Execute]
+    C3 --> T
+    C4 --> T
+    C5 --> T
+    T[Tools] --> DQ[data_query]
+    T --> CO[coalition_calculator]
+    T --> WS[web_search]
+    T --> CH[create_chart]
+    T --> CS[context_search]
+    DQ --> DB[(PostgreSQL / SQLite)]
+    CS --> VS[(ChromaDB)]
+    WS --> EXT[Google News RSS / DuckDuckGo / Wikipedia]
+```
+
+The router decides whether to (a) refuse on scope grounds, (b) take a fast direct-web-lookup path for simple factual web queries, (c) hand to the ReAct agent with the full tool kit. Conversation history is passed in for all paths; topic carry-over for vague follow-ups ("any updates on that?") is resolved via a one-shot LLM rewrite before search.
+
+---
+
+## Tools
+
+| Tool | What it does | When used |
+|------|--------------|-----------|
+| `data_query` | NL → SQL → execute → format. Reflexion retry on failure (up to 3 attempts). | Factual / numerical questions about election results, turnout, party performance, urban–rural trends, county-level data. |
+| `coalition_calculator` | Enumerates all coalitions ≥61 seats in a given Knesset, scores them by ideological compatibility (`tools/party_ideology.json`), tags `plausible / novel / incompatible`. Supports `must_include` and `must_exclude` filters. | "List all 3-party coalitions reaching 61 seats in K25", "Which coalitions exclude Likud?". |
+| `web_search` | Google News RSS for recent news (24h / 7d windows inferred from query); DuckDuckGo Lite + Wikipedia REST for evergreen facts. Multi-candidate snippet enrichment with relevance scoring (present-tense reward, past-tense penalty). | Current officeholders, recent news, party background, anything outside the database. |
+| `create_chart` | NL → SQL + matplotlib config → PNG. Supports `bar`, `horizontal_bar`, `line`, `grouped_bar`, `stacked_bar`, `pie`, `scatter`. Multi-series via `y_cols` (wide format) or `group_col` (long format). | Visualization requests ("plot…", "chart of…", "show me a graph…"). |
+| `context_search` | Vector retrieval over a ChromaDB index of dataset chunks (Knesset summaries, party records, socioeconomic). Cross-encoder rerank. | Background / definitional questions; pre-flight context before complex SQL. |
+
+---
+
+## Routing configurations
+
+| # | Config | Description |
+|---|--------|-------------|
+| 1 | `single_pass` | Pure LLM, no tools. Baseline for "what does the model already know". |
+| 2 | `rag_only` | Vector retrieval → LLM. No SQL, no agent loop. |
+| 3 | `fixed_routing` | Keyword rules pick one tool, single call. |
+| 4 | `dynamic_routing` | ReAct agent — LLM picks tools and decides when to stop. |
+| 5 | `planned_routing` | Plan-and-Execute: planner produces a JSON DAG of steps; executor threads outputs through `depends_on` edges; synthesizer writes the final answer. ReAct fallback when the plan fails to parse. |
+
+Compare across all five in the Streamlit UI by toggling "Compare all 5 configs" before sending a question.
+
+---
+
+## May 2026 session changelog
+
+Today's session focused on data-quality guardrails, search-tool reliability, and chart correctness. All fixes are non-regressive — controls (geography, history) stayed at 100% on the 50-query test.
+
+### Web search overhaul (`tools/web_search.py`, `agent.py`)
+
+- **DDG Lite POST.** The `lite.duckduckgo.com/lite/` endpoint returns the bot-deflection homepage for many GET requests but works reliably with POST. Switched the request method.
+- **Cascade reordered for fact-lookups.** Office-holder questions like "who is the US president?" used to hit DDG Instant Answer first, which returns an *institutional* Wikipedia abstract about the presidency as an office — never the current holder. The synthesizer LLM had no name in the context and hallucinated from training data (Biden). DDG Lite (live SERP) now goes first for fact-lookups, with DDG Instant Answer as fallback.
+- **DDG self-link filter.** When DDG rate-limits, its response contains only links back to its own homepage. The parser now skips any `duckduckgo.com` host, so the cascade falls through to other backends instead of treating those as valid results.
+- **Multi-candidate snippet enrichment with relevance scoring** (`agent.py:_enrich_top_result`). Picks the most authoritative URL among the top results (Wikipedia person-page first, then `.gov` / parliament / chancellery sites), fetches a substantive paragraph (Wikipedia REST API for Wikipedia URLs, first `<p>` otherwise — with boilerplate / cookie-banner skip), and verifies relevance via term overlap + present-tense reward + past-tense penalty. Prevents grabbing a former officeholder's bio when a current one is asked about.
+- **Programmatic answer-candidate extraction** (`agent.py:_extract_officeholder_hint`). Scans the chosen snippet for a person name near the office phrase from the user's question and injects it into the prompt as a non-echoable "note for the assistant", so the model has a hard answer-anchor it can't override from training memory.
+- **Hardened synthesis prompt.** Current-date anchor; explicit instruction that search results override training memory; allowed to honestly say "results don't provide a name" only when no person appears anywhere.
+
+### Data-quality guardrails (`tools/data_query.py`, `tools/chart.py`)
+
+- **Out-of-range Knesset pre-check.** `_detect_invalid_knessets` parses K-number references (`K6`, `K 6`, `Knesset 18`, `6th Knesset`) and returns a clean "outside coverage" message before any SQL runs.
+- **Pseudo-locality filter.** `מעטפות כפולות` / `מעטפות חיצוניות` are excluded from every locality-ranking SQL; `turnout_pct <= 100` is enforced for "highest turnout" queries to skip evacuated-settlement data-quality outliers.
+- **Party-code stability rule.** Multi-Knesset party queries filter by `code` (stable across alliances) and `CASE WHEN code = ... THEN canonical_english_name` so each party appears as one consistent legend entry instead of fragmenting across alliance names.
+- **2024 US presidential block.** `_references_us_2024` detects `2024` + US presidential context (president, vote, county, state, swing, Trump/Harris/Biden, etc.) and refuses at the `data_query` and `create_chart` entry points. The `agent.py:SYSTEM_PROMPT` was also updated so the ReAct path declines naturally.
+- **Pseudo-candidate exclusion.** SQL rule: every presidential aggregate filters out `TOTAL VOTES CAST`, `UNDERVOTES`, `OVERVOTES`, `SPOILED` (these are admin tallies that previously inflated totals by ~20M).
+- **Flip queries return before/after.** The "counties that flipped" SQL pattern now returns 6 columns (`county_name, state, YEAR1_winner, YEAR1_pct, YEAR2_winner, YEAR2_pct`) sorted by margin gain. AK is excluded from county-flip queries (its rows are legislative districts).
+- **Candidate-by-region two-party share.** SQL pattern for "how did Biden do in suburban counties" now wraps the candidate filter in an outer SELECT so the window function denominator sees both parties' votes (the inner `WHERE candidate LIKE '%BIDEN%'` would otherwise make `two_party_pct` always equal 100%).
+- **`db.py` % bugfix.** `psycopg2.cursor.execute(sql, params)` triggers `%`-formatting on the SQL string even when `params=()`, which broke every `LIKE '%word%'` query. Now only passes `params` when non-empty.
+
+### Chart fixes (`tools/chart.py`)
+
+- **Wide-format `y_cols` support.** New chart config option for multi-series time charts where SQL is wide (one row per x, multiple numeric columns). Example: `SELECT year, right_pct, left_pct, center_pct FROM elections` → `y_cols=["right_pct", "left_pct", "center_pct"]`. Bloc-aware colors (Right=red, Left=blue, Center=light blue, Haredi=dark grey, Arab=green).
+- **Defensive guard against pct aggregation.** If any column with `pct` in its name comes back with a max value > 100, the chart tool raises a loud error pointing at the per-locality `SUM(vote_pct)` mistake rather than silently mislabelling counts as percentages.
+- **Table-selection cheat sheet** added to `CHART_SYSTEM`: "party X over time" → `parties` (not `party_locality` aggregated); "bloc trends" → `elections`; "city party results" → `party_locality JOIN parties`.
+- **Defensive auto-unpivot.** If the LLM aims `group_col` at a numeric column (the failure mode that previously produced 11-entry numeric-value legends), the tool detects it and converts to `y_cols` automatically.
+
+### Conversation context (`agent.py`)
+
+- **Visualization requests route through ReAct.** `_should_direct_news_lookup` was previously matching the bare word `"recent"`, so "show me a chart of recent stock performance" went down the fast direct-web path and bypassed both `SYSTEM_PROMPT` and `create_chart`. Visualization keywords (`chart`, `plot`, `graph`, `visualization`, `diagram`, `figure`) now force the ReAct path.
+- **Topic carry-over for vague follow-ups.** `_resolve_followup_web_question` previously only handled pronoun rewrites ("when was *he* appointed?"). It now also detects vague topical follow-ups ("any updates on that?", "what about it?", "show me more") and uses a one-shot LLM rewrite over the last six turns to make the question standalone before search.
+
+### Out-of-scope detection
+
+Stock markets, weather, sports, etc. now hit an explicit `OUT OF SCOPE` block in the system prompt and get a clean refusal with an offer to web-search news. News-flavoured variants still route to `web_search`.
+
+### Regression test
+
+`benchmark/test_web_search_synthesis.py` exercises the same `web_search → _format_web_answer → gpt-4o-mini` path the browser hits, across 50 probe queries (current US officeholders, international leaders, US state officials, historical / geography controls). Re-run after changes:
+
+```bash
+python -m benchmark.test_web_search_synthesis
+python -m benchmark.test_web_search_synthesis --runs 3   # stability check
+```
+
+Current pass rate on the judged 49 queries is 89.8%. The five remaining failures are model-prior failures on recently-changed officeholders (Sec of State, German Chancellor, etc.) — a model upgrade or pre-extracted answer hint can close most of those.
+
+---
+
+## 2026 House forecast
+
+`predict_house.py` builds a fundamentals OLS on 12 midterm cycles (1978–2022), compares three candidate specs by leave-one-out cross-validation, and emits `forecast_2026_house.json`.
+
+### Method
+
+- **Target**: president's-party net House seat change vs. prior cycle, derived from `house_elections.csv` with fusion-ticket aggregation (NY DEM + WORKING FAMILIES summed per district winner).
+- **Inputs read live**: Trump approval (last 30 days from `data/macro/approval/trump_approval_raw.csv`), CPI YoY, unemployment, gas (informational).
+- **Specs compared**: `approval_only` (winner, LOOCV MAE 14.14 seats), `macro_only` (21.0), `approval_plus_macro` (16.0).
+- **Generic ballot** read live from Silver Bulletin's 2025–2026 daily series; recorded in the output JSON as a convergent sanity check, not a model feature (historical coverage in `generic_topline_historical.csv` only covers 5 of our 12 training midterms).
+
+### Current forecast (2026-05-12)
+
+- **Republican net change: −36 seats (point estimate), 95% PI [−71, −1]**.
+- Coefficient: 0.68 seats per net-approval point.
+- Intercept: −25.9.
+- Net approval input: −14.67 (Trump, last-30-day average through 2026-03-31).
+- Convergent generic-ballot check: D+5.87 (7-day SB average) × 5 seats/pt ≈ R−29, consistent with the model's R−36.
+
+See `predict_house.py --help` for what-if scenarios and [Appendix A](#appendix-a-map-assumption-for-the-2026-forecast) for the redistricting disclosure.
 
 ---
 
 ## Benchmark
 
-70 questions evaluated across all 4 configs using soft matching and LLM-as-judge scoring.
+Five configurations × 70 questions (Israeli + U.S., factual / multi-step / coalition / chart / web / out-of-scope mix). Metrics: soft match, LLM-as-judge (0–5 by GPT-4o), MAPE / hit-rate-at-5% / hit-rate-at-10%, tool-routing accuracy.
 
-### Running
+Headline numbers come from the `benchmark/results_*.json` files dated 2026-05-05. Config 5 has not yet been benchmarked end-to-end on all 70 questions; the planner exists in `agent.py:run_plan_and_execute` and is registered as `planned_routing` in `CONFIGS`.
 
-```bash
-python -m benchmark.run_benchmark                          # All configs
-python -m benchmark.run_benchmark --config dynamic_routing # Single config
-python -m benchmark.run_benchmark --model gpt-4o           # Different model
-python -m benchmark.run_benchmark --no-judge               # Skip LLM judge
-python -m benchmark.run_benchmark --config rag_only --retrieval-method keyword  # Ablation
+| Config | Soft match | Judge | MAPE | Hit @ 5% | Tool routing |
+|--------|-----------|-------|------|----------|--------------|
+| Single-Pass | 26% | 3.6 | 38% | 18% | n/a |
+| RAG-Only | 31% | 2.5 | 30% | 21% | n/a |
+| Fixed Routing | 47% | 3.4 | 22% | 36% | 71% |
+| Dynamic Routing | 53% | 3.58 | 19% | 41% | 84% |
+| Plan-and-Execute | not yet benchmarked | – | – | – | – |
+
+Soft match is too strict for comparative multi-step answers (a coalition answer that lists the right parties but in a different order scores 0), so judge score is the headline metric for cross-config comparison.
+
+---
+
+## Regression test
+
+`benchmark/test_web_search_synthesis.py` exercises the production web-search-and-synthesis path across 50 probe queries grouped by category. Pass criterion is substring matching against a list of acceptable answer-tokens; some queries are recorded-only when ground truth is uncertain (Japan PM, NYC mayor).
+
+```
+Total: 51  |  OK=44  FAIL=5  REC=2  ERR=0
+Pass rate (judged only): 44/49 = 89.8%
+Per group:
+  US-current      OK=12  FAIL= 3  REC= 0  (80%)
+  Intl-current    OK= 8  FAIL= 2  REC= 1  (80%)
+  US-states       OK= 6  FAIL= 0  REC= 1  (100%)
+  Historical      OK=10  FAIL= 0  REC= 0  (100%)
+  Geography       OK= 8  FAIL= 0  REC= 0  (100%)
 ```
 
-### Questions (70 total)
-
-| Category | Count | Example |
-|----------|-------|---------|
-| Factual | 23 | "Who won Georgia in 2020?" |
-| Numerical | 20 | "What was Biden's two-party share in urban counties?" |
-| Multi-step | 21 | "Did the urban-rural gap grow between 2000 and 2024?" |
-| Coalition | 6 | "Can the right bloc form a government without Shas in K25?" |
-
-### Results (gpt-4o-mini)
-
-#### Overall
-
-| Config | Soft Match | Judge Score | Errors |
-|--------|-----------|-------------|--------|
-| Single-pass (no tools) | 22.9% (16/70) | 3.6/5 | 0 |
-| RAG-only (embeddings + reranker) | 34.3% (24/70) | 2.5/5 | 0 |
-| Fixed routing (DistilBERT) | 30.0% (21/70) | 3.3/5 | 0 |
-| Dynamic routing (ReAct) | 32.9% (23/70) | 3.3/5 | 5 |
-
-#### By Category
-
-| Category | Single-Pass | RAG-Only | Fixed | Dynamic |
-|----------|------------|----------|-------|---------|
-| Factual (23) | 35% / 3.7 | 52% / 2.9 | 48% / 3.6 | 57% / 3.9 |
-| Numerical (20) | 40% / 3.5 | 55% / 2.5 | 40% / 2.9 | 45% / 3.0 |
-| Multi-step (21) | 0% / 3.6 | 5% / 2.0 | 10% / 3.4 | 5% / 3.0 |
-| Coalition (6) | 0% / 3.2 | 0% / 3.2 | 0% / 3.3 | 0% / 3.5 |
-
-*Format: soft match % / judge score*
-
-#### By Dataset
-
-| Dataset | Single-Pass | RAG-Only | Fixed | Dynamic |
-|---------|------------|----------|-------|---------|
-| U.S. (39) | 13% / 3.5 | 28% / 1.9 | 21% / 3.1 | 23% / 2.9 |
-| Israel (30) | 37% / 3.6 | 43% / 3.3 | 40% / 3.6 | 43% / 3.8 |
-
-#### Embedding Ablation
-
-| Retrieval Method | Soft Match | Judge Score | US | Israel |
-|-----------------|-----------|-------------|-----|--------|
-| Keyword (no embeddings) | 20.0% (14/70) | 1.4/5 | 8% | 37% |
-| MiniLM + cross-encoder | 34.3% (24/70) | 2.5/5 | 28% | 43% |
-
-Embeddings nearly doubled the judge score and added 14 percentage points to soft match. The biggest gains were on U.S. questions (8% -> 28%), where 22K county chunks require semantic understanding that keyword overlap can't provide.
-
-#### Takeaways
-
-1. **Dynamic routing is best for factual questions** -- 57% match and 3.9/5 judge, the highest in that category. The agent can chain tools and self-correct.
-
-2. **RAG has the best overall recall but worst coherence** -- 34.3% soft match but only 2.5/5 judge. It finds the right data but struggles to synthesize it without SQL.
-
-3. **Single-pass LLM gives the most polished answers** -- highest judge score (3.6/5) despite lowest accuracy (22.9%). Fluent but often wrong.
-
-4. **Multi-step and coalition questions are hard for everyone** -- 0-10% across all configs. Multi-step questions require decomposing a complex question into multiple dependent SQL queries (e.g., "Did the urban-rural gap grow?" needs separate queries for each year, then comparison) -- the agent lacks a planning stage to break these into sub-queries and instead tries to solve them in a single SQL statement that often fails or returns incomplete data. Coalition questions score 0% because the brute-force calculator enumerates valid seat combinations but doesn't perform the political reasoning needed to judge feasibility (e.g., ideological compatibility, historical precedent), while the LLM lacks the exact seat numbers in its training data to answer without tool support. These are known hard cases that would benefit from a multi-hop query planner and a more structured coalition reasoning module.
-
-5. **Israel is easier than U.S.** -- ~40% vs ~20% across configs. Smaller, more structured dataset.
-
-6. **Embeddings matter a lot** -- keyword ablation drops from 34% to 20% soft match. Dense retrieval with reranking is doing real work.
+The residual five failures are gpt-4o-mini training-prior collapses on recently-changed officeholders (Sec of State, German Chancellor, Senate Minority Leader, Canada PM, DHS Sec).
 
 ---
 
-## Example Questions
+## Limitations
 
-**U.S. Elections**
-- "How did Biden perform in suburban counties in 2020 vs 2024?"
-- "Which state had the highest Republican vote share in 2024?"
-- "Which counties flipped from Republican to Democrat between 2016 and 2020?"
-
-**Israeli Elections**
-- "How many seats did Likud win in Knesset 25?"
-- "How did Tel Aviv vote by party in K25?"
-- "What is the correlation between academic degree % and left-bloc voting?"
-
-**Coalitions**
-- "List all possible 3-party coalitions reaching 61 seats in K25"
-- "Can the right bloc form a government without Shas?"
-
-**Context / Background**
-- "What are the NCHS urban-rural classification codes?"
-- "Which parties are in the right bloc in K22?"
-
-**Charts**
-- "Show me Republican vs Democrat votes in NY from 2000 to 2024"
-- "Bar chart of party vote percentages in Haifa for K25"
-
-**Web Search**
-- "Who is the current Prime Minister of Israel?"
-- "Latest news on the Knesset coalition this week"
-- "Breaking developments on Israeli elections in the last 24 hours"
+- **2024 U.S. presidential data** is blocked rather than fixed. The permanent fix is to re-run `build_us_db.py` for 2024 county data with a unique-row guard before the SUM-into-county-fips step. Until that lands, the precinct table has correct 2024 data but doesn't cover all 50 states.
+- **Coalition synthesizer** is 0/6 soft-match across all four benchmarked configs. The brute-force enumerator is correct (verified by Python unit test); the synthesizer is fed a long enumeration list rather than a rubric-shaped subset, so the answer format doesn't match the rubric.
+- **Multi-step queries** are framed as an open problem in agentic SQL: 30–40% accuracy across configs. Config 5's plan-and-execute is the proposed approach but hasn't been benchmarked yet.
+- **Vote prediction model** is *Beta* — n=12 training sample, no out-of-sample backtest beyond LOOCV, no redistricting layer (see Appendix A), not yet wired as an agent tool. Treat the point estimate as a fundamentals-conditional baseline.
+- **LLM-as-judge** is the headline metric; soft match is too strict for comparative multi-step answers.
+- **Web search residual hallucinations** affect officeholders that changed post-October-2023 (gpt-4o-mini's training cutoff). 89.8% pass rate on the 50-query test.
 
 ---
 
-## Milestone 2 → 3 Updates
+## Project structure
 
-Targeted improvements since the Milestone 2 report:
-
-- **Multi-hop query planner (Config 5)** — *Yarden*. New `planned_routing` config that decomposes complex questions into ordered sub-queries before tool execution. Targets the 0–10% multi-step accuracy gap.
-- **Coalition feasibility reasoning** — *Yarden*. `tools/coalition.py` augmented with `plausible/novel/incompatible` tiers backed by a hand-curated `tools/party_ideology.json` (axis scores + hard incompatibility blacklists). Removed the 100-coalition early-return cap so counts are exact, tightened `right_bloc` filter, and added `must_exclude` parsing for "without X" phrasing.
-- **Operational web search** — *Mohamed*. `tools/operational_web_search.py` replaces the experimental DuckDuckGo path with a Google News RSS pipeline that infers recency windows (24h / 7d) from query phrasing, strips stale year hints, ranks by topical overlap × recency, and falls back to the legacy search for evergreen queries.
-- **Frontend migration** — *Mohamed*. Next.js UI under `frontend/` with a FastAPI bridge in `api.py`; Streamlit remains as the primary local UI.
-- **Prediction-model data pipeline** — *Preston*. Approval, FRED macro, gas, S&P 500, presidential / house / special-election panels, retirement features, and a political/economic event log staged under `data/macro/` and `data/elections_extra/` for the upcoming 2026-midterm forecasting tool.
-
----
-
-## Changes Since Initial Review
-
-The original version of the system used keyword-based retrieval, which had several problems flagged during review. Here's what changed:
-
-1. **No semantic understanding** -- Queries like "Which party did best?" had zero keyword overlap with chunks containing "most seats" or "highest vote share." We replaced keyword retrieval with embedding-based search (MiniLM 384-dim by default, with MPNet and OpenAI alternatives). Keyword retrieval remains in the codebase only as an ablation baseline.
-
-2. **No fuzzy matching** -- "Labor" wouldn't match "HaAvoda" (romanized Hebrew) or "עבודה" (Hebrew script). We fixed this at two levels: chunks now include both English and Hebrew names side by side (e.g., "Labor (עבודה)"), and we added query expansion that appends all known aliases before embedding search. Typing "HaAvoda", "Labor", or even "Lieberman" all resolve to the right party chunks.
-
-3. **Embeddings not implemented** -- The proposal claimed RAG with embeddings, but the code was keyword-only. Now fully implemented: three embedding models (MiniLM, MPNet, OpenAI), ChromaDB with 22,799 embedded chunks, and similarity search as the default retrieval path.
-
-4. **Spurious number matching** -- Querying "K25" would match "25" in unrelated population figures or percentages. Embedding-based retrieval doesn't do substring matching, so this is no longer an issue in the default pipeline.
-
-5. **No ranking by relevance** -- A chunk with 3 keyword hits would beat a 2-hit chunk even if the 2-hit chunk was semantically better. We added a cross-encoder reranker (`ms-marco-MiniLM-L-6-v2`) that retrieves 25 candidates and reranks to the top 10 by actual semantic relevance.
-
-6. **RAG vs. baseline comparison weakened** -- With bad retrieval, comparing "RAG" to "no tools" wasn't meaningful. Now RAG-only scores 34.3% soft match vs. 22.9% for single-pass (56% improvement), and the embedding ablation confirms keyword matching only reaches 20% -- barely above the no-tools baseline.
-
----
-
-## Proposal Milestone Status
-
-All tasks from the original weekly plan have been completed, with one exception:
-
-| Week | Task | Status |
-|------|------|--------|
-| 1 | LangGraph skeleton + tool interfaces | Done |
-| 1 | Benchmark question set (20 questions) | Done (expanded to 70) |
-| 1 | Data Query tool (SQL) | Done |
-| 2 | Coalition Calculator tool | Done |
-| 2 | RAG pipeline with embeddings | Done (3 embedding models) |
-| 2 | Expand benchmark to 40 questions | Done (expanded to 70) |
-| 3 | Fixed routing logic | Done (DistilBERT + zero-shot) |
-| 3 | Dynamic routing (LLM-based) | Done (ReAct agent) |
-| 3 | Vote prediction model (basic regression) | Not implemented |
-| 4 | Run all 4 configs on benchmark | Done |
-| 4 | Collect and analyze results | Done |
-
-The vote prediction model was deprioritized in favor of deeper work on the retrieval pipeline (cross-encoder reranking, cross-lingual query expansion, multi-embedding support) and a more thorough benchmark (70 questions with LLM-as-judge evaluation instead of the originally planned 40 with soft match only).
+```
+election-agent/
+├── app.py                          # Streamlit UI
+├── api.py                          # FastAPI bridge for the Next.js frontend
+├── agent.py                        # 5 routing configs, RAG, planner, synthesizer
+├── predict_house.py                # 2026 House midterm forecast (CLI + JSON)
+├── forecast_2026_house.json        # latest forecast output
+├── db.py                           # PostgreSQL + SQLite connection manager
+├── embeddings.py                   # LocalEmbeddings wrapper
+├── classifiers.py                  # DistilBERT router (lazy-loaded)
+├── build_db.py                     # Israeli DB build script
+├── build_us_db.py                  # U.S. DB build script
+├── build_vectorstore.py            # ChromaDB build script
+├── migrate_to_postgres.py          # SQLite → Postgres migration
+├── tools/
+│   ├── data_query.py               # NL → SQL → execute → format
+│   ├── chart.py                    # NL → SQL + matplotlib → PNG
+│   ├── coalition.py                # coalition enumerator + scorer
+│   ├── operational_web_search.py   # RSS news search router
+│   ├── web_search.py               # DDG Lite + Wikipedia fallback
+│   └── party_ideology.json         # 27 parties K14–K25, axis/religious scores
+├── benchmark/
+│   ├── run_benchmark.py            # 5-config × 70-question harness
+│   ├── compute_mape.py             # MAPE / hit-rate metrics
+│   ├── test_web_search_synthesis.py # 50-query regression test (this session)
+│   ├── questions.json              # benchmark question set
+│   └── results_*.json              # per-config results
+├── Prediction_Data/                # House/macro/approval CSVs for the forecast
+├── data/                           # legacy macro/elections data (gitignored)
+├── chroma_db/                      # vector store (gitignored)
+├── charts/                         # generated chart PNGs (gitignored)
+├── models/distilbert-router/       # trained router (gitignored)
+├── elections.db                    # 1.2 GB SQLite (gitignored)
+└── frontend/                       # Next.js 16.2.4 + React 19 UI
+```
 
 ---
 
-## Course Module Mapping
+## Member contributions
 
-| Module | Topic | Implementation |
-|--------|-------|----------------|
-| 3 | Embeddings & Transformers | MiniLM/MPNet embeddings for 22K+ chunks, BERT-NER for city name extraction, zero-shot classification for routing, embedding-based question classification |
-| 4 | Prompt Engineering | System prompts with full schemas, query patterns, and domain rules drive SQL generation quality |
-| 5 | RAG | Two-stage pipeline: dense retrieval from ChromaDB + cross-encoder reranking. Cross-encoder processes (query, chunk) pairs jointly for better accuracy than cosine similarity alone |
-| 9 | Tool-Augmented LLMs | Five tools (data_query, context_search, create_chart, coalition_calc, web_search) via LangChain function calling, following the TALM paradigm |
-| 10 | Agentic AI | LangGraph ReAct agent with Thought-Action-Observation loop. Reflexion for self-correction on SQL failures. 4-config comparison tests routing strategies |
-| 13 | Benchmarking | 70-question suite with soft matching + LLM-as-judge (0-5 rubric). Results broken down by category and dataset |
+| Area | Owner |
+|------|-------|
+| Agent core (5 configs, planner, RAG, synthesizer) | Yarden |
+| Streamlit UI + chat state management | Yarden |
+| `tools/data_query.py` (SQL generation, reflexion, schema docs) | Yarden |
+| `tools/coalition.py` + `tools/party_ideology.json` | Yarden |
+| `tools/chart.py` | Yarden |
+| `tools/operational_web_search.py` + `tools/web_search.py` | Mohamed |
+| Next.js frontend + FastAPI bridge | Mohamed |
+| `Prediction_Data/` (House panel, FRED, approval archives) | Preston |
+| `predict_house.py` (2026 House midterm fundamentals model) | Yarden |
+| Benchmark harness + MAPE metric + regression test | Yarden |
+| Data-quality guardrails (May 2026 session) | Yarden |
+| M3 paper writing | Mohamed, Preston, Yarden |
+
+---
+
+## Appendix A: Map assumption for the 2026 forecast
+
+The fundamentals model produces a **national** seat estimate; it doesn't have a state-level redistricting layer. Three things worth disclosing:
+
+1. **2024 → 2026 map differences are not modeled.** Any state with a new congressional map (court-ordered or legislatively redrawn) introduces an unmodeled delta on top of the fundamentals.
+2. **Virginia, May 2026.** On 2026-05-08 the Virginia Supreme Court of Appeals (SCOVA) ruled 4–3 to strike down the redistricting amendment passed in 2020. The current 6–5 D map stays in effect for 2026. A SCOTUS appeal is pending; if it succeeds and a new map is imposed before filing deadlines, actual 2026 D seat count could be ~4 higher than the fundamentals model implies.
+3. **Framing.** Treat the point estimate as a **fundamentals-conditional national signal, not a literal seat count**. The wide 95% PI [−71, −1] is real, not a placeholder — it reflects the variance of midterm seat-swing predictions from a 12-cycle training set.

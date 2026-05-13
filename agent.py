@@ -7,6 +7,7 @@ Config 3: Agent + Fixed Routing (keyword rules → tool)
 Config 4: Agent + Dynamic Routing (LLM picks tools via ReAct)
 """
 import os, json, re
+from datetime import datetime
 import numpy as np
 from typing import Literal
 from dotenv import load_dotenv
@@ -100,13 +101,30 @@ def get_llm(model: str = "gpt-4o-mini", temperature: float = 0):
 
 SYSTEM_PROMPT = """You are an expert analyst of elections in the United States and Israel.
 
-U.S. DATA: You have access to U.S. federal election results (President, House, Senate)
-from 2000-2024. Presidential data is available at the county level (2000-2024) and
-precinct level (2016, 2020, 2024). House and Senate data is at precinct level (2016-2020).
+U.S. DATA: You have access to U.S. federal election results (President, House, Senate).
+Reliable presidential coverage: 2000-2020 (county level) and 2016/2020 (precinct level).
+2024 presidential data is in the database but has known quality issues and is BLOCKED at
+the tool layer — do not attempt 2024 queries; tell the user the dataset reliably covers
+2000-2020. House and Senate data is at precinct level (2016-2020).
 Each record includes NCHS urban-rural classification (Urban/Suburban/Rural).
 
 ISRAELI DATA: You have access to Israeli Knesset election data (K14-K25, 1996-2022)
 covering 1,384 localities, party-level results, and socioeconomic data for 201 municipalities.
+
+OUT OF SCOPE (you do NOT have data for these):
+- Stock markets, equities, indices (TA-35, S&P 500, NASDAQ, etc.), bonds, commodities, FX
+- Weather, climate, sports, entertainment, biographies
+- Any time series outside election cycles (the data_query and create_chart tools
+  only have election data — they cannot plot stock prices, economic indicators, etc.)
+- Current officeholders, recent news, biographies (use web_search for those if relevant)
+
+For out-of-scope DATA / HISTORICAL TREND questions (e.g. "show stock market trends",
+"plot oil prices", "weather over the last year"): do NOT call data_query or create_chart.
+Politely tell the user: "I don't have that data — my dataset only covers Israeli Knesset
+and U.S. federal elections. I can search the web for recent news on this if you want."
+
+For out-of-scope NEWS / CURRENT-EVENT questions (e.g. "latest stock market news",
+"what happened in the markets today"): use web_search, not data_query.
 
 When answering:
 - Use the data query tool for factual/numerical questions that need precise SQL lookups.
@@ -440,11 +458,271 @@ def _format_news_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
     return "\n".join(lines)
 
 
+_INSTITUTIONAL_SLUG_HINTS = (
+    "_of_", "Office_of", "President_of", "Prime_Minister_of", "Secretary_of",
+    "Speaker_of", "Government_of", "Cabinet_of", "List_of", "History_of",
+    "Outline_of", "Politics_of",
+)
+_GOV_HOST_SUFFIXES = (".gov", ".gov.uk", ".gov.il", ".gov.au", ".gov.ca", ".gc.ca",
+                      ".gov.in", ".gov.br", ".gob.mx", ".gov.cn", ".gouv.fr", ".bund.de")
+_GOV_HOST_KEYWORDS = (
+    "whitehouse", "parliament", "knesset", "bundestag",
+    "bundeskanzler", "bundesregierung", "bundespraesident",
+    "elysee", "primeminister", "pmo.gov", "kremlin",
+)
+
+
+def _enrichment_priority(url: str) -> int | None:
+    """Lower is better. None = not a good enrichment candidate.
+
+    Wikipedia person-pages win over .gov sites because their REST summary
+    always includes a structured bio (".. serving since 2025 as the 72nd ..").
+    .gov pages often start with boilerplate (travel advisories, headers)."""
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+    if "wikipedia.org" in host and parsed.path.startswith("/wiki/"):
+        slug = parsed.path[len("/wiki/"):]
+        if any(h in slug for h in _INSTITUTIONAL_SLUG_HINTS):
+            # Institutional Wikipedia page — useful only as a last resort, since
+            # the REST summary describes the office, not the holder.
+            return 3
+        return 0
+    if any(host.endswith(suf) for suf in _GOV_HOST_SUFFIXES):
+        return 1
+    if any(kw in host for kw in _GOV_HOST_KEYWORDS):
+        return 1
+    # Fallback: any other http URL. Lets enrichment try non-categorised pages
+    # (e.g. Britannica, allaboutamerica.com) when nothing better is available.
+    if host:
+        return 2
+    return None
+
+
+def _fetch_wikipedia_summary(url: str, max_chars: int = 500) -> str | None:
+    """Use the REST summary endpoint for Wikipedia URLs — structured, fast,
+    and includes the lead bio sentence."""
+    from urllib.parse import urlparse, quote
+    from urllib.request import Request, urlopen
+    parsed = urlparse(url)
+    if not parsed.path.startswith("/wiki/"):
+        return None
+    title = parsed.path[len("/wiki/"):]
+    api_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{quote(title)}"
+    try:
+        req = Request(api_url, headers={"User-Agent": "Mozilla/5.0 (compatible; ElectionAgent/1.0)"})
+        with urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return None
+    extract = (payload.get("extract") or "").strip()
+    return extract[:max_chars] if extract else None
+
+
+_BOILERPLATE_SIGNALS = (
+    "use cookies", "we use cookies", "privacy policy", "browser settings",
+    "javascript", "enable javascript", "subscribe to", "sign up for", "newsletter",
+    "skip to main content", "menu", "all rights reserved",
+)
+
+
+def _fetch_first_paragraph(url: str, max_chars: int = 500) -> str | None:
+    """GET the URL with a short timeout; return the first substantive <p> text.
+    Skips cookie banners and other boilerplate.
+    Fails silently — returns None on any error so the caller can skip enrichment."""
+    from urllib.request import Request, urlopen
+    from html import unescape
+    try:
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; ElectionAgent/1.0)"})
+        with urlopen(req, timeout=5) as resp:
+            html = resp.read(60000).decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    html = re.sub(r"<(script|style|noscript)[^>]*>.*?</\1>", " ", html, flags=re.IGNORECASE | re.DOTALL)
+    for raw in re.findall(r"<p[^>]*>(.*?)</p>", html, flags=re.IGNORECASE | re.DOTALL):
+        text = re.sub(r"<[^>]+>", " ", raw)
+        text = unescape(text)
+        text = re.sub(r"\s+", " ", text).strip()
+        if len(text) < 80:
+            continue
+        lower = text.lower()
+        if any(sig in lower for sig in _BOILERPLATE_SIGNALS):
+            continue
+        return text[:max_chars]
+    return None
+
+
+def _fetch_snippet(url: str, max_chars: int = 500) -> str | None:
+    """Dispatch: Wikipedia REST summary for Wikipedia URLs, else first <p>."""
+    from urllib.parse import urlparse
+    if "wikipedia.org" in urlparse(url).netloc.lower():
+        return _fetch_wikipedia_summary(url, max_chars) or _fetch_first_paragraph(url, max_chars)
+    return _fetch_first_paragraph(url, max_chars)
+
+
+_QUERY_STOPWORDS = {
+    "who", "whos", "what", "which", "when", "where", "is", "are", "was", "were",
+    "the", "a", "an", "of", "in", "on", "to", "for", "and", "or", "current",
+    "currently", "today", "now", "right", "us", "usa", "uk", "name", "tell", "me",
+}
+_PRESENT_INDICATORS = (
+    "current", "currently", "incumbent", "is the", "is an", "is serving",
+    "serving as", "serving since", "has been serving", "is in office",
+)
+_PAST_INDICATORS = (
+    "was the", "served as", "former", "previous", "until ", "left office",
+    "resigned", "succeeded by", "predecessor",
+)
+
+
+def _query_terms(question: str) -> set[str]:
+    """Content terms from a question, excluding stopwords."""
+    tokens = re.findall(r"[a-zA-Z]{3,}", question.lower())
+    return {t for t in tokens if t not in _QUERY_STOPWORDS}
+
+
+def _snippet_score(snippet: str, query_terms: set[str]) -> float:
+    """Higher = more relevant + more likely about a current officeholder."""
+    if not snippet:
+        return 0.0
+    lower = snippet.lower()
+    score = sum(1.0 for term in query_terms if term in lower)
+    if any(p in lower for p in _PRESENT_INDICATORS):
+        score += 2.0
+    if any(p in lower for p in _PAST_INDICATORS):
+        score -= 1.5
+    return score
+
+
+_NAME_WORD = r"(?:[A-Z][a-zà-ÿ'-]{1,}|[A-Z]\.)"  # capitalized word OR single-letter initial
+_PERSON_NAME = re.compile(rf"\b({_NAME_WORD}(?:\s+{_NAME_WORD}){{1,3}})\b")
+# Per-token reject list — any name containing ANY of these is not a person.
+_NEVER_PERSON_TOKEN = {
+    "United", "States", "Kingdom", "Nations", "European", "Union",
+    "Republican", "Democratic", "Labour", "Conservative", "Party",
+    "Congress", "Senate", "House", "Department", "Cabinet", "Government",
+    "Office", "Administration", "Federal", "National", "International",
+    "Wikipedia", "Britannica", "America", "American",
+    "President", "Vice", "Prime", "Minister", "Secretary", "Chancellor",
+    "Governor", "Speaker", "Mayor", "Senator", "Attorney", "General",
+    "Justice", "Sir", "Dame", "Lord", "Lady",
+    "January", "February", "March", "April", "May", "June", "July",
+    "August", "September", "October", "November", "December",
+    "North", "South", "East", "West", "New", "Old", "World", "Cold",
+    "Civil", "War", "White", "Black", "Red", "Blue", "Green",
+}
+
+
+def _looks_like_person_name(name: str) -> bool:
+    tokens = name.split()
+    if len(tokens) < 2:
+        return False
+    for tok in tokens:
+        bare = tok.rstrip(".")
+        if bare in _NEVER_PERSON_TOKEN:
+            return False
+    return True
+
+
+def _extract_officeholder_hint(question: str, snippet: str) -> str | None:
+    """Heuristically extract the person name tied to the queried office from
+    the snippet. Returns the name or None. Used to give the LLM an explicit
+    answer-candidate it cannot ignore."""
+    if not snippet:
+        return None
+    # Pick the most distinctive content word from the question to locate the
+    # office phrase in the snippet. Prefer multi-char nouns over short stems.
+    terms = sorted(_query_terms(question), key=lambda t: (-len(t), t))
+    if not terms:
+        return None
+    s_lower = snippet.lower()
+    anchor_idx = -1
+    for term in terms:
+        idx = s_lower.find(term)
+        if idx >= 0:
+            anchor_idx = idx
+            break
+    if anchor_idx < 0:
+        return None
+    start = max(0, anchor_idx - 250)
+    end = min(len(snippet), anchor_idx + 250)
+    window = snippet[start:end]
+    for m in _PERSON_NAME.finditer(window):
+        name = m.group(1).strip()
+        if _looks_like_person_name(name):
+            return name
+    return None
+
+
+def _enrich_top_result(items: list[dict], question: str = "") -> tuple[list[dict], str | None]:
+    """Fetch substantive snippets for the most relevant URLs. Try the top
+    candidates (by enrichment priority) until one yields a snippet that
+    actually talks about the queried subject. Returns (items, extracted_hint).
+
+    The extracted_hint is a person name pulled from the chosen snippet near
+    the office phrase from the question — a fallback the prompt can quote
+    directly even if the LLM tries to override it from training memory.
+    """
+    if any(item.get("snippet") for item in items):
+        # Already enriched somewhere upstream — just try extraction.
+        hint = None
+        for item in items:
+            if item.get("snippet"):
+                hint = _extract_officeholder_hint(question, item["snippet"]) or hint
+                if hint:
+                    break
+        return items, hint
+    candidates = []
+    for idx, item in enumerate(items):
+        url = item.get("url", "")
+        prio = _enrichment_priority(url) if url else None
+        if prio is not None:
+            candidates.append((prio, idx, item))
+    if not candidates:
+        return items, None
+    candidates.sort(key=lambda c: (c[0], c[1]))
+    terms = _query_terms(question) if question else set()
+    best: tuple[float, int, dict, str] | None = None
+    for prio, idx, target in candidates[:4]:
+        snippet = _fetch_snippet(target["url"])
+        if not snippet:
+            continue
+        if terms:
+            score = _snippet_score(snippet, terms)
+            if score < 1.0:
+                continue
+        else:
+            score = 0.0
+        if best is None or score > best[0]:
+            best = (score, idx, target, snippet)
+    if best is None:
+        return items, None
+    _, target_idx, target, snippet = best
+    enriched = dict(target)
+    enriched["snippet"] = snippet
+    out = list(items)
+    out[target_idx] = enriched
+    hint = _extract_officeholder_hint(question, snippet)
+    return out, hint
+
+
+WEB_SYNTHESIS_MODEL = "gpt-4o-mini"
+
+
 def _format_fact_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
     items = parsed.get("items", [])
     if not items:
         return "The web search tool did not return usable results."
-    top_items = items[:3]
+    seen_urls = set()
+    deduped = []
+    for item in items:
+        url = item.get("url", "")
+        if url and url in seen_urls:
+            continue
+        seen_urls.add(url)
+        deduped.append(item)
+    deduped, hint = _enrich_top_result(deduped, question)
+    top_items = deduped[:5]
     excerpt_blocks = []
     for idx, item in enumerate(top_items):
         block_lines = [f"{idx + 1}. {item['title']}"]
@@ -456,10 +734,25 @@ def _format_fact_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
             block_lines.append(f"URL: {item['url']}")
         excerpt_blocks.append("\n".join(block_lines))
     tool_excerpt = "\n\n".join(excerpt_blocks)
-    resp = llm.invoke([
+    if hint:
+        tool_excerpt += (
+            f"\n\n(Note for the assistant: a person named '{hint}' appears in the snippet text "
+            "near the queried role. Treat this as the most likely answer unless another snippet "
+            "clearly contradicts it with a different current officeholder. Do not echo this note "
+            "verbatim — incorporate the name naturally into your answer.)"
+        )
+    today = datetime.now().strftime("%Y-%m-%d")
+    synth_llm = get_llm(WEB_SYNTHESIS_MODEL, 0)
+    resp = synth_llm.invoke([
         SystemMessage(content=(
-            "Answer the user's factual web question concisely using only the provided search results. "
-            "State the answer directly in 1-2 sentences. Do not say 'various sources'."
+            f"Today's date is {today}. Your training data is outdated for current officeholders "
+            "and recent events. The search results below are from the live web and authoritative. "
+            "Trust them, not your memory.\n\n"
+            "Answer the user's question concisely (1-2 sentences) using only the search results. "
+            "A person named in a result title, URL, snippet, or assistant note in connection with "
+            "the role the user is asking about IS the answer — even if your memory disagrees. "
+            "Only say the results don't provide a name when no person appears anywhere across "
+            "all five results. Do not say 'various sources'."
         )),
         HumanMessage(content=f"Question: {question}\n\nResults:\n{tool_excerpt}"),
     ])
@@ -470,7 +763,16 @@ def _format_background_answer(question: str, parsed: dict, llm: ChatOpenAI) -> s
     items = parsed.get("items", [])
     if not items:
         return "The web search tool did not return usable results."
-    top_items = items[:3]
+    seen_urls = set()
+    deduped = []
+    for item in items:
+        url = item.get("url", "")
+        if url and url in seen_urls:
+            continue
+        seen_urls.add(url)
+        deduped.append(item)
+    deduped, _hint = _enrich_top_result(deduped, question)
+    top_items = deduped[:5]
     excerpt_blocks = []
     for idx, item in enumerate(top_items):
         block_lines = [f"{idx + 1}. {item['title']}"]
@@ -482,8 +784,12 @@ def _format_background_answer(question: str, parsed: dict, llm: ChatOpenAI) -> s
             block_lines.append(f"URL: {item['url']}")
         excerpt_blocks.append("\n".join(block_lines))
     tool_excerpt = "\n\n".join(excerpt_blocks)
-    resp = llm.invoke([
+    today = datetime.now().strftime("%Y-%m-%d")
+    synth_llm = get_llm(WEB_SYNTHESIS_MODEL, 0)
+    resp = synth_llm.invoke([
         SystemMessage(content=(
+            f"Today's date is {today}. Your training data is older than today and may be outdated; "
+            "the search results below reflect the current world. Trust them over your memory. "
             "Answer the user's background question using only the provided search results. "
             "Write a concise overview in 3-5 flat bullet points covering the main facts or history. "
             "Do not say 'various sources'."
@@ -847,8 +1153,16 @@ def _should_direct_web_lookup(question: str) -> bool:
     return q.startswith(prefixes) and any(term in q for term in web_fact_terms)
 
 
+_VISUALIZATION_HINTS = ("chart", "plot", "graph", "visualiz", "diagram", "figure")
+
+
 def _should_direct_news_lookup(question: str) -> bool:
     q = question.lower().strip()
+    # Visualization requests need the ReAct agent (so create_chart and the
+    # out-of-scope guardrail in SYSTEM_PROMPT both get a chance to fire).
+    # Otherwise direct web lookup bypasses them entirely.
+    if any(hint in q for hint in _VISUALIZATION_HINTS):
+        return False
     return _has_fresh_news_intent(q) or any(phrase in q for phrase in [
         "latest news", "recent news", "current news", "economic news",
         "political news", "headlines", "latest economic", "latest political",
@@ -893,46 +1207,84 @@ def _extract_entity_from_answer(answer: str) -> str | None:
     return None
 
 
-def _resolve_followup_web_question(messages: list[dict], latest_question: str) -> str:
-    if not _is_pronoun_followup(f" {latest_question.lower()} "):
+_VAGUE_FOLLOWUP_HINTS = (
+    "more on", "more about", "more details", "what about", "tell me more",
+    "show me more", "show me a", "show me the", "any updates", "any news",
+    "another", "expand on", "the same",
+)
+
+
+def _looks_like_topic_followup(question: str) -> bool:
+    """A short question that likely depends on the previous turn for its topic
+    (no proper nouns, references like 'more', 'show me a chart', etc.)."""
+    q = question.strip().lower()
+    if any(hint in q for hint in _VAGUE_FOLLOWUP_HINTS):
+        return True
+    # Short questions with no obvious proper noun probably need prior context.
+    has_proper_noun = bool(re.search(r"\b[A-Z][a-z]{2,}", question))
+    return len(question.split()) <= 8 and not has_proper_noun
+
+
+def _llm_resolve_followup(messages: list[dict], latest_question: str, llm: ChatOpenAI) -> str:
+    """Use the LLM to rewrite a follow-up question as a standalone one, drawing
+    on the conversation history. Returns the rewritten question, or the original
+    if the LLM can't improve it."""
+    prior = [m for m in messages if m["role"] in ("user", "assistant")][:-1][-6:]
+    if not prior:
         return latest_question
+    transcript = "\n".join(f"{m['role'].upper()}: {m['content'][:300]}" for m in prior)
+    prompt = (
+        "Below is a conversation followed by the user's new question. Rewrite the new "
+        "question as a fully standalone query that includes any topic, entity, or "
+        "constraint the user is implicitly referring to from the conversation. "
+        "If the question is already standalone, return it unchanged. Do NOT invent "
+        "facts the conversation doesn't imply. Output ONLY the rewritten question.\n\n"
+        f"Conversation:\n{transcript}\n\nNew question: {latest_question}\n\nRewritten:"
+    )
+    try:
+        resp = llm.invoke([HumanMessage(content=prompt)])
+        rewritten = resp.content.strip().strip('"').strip("'")
+        if rewritten and len(rewritten) < 400:
+            return rewritten
+    except Exception:
+        pass
+    return latest_question
 
-    previous_user_questions = [m["content"] for m in messages if m["role"] == "user"]
-    previous_assistant_answers = [m["content"] for m in messages if m["role"] == "assistant"]
-    if len(previous_user_questions) < 2 or not previous_assistant_answers:
-        return latest_question
 
-    previous_question = previous_user_questions[-2]
-    previous_answer = previous_assistant_answers[-1]
-    subject = _extract_subject_from_fact_question(previous_question) or ""
-    role = _normalize_role_phrase(subject) if subject else ""
-    entity = _extract_entity_from_answer(previous_answer)
+def _resolve_followup_web_question(messages: list[dict], latest_question: str,
+                                    llm: ChatOpenAI | None = None) -> str:
+    # Pronoun follow-ups: cheap regex-based rewrite first.
+    if _is_pronoun_followup(f" {latest_question.lower()} "):
+        previous_user_questions = [m["content"] for m in messages if m["role"] == "user"]
+        previous_assistant_answers = [m["content"] for m in messages if m["role"] == "assistant"]
+        if len(previous_user_questions) >= 2 and previous_assistant_answers:
+            previous_question = previous_user_questions[-2]
+            previous_answer = previous_assistant_answers[-1]
+            subject = _extract_subject_from_fact_question(previous_question) or ""
+            role = _normalize_role_phrase(subject) if subject else ""
+            entity = _extract_entity_from_answer(previous_answer)
+            resolved = latest_question.strip()
+            if entity and role:
+                appointment_phrase = f"{entity} appointed as {role}"
+                resolved = re.sub(r"\bwhen was (he|she|they) appointed\b",
+                                  f"when was {appointment_phrase}", resolved, flags=re.IGNORECASE)
+                resolved = re.sub(r"\bwhen did (he|she|they) become\b",
+                                  f"when did {entity} become {role}", resolved, flags=re.IGNORECASE)
+            replacement = entity or role
+            if replacement:
+                for pron in ("he", "she", "they", "it"):
+                    resolved = re.sub(rf"\b{pron}\b", replacement, resolved, flags=re.IGNORECASE)
+            resolved = re.sub(r"\s+", " ", resolved).strip()
+            if resolved != latest_question:
+                return resolved
 
-    resolved = latest_question.strip()
+    # Topic carry-over: when the new question is vague/short and there's prior
+    # context, use the LLM to rewrite. Without this, follow-ups like "what about
+    # X" or "show me more on that" lose the topic from earlier turns.
+    if llm is not None and _looks_like_topic_followup(latest_question) and len(messages) >= 2:
+        return _llm_resolve_followup(messages, latest_question, llm)
 
-    if entity and role:
-        appointment_phrase = f"{entity} appointed as {role}"
-        resolved = re.sub(
-            r"\bwhen was (he|she|they) appointed\b",
-            f"when was {appointment_phrase}",
-            resolved,
-            flags=re.IGNORECASE,
-        )
-        resolved = re.sub(
-            r"\bwhen did (he|she|they) become\b",
-            f"when did {entity} become {role}",
-            resolved,
-            flags=re.IGNORECASE,
-        )
-    replacement = entity or role
-    if replacement:
-        resolved = re.sub(r"\bhe\b", replacement, resolved, flags=re.IGNORECASE)
-        resolved = re.sub(r"\bshe\b", replacement, resolved, flags=re.IGNORECASE)
-        resolved = re.sub(r"\bthey\b", replacement, resolved, flags=re.IGNORECASE)
-        resolved = re.sub(r"\bit\b", replacement, resolved, flags=re.IGNORECASE)
-
-    resolved = re.sub(r"\s+", " ", resolved).strip()
-    return resolved
+    return latest_question
 
 
 def _run_direct_web_lookup(question: str, llm: ChatOpenAI) -> dict:
@@ -1293,7 +1645,7 @@ def run_chat(messages: list, model: str = "gpt-4o-mini") -> dict:
         _should_direct_web_lookup(latest_user_question)
         or _should_direct_news_lookup(latest_user_question)
     ):
-        resolved_question = _resolve_followup_web_question(messages, latest_user_question)
+        resolved_question = _resolve_followup_web_question(messages, latest_user_question, llm)
         result = _run_direct_web_lookup(resolved_question, llm)
         if resolved_question != latest_user_question:
             result["trace"] = [

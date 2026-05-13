@@ -62,7 +62,13 @@ def execute_query(sql: str, params: tuple = ()) -> tuple[list[dict], list[str]]:
         # Adapt placeholder style: SQLite uses ?, PostgreSQL uses %s
         if DATABASE_URL and '?' in sql:
             sql = sql.replace('?', '%s')
-        cur.execute(sql, params)
+        # Passing params=() to psycopg2 still triggers %-formatting, which
+        # breaks any literal `%` (e.g. LIKE '%word%'). Only pass params when
+        # there's something to bind.
+        if params:
+            cur.execute(sql, params)
+        else:
+            cur.execute(sql)
         cols = [desc[0] for desc in cur.description]
         rows = [dict(zip(cols, row)) for row in cur.fetchall()]
         return rows, cols
@@ -79,7 +85,10 @@ def fetch_all(sql: str, params: tuple = ()) -> list[dict]:
         cur = conn.cursor()
         if DATABASE_URL and '?' in sql:
             sql = sql.replace('?', '%s')
-        cur.execute(sql, params)
+        if params:
+            cur.execute(sql, params)
+        else:
+            cur.execute(sql)
         cols = [desc[0] for desc in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
     finally:

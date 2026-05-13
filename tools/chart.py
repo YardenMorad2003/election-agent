@@ -30,11 +30,17 @@ write TWO things separated by "---":
    - "xlabel": x-axis label
    - "ylabel": y-axis label
    - "x_col": column name for x-axis (from your SQL query)
-   - "y_col": column name for y-axis (from your SQL query)
-   - "group_col": (optional) column name for grouping/coloring
+   - "y_col": column name for y-axis — use this when the SQL is in LONG format (one row per series-point) with a separate group_col.
+   - "y_cols": (alternative to y_col) LIST of column names for multi-series WIDE-format SQL. Use this when the SQL returns several numeric columns side-by-side that should each be plotted as their own line/bar (e.g., right_pct, left_pct, center_pct on the same x=year).
+   - "group_col": (optional) column name for grouping/coloring — for LONG-format SQL only. Do NOT set group_col when using y_cols.
    - "legend": true/false
 
-Example output:
+WIDE vs LONG format — pick one, do NOT mix:
+- LONG: SQL returns one row per (x, series) combo, with a group column naming the series. Example: `SELECT year, party, SUM(votes) FROM ... GROUP BY year, party`. Config uses x_col, y_col, group_col.
+- WIDE: SQL returns one row per x with each series as its own column. Example: `SELECT year, right_pct, left_pct, center_pct FROM elections`. Config uses x_col + y_cols (list).
+NEVER set group_col to one of the numeric y-columns — that creates one fake "series" per distinct percentage value (the chart will be a mess of single-point series).
+
+Example LONG output:
 ```
 SELECT year, party, SUM(votes) as total_votes
 FROM us_president_county
@@ -46,6 +52,13 @@ ORDER BY year
 {"chart_type": "grouped_bar", "title": "NY Presidential Votes by Party", "xlabel": "Year", "ylabel": "Total Votes", "x_col": "year", "y_col": "total_votes", "group_col": "party", "legend": true}
 ```
 
+Example WIDE output (multi-series time chart from `elections` table):
+```
+SELECT year, right_pct, left_pct, center_pct FROM elections ORDER BY year
+---
+{"chart_type": "line", "title": "Bloc Trends K14-K25", "xlabel": "Year", "ylabel": "Bloc Share (%)", "x_col": "year", "y_cols": ["right_pct", "left_pct", "center_pct"], "legend": true}
+```
+
 Database schema:
 
 U.S. tables:
@@ -54,15 +67,28 @@ U.S. tables:
 
 Israeli tables:
 - elections(knesset, year, total_eligible, turnout_pct, right_pct, haredi_pct, center_pct, left_pct, arab_pct, right_haredi_pct, center_left_arab_pct)
-  -- NATIONAL-level stats per election
+  -- NATIONAL-level stats per election. Use for bloc trends, turnout trends.
 - parties(knesset, code, name, bloc, vote_pct, votes, seats)
-  -- NATIONAL-level party results. Do NOT use for city/locality queries.
+  -- NATIONAL-level party results, ONE row per (knesset, party). Use for any
+  -- "party X over time", "popularity", "seats by Knesset", "vote share trend"
+  -- chart. The vote_pct here is the national aggregate (already a percentage 0-100)
+  -- — DO NOT sum or aggregate it across rows.
 - localities(name, knesset, eligible, turnout_pct, right_pct, haredi_pct, center_pct, left_pct, arab_pct, right_haredi_pct, center_left_arab_pct)
   -- Per-locality BLOC-level breakdowns (not party-level)
 - party_locality(knesset, locality, party_code, vote_pct)
-  -- Per-locality PARTY-level vote percentages. Use this for city-level party charts.
+  -- Per-locality PARTY-level vote percentages, one row per (knesset, locality, party).
+  -- Use ONLY for single-city or city-comparison charts. NEVER aggregate vote_pct
+  -- across localities (SUM/AVG of percentages without population weights is meaningless).
+  -- For national party trends, use the `parties` table directly.
   -- JOIN with parties: party_locality pl JOIN parties p ON p.code = pl.party_code AND p.knesset = pl.knesset
 - socioeconomic(name, population, median_age, pct_academic_degree, avg_monthly_income_per_capita, ...)
+
+Table-selection cheat sheet:
+- "How did X party perform across all Knessets" / "party X popularity over time" / "trend of seats" → `parties` table (national, one row per knesset)
+- "Bloc trends over time" / "right vs left over years" → `elections` table (right_pct, left_pct, etc.)
+- "How did X party do in city Y" / "compare cities" / "city-level breakdown" → `party_locality` JOIN `parties`
+- "Turnout by city" / "bloc breakdown of city Z" → `localities`
+- Never SUM(vote_pct) or AVG(vote_pct) across localities for a national figure — the `parties.vote_pct` column already has it.
 
 Rules:
 - U.S. state is 2-letter code (e.g. 'NY')
@@ -73,6 +99,23 @@ Rules:
 - For Israeli city party results, use party_locality (NOT parties table which is national only)
 - For Israeli party vote breakdowns (single election, single city), ALWAYS use "horizontal_bar" chart type — it handles many parties much better than vertical bars. Sort by vote_pct DESC and filter to parties with vote_pct >= 1.5 to keep charts clean.
 - Hebrew party names will be automatically translated to English in the chart — no need to translate in SQL.
+- PARTIES ACROSS MULTIPLE KNESSETS: filter by the stable letter `code`, NOT by `name`. Party names mutate across alliances (e.g. Likud appears as 'ליכוד', 'הליכוד', 'הליכוד ישראל ביתנו'; Labor as 'עבודה', 'העבודה', 'המחנה הציוני', 'העבודה-גשר', 'העבודה-גשר-מרצ'; Yesh Atid as 'יש עתיד', 'כחול לבן', 'מפלגת המרכז'). Stable codes:
+    * Likud = 'מחל'
+    * Labor / Zionist Camp = 'אמת'
+    * Yesh Atid / Blue & White = 'פה'
+    * Shas = 'שס'
+    * UTJ = 'ג'
+    * Religious Zionism / Jewish Home = 'טב' (also 'ט')
+    * Yisrael Beiteinu = 'ל'
+    * Meretz = 'מרצ' (also 'מרץ')
+    * Joint List / Hadash-Taal = 'ודעם' / 'ום'
+    * Ra'am = 'עם'
+  Always inject a canonical English label via CASE so each party is one consistent legend entry, e.g.:
+    SELECT knesset,
+           CASE code WHEN 'מחל' THEN 'Likud' WHEN 'אמת' THEN 'Labor' WHEN 'פה' THEN 'Yesh Atid' END AS party,
+           seats
+    FROM parties WHERE code IN ('מחל','אמת','פה') AND knesset BETWEEN 14 AND 25 ORDER BY knesset, code
+  Use "line" chart_type (or "grouped_bar") for multi-Knesset party-seat trends, with x_col="knesset", y_col="seats", group_col="party".
 - Knesset-to-year: 14=1996, 15=1999, 16=2003, 17=2006, 18=2009, 19=2013, 20=2015, 21=2019, 22=2019, 23=2020, 24=2021, 25=2022
 - Common Israeli city Hebrew names: Tel Aviv=תל אביב, Jerusalem=ירושלים, Haifa=חיפה, Beer Sheva=באר שבע, Netanya=נתניה, Rishon LeZion=ראשון לציון, Petah Tikva=פתח תקווה, Ashdod=אשדוד, Ashkelon=אשקלון, Kiryat Ata=קרית אתא, Kiryat Bialik=קרית ביאליק, Kiryat Yam=קרית ים, Kiryat Motzkin=קרית מוצקין, Kiryat Gat=קרית גת, Kiryat Shmona=קרית שמונה, Nazareth=נצרת, Ramat Gan=רמת גן, Bnei Brak=בני ברק, Herzliya=הרצליה, Kfar Saba=כפר סבא, Modiin=מודיעין, Acre/Akko=עכו, Tiberias=טבריה, Lod=לוד, Ramla=רמלה, Bat Yam=בת ים, Holon=חולון, Eilat=אילת, Rehovot=רחובות, Ra'anana=רעננה
 - Return ONLY the SQL and the config dict separated by ---
@@ -195,6 +238,26 @@ def _run_chart_query(sql: str) -> list[dict]:
     return rows
 
 
+_BLOC_COLOR_HINTS = {
+    "right": "#b2182b", "right_pct": "#b2182b",
+    "left": "#2166ac", "left_pct": "#2166ac",
+    "center": "#92c5de", "center_pct": "#92c5de",
+    "haredi": "#333333", "haredi_pct": "#333333",
+    "arab": "#4dac26", "arab_pct": "#4dac26",
+    "opposition_right": "#fb6a4a", "opposition_right_pct": "#fb6a4a",
+    "right_haredi": "#cb181d", "right_haredi_pct": "#cb181d",
+    "center_left_arab": "#3690c0", "center_left_arab_pct": "#3690c0",
+}
+
+
+def _label_for_column(col: str) -> str:
+    """Turn a column name like 'right_pct' into a readable legend label 'Right'."""
+    if not col:
+        return col
+    base = col.removesuffix("_pct")
+    return base.replace("_", " ").title()
+
+
 def _build_chart(data: list[dict], config: dict) -> str:
     """Build a matplotlib chart and return the saved file path."""
     chart_type = config.get("chart_type", "bar")
@@ -203,6 +266,7 @@ def _build_chart(data: list[dict], config: dict) -> str:
     ylabel = config.get("ylabel", "")
     x_col = config.get("x_col", "")
     y_col = config.get("y_col", "")
+    y_cols = config.get("y_cols") or None
     group_col = config.get("group_col", None)
     show_legend = config.get("legend", True)
 
@@ -212,7 +276,66 @@ def _build_chart(data: list[dict], config: dict) -> str:
             if isinstance(row[key], str):
                 row[key] = _translate_hebrew(row[key])
 
+    # Defensive: pct columns that came back > 100 mean the SQL aggregated
+    # percentages (e.g., SUM(vote_pct) across localities). Refuse to plot.
+    pct_like_cols = [c for c in [y_col, *(y_cols or [])] if c and "pct" in c.lower()]
+    for col in pct_like_cols:
+        vals = [row.get(col) for row in data if isinstance(row.get(col), (int, float))]
+        if vals and max(vals) > 100:
+            plt.close(fig)
+            raise ValueError(
+                f"Column '{col}' is labelled as a percentage but contains a value > 100 "
+                f"(max = {max(vals):.1f}). The SQL likely aggregated per-locality percentages "
+                "(SUM/AVG of vote_pct across localities is not meaningful — use the parties "
+                "table's national vote_pct directly)."
+            )
+
+    # Defensive: if the LLM set group_col to one of the wide-format numeric
+    # columns, it would mint a fake "series" per distinct value. Convert that
+    # to a y_cols multi-series chart instead.
+    if (group_col and not y_cols and data
+            and isinstance(data[0].get(group_col), (int, float))
+            and isinstance(data[0].get(y_col), (int, float))):
+        y_cols = [y_col, group_col]
+        group_col = None
+
     fig, ax = plt.subplots(figsize=(10, 6))
+
+    # WIDE format: multiple y columns, each plotted as its own series.
+    if y_cols and chart_type in ("line", "grouped_bar", "stacked_bar"):
+        xs_wide = [row[x_col] for row in data]
+        if chart_type == "line":
+            for col in y_cols:
+                ys_series = [row.get(col) for row in data]
+                color = _BLOC_COLOR_HINTS.get(col) or PARTY_COLORS.get(col)
+                ax.plot(xs_wide, ys_series, marker="o", linewidth=2,
+                        label=_label_for_column(col), color=color)
+        else:  # grouped_bar / stacked_bar
+            import numpy as np
+            x_indices = np.arange(len(xs_wide))
+            width = 0.8 / max(len(y_cols), 1)
+            bottom = np.zeros(len(xs_wide)) if chart_type == "stacked_bar" else None
+            for i, col in enumerate(y_cols):
+                ys_series = [row.get(col, 0) or 0 for row in data]
+                color = _BLOC_COLOR_HINTS.get(col) or PARTY_COLORS.get(col)
+                label = _label_for_column(col)
+                if chart_type == "grouped_bar":
+                    ax.bar(x_indices + i * width, ys_series, width, label=label, color=color)
+                else:
+                    ax.bar(x_indices, ys_series, 0.6, bottom=bottom, label=label, color=color)
+                    bottom = bottom + np.array(ys_series)
+            ax.set_xticks(x_indices + width * (len(y_cols) - 1) / 2 if chart_type == "grouped_bar" else x_indices)
+            ax.set_xticklabels([str(x) for x in xs_wide], rotation=45, ha="right")
+        ax.set_title(title, fontsize=14, fontweight="bold")
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        if show_legend:
+            ax.legend()
+        plt.tight_layout()
+        path = os.path.join(CHART_DIR, f"chart_{abs(hash(title)) % 10_000_000}.png")
+        plt.savefig(path, dpi=100, bbox_inches="tight")
+        plt.close(fig)
+        return path
 
     xs = [row[x_col] for row in data]
     ys = [row[y_col] for row in data]
@@ -308,6 +431,24 @@ def make_chart_tool(llm: ChatOpenAI):
         of the desired chart (e.g. 'Show Republican vs Democrat votes in NY from 2000 to 2024').
         Returns the file path to the generated chart image."""
         import json as _json
+
+        # Match the data_query coverage rules so charts can't surface bad data.
+        from tools.data_query import (
+            _detect_invalid_knessets, _references_us_2024,
+            KNESSET_MIN, KNESSET_MAX,
+        )
+        invalid_k = _detect_invalid_knessets(question)
+        if invalid_k:
+            bad = ", ".join(f"K{n}" for n in sorted(set(invalid_k)))
+            return (
+                f"[Data coverage] The Israeli Knesset dataset only covers K{KNESSET_MIN}-K{KNESSET_MAX} "
+                f"(1996-2022). The question references {bad}, which is outside coverage."
+            )
+        if _references_us_2024(question):
+            return (
+                "[Data coverage] The 2024 U.S. presidential dataset has known quality issues and "
+                "isn't being surfaced. Reliable U.S. presidential coverage is 2000-2020."
+            )
 
         # Pre-process: inject Hebrew names for Israeli cities
         processed_question = _preprocess_israeli_question(question)

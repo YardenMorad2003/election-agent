@@ -84,10 +84,18 @@ class _DuckDuckGoLiteParser(HTMLParser):
             return
         href = dict(attrs).get("href", "")
         normalized_href = _normalize_url(href)
-        if normalized_href.startswith("http"):
-            self.in_link = True
-            self.current_href = normalized_href
-            self.current_text = []
+        if not normalized_href.startswith("http"):
+            return
+        # Skip DDG-internal links (homepage, lite, help, about). When DDG
+        # rate-limits or bot-deflects, the response contains only links back
+        # to itself — accepting those as results lets the synthesizer LLM
+        # treat empty output as STATUS: OK and hallucinate from training.
+        host = urlparse(normalized_href).netloc.lower()
+        if host.endswith("duckduckgo.com"):
+            return
+        self.in_link = True
+        self.current_href = normalized_href
+        self.current_text = []
 
     def handle_endtag(self, tag):
         if tag != "a" or not self.in_link:
@@ -110,7 +118,19 @@ class _DuckDuckGoLiteParser(HTMLParser):
 
 
 def _search_duckduckgo_lite(query: str) -> list[dict]:
-    html = _http_get(f"https://lite.duckduckgo.com/lite/?q={quote(query)}")
+    # POST: the lite endpoint frequently returns the DDG homepage (no results)
+    # when queried with GET, even with a valid User-Agent. POST is reliable.
+    data = urlencode({"q": query}).encode("utf-8")
+    req = Request(
+        "https://lite.duckduckgo.com/lite/",
+        data=data,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+    )
+    with urlopen(req, timeout=10) as resp:
+        html = resp.read().decode("utf-8", errors="replace")
     parser = _DuckDuckGoLiteParser()
     parser.feed(html)
     return parser.results[:5]
@@ -199,14 +219,27 @@ def web_search(query: str) -> str:
     questions that explicitly ask for web/search/news results."""
     try:
         results = []
-        if _is_fact_lookup(query):
-            results = _search_wikipedia_summary(query)
-        if not results:
-            results = _search_duckduckgo_instant(query)
-        if not results:
-            results = _search_wikipedia_summary(query)
-        if not results:
+        fact_lookup = _is_fact_lookup(query)
+
+        if fact_lookup:
+            # Live SERP first. DDG Instant Answer returns the institutional
+            # concept abstract for officeholder queries (e.g. the Wikipedia
+            # article on "President of the United States"), which never names
+            # the current officeholder. Letting that block the cascade left
+            # the synthesizer LLM to hallucinate the name from its training
+            # cutoff (gave "Joe Biden" for "who is the us president?").
             results = _search_duckduckgo_lite(query)
+            if not results:
+                results = _search_wikipedia_summary(query)
+            if not results:
+                results = _search_duckduckgo_instant(query)
+        else:
+            results = _search_duckduckgo_instant(query)
+            if not results:
+                results = _search_wikipedia_summary(query)
+            if not results:
+                results = _search_duckduckgo_lite(query)
+
         if not results:
             results = _search_wikipedia(query)
         if not results and any(token in query.lower() for token in ["current", "currently", "latest", "today"]):

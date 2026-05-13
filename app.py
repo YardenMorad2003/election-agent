@@ -21,6 +21,16 @@ st.markdown("""
         background: #1a3a5c;
         color: #7fb3e0;
     }
+    .model-chip {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin-right: 4px;
+        background: #2d4a2b;
+        color: #7fc97f;
+    }
     .trace-step {
         font-size: 0.78rem;
         color: #888;
@@ -43,21 +53,28 @@ if "suggestions" not in st.session_state:
 
 # ── Sidebar ──
 with st.sidebar:
+    if st.button("+ New chat", type="primary", use_container_width=True):
+        st.session_state.chat_history = []
+        st.session_state.suggestions = []
+        st.rerun()
+
+    st.divider()
+
     st.header("Settings")
     model = st.selectbox("LLM Model", ["gpt-4o-mini", "gpt-4o", "gpt-4.1"], index=0)
 
     st.divider()
 
-    compare_mode = st.toggle("Compare all 4 configs", value=False,
-                             help="Run the next question through all 4 routing configs side by side")
+    compare_mode = st.toggle("Compare all 5 configs", value=False,
+                             help="Run the next question through all 5 routing configs side by side")
 
     st.divider()
     st.subheader("Try these")
 
     us_examples = [
         "How did Biden perform in suburban counties in 2020?",
-        "Which state had the highest Republican vote share in 2024?",
-        "Compare urban vs rural voting trends from 2000 to 2024",
+        "Which state had the highest Republican vote share in 2020?",
+        "Compare urban vs rural voting trends from 2000 to 2020",
         "Which counties flipped from R to D between 2016 and 2020?",
         "What is the latest news about the Republican Party?",
         "What is the latest U.S. economic news?",
@@ -86,11 +103,6 @@ with st.sidebar:
             st.session_state.suggestions = []
             st.rerun()
 
-    st.divider()
-    if st.button("Clear chat", use_container_width=True):
-        st.session_state.chat_history = []
-        st.session_state.suggestions = []
-        st.rerun()
 
 # ── Header ──
 st.title("Agentic Electoral Analyst")
@@ -107,16 +119,17 @@ def _display_charts(chart_paths: list):
 
 
 def _render_comparison(results):
-    """Render 4-config comparison in a 2x2 grid."""
+    """Render comparison across all routing configs in a 2-column grid."""
     labels = {
         "single_pass": ("1. Single-Pass LLM", "🔴"),
         "rag_only": ("2. RAG-Only", "🟡"),
         "fixed_routing": ("3. Fixed Routing", "🟠"),
         "dynamic_routing": ("4. Dynamic Routing", "🟢"),
+        "planned_routing": ("5. Plan-and-Execute", "🔵"),
     }
     col1, col2 = st.columns(2)
     for i, (config_name, result) in enumerate(results.items()):
-        label, emoji = labels[config_name]
+        label, emoji = labels.get(config_name, (config_name, "⚪"))
         col = col1 if i % 2 == 0 else col2
         with col:
             with st.expander(f"{emoji} {label}", expanded=True):
@@ -141,12 +154,12 @@ Rules:
 Example: ["What about 2024?", "Show this as a chart", "Compare with rural counties"]"""
 
 
-def _generate_suggestions(chat_history: list) -> list[str]:
+def _generate_suggestions(chat_history: list, model: str = "gpt-4o-mini") -> list[str]:
     """Generate follow-up suggestions based on conversation context."""
     if not chat_history:
         return []
     try:
-        llm = get_llm(model="gpt-4o-mini", temperature=0.7)
+        llm = get_llm(model=model, temperature=0.7)
         # Build a compact summary of recent conversation (last 4 messages)
         recent = chat_history[-4:]
         convo = "\n".join(
@@ -177,11 +190,14 @@ for msg in st.session_state.chat_history:
         st.markdown(msg["content"])
         if msg["role"] == "assistant" and msg.get("chart_paths"):
             _display_charts(msg["chart_paths"])
-        if msg["role"] == "assistant" and msg.get("tools_used"):
-            tools_html = " ".join(f'<span class="tool-chip">{t}</span>' for t in msg["tools_used"])
+        if msg["role"] == "assistant":
+            tools_html = " ".join(f'<span class="tool-chip">{t}</span>' for t in msg.get("tools_used") or [])
             elapsed = msg.get("time", 0)
-            st.markdown(f"{tools_html} &nbsp; <span style='color:#666;font-size:0.75rem'>{elapsed:.1f}s</span>",
-                        unsafe_allow_html=True)
+            model_used = msg.get("model", "")
+            model_html = f'<span class="model-chip">{model_used}</span>' if model_used else ""
+            if tools_html or model_html:
+                st.markdown(f"{model_html}{tools_html} &nbsp; <span style='color:#666;font-size:0.75rem'>{elapsed:.1f}s</span>",
+                            unsafe_allow_html=True)
         if msg["role"] == "assistant" and msg.get("trace"):
             with st.expander("Execution trace", expanded=False):
                 for step in msg["trace"]:
@@ -219,12 +235,12 @@ if question:
 
     if compare_mode:
         with st.chat_message("assistant"):
-            with st.spinner("Running all 4 configurations..."):
+            with st.spinner("Running all 5 configurations..."):
                 start = time.time()
                 results = run_all_configs(question, model=model)
                 elapsed = time.time() - start
 
-            summary = f"Here are the results from all 4 routing configs ({elapsed:.1f}s):"
+            summary = f"Here are the results from all 5 routing configs ({elapsed:.1f}s):"
             st.markdown(summary)
             _render_comparison(results)
 
@@ -235,6 +251,7 @@ if question:
             "trace": [],
             "time": elapsed,
             "comparison": results,
+            "model": model,
         })
 
     else:
@@ -255,10 +272,10 @@ if question:
             if chart_paths:
                 _display_charts(chart_paths)
 
-            if result["tools_used"]:
-                tools_html = " ".join(f'<span class="tool-chip">{t}</span>' for t in result["tools_used"])
-                st.markdown(f"{tools_html} &nbsp; <span style='color:#666;font-size:0.75rem'>{elapsed:.1f}s</span>",
-                            unsafe_allow_html=True)
+            tools_html = " ".join(f'<span class="tool-chip">{t}</span>' for t in result["tools_used"]) if result["tools_used"] else ""
+            model_html = f'<span class="model-chip">{model}</span>'
+            st.markdown(f"{model_html}{tools_html} &nbsp; <span style='color:#666;font-size:0.75rem'>{elapsed:.1f}s</span>",
+                        unsafe_allow_html=True)
 
             if result["trace"]:
                 with st.expander("Execution trace", expanded=False):
@@ -272,8 +289,9 @@ if question:
             "trace": result.get("trace", []),
             "time": elapsed,
             "chart_paths": chart_paths,
+            "model": model,
         })
 
     # Generate follow-up suggestions — runs after the answer is already displayed
-    st.session_state.suggestions = _generate_suggestions(st.session_state.chat_history)
+    st.session_state.suggestions = _generate_suggestions(st.session_state.chat_history, model=model)
     st.rerun()
