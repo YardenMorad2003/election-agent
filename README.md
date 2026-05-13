@@ -27,6 +27,65 @@ An LLM-powered analyst for **U.S. federal elections (2000–2020)** and **Israel
 
 ## Quick start
 
+### First-time setup (graders / bundle install)
+
+The repo ships code only — the database, vector store, classifier model, and several macro/election CSVs are gitignored and delivered separately as a data bundle. With the bundle in hand, set things up in this order:
+
+**1. Install Python deps.**
+```bash
+pip install -r requirements.txt          # Python 3.14
+```
+
+**2. Drop the bundle files into the repo root** (the project expects these exact paths):
+
+| Path | What it is | Used by |
+|------|-----------|---------|
+| `elections.db` | 1.2 GB SQLite with all Israeli + U.S. election tables | `data_query`, `coalition_calculator`, `create_chart` |
+| `data/macro/approval/*.csv` | Carter–Obama approval polls, Trump live approval | `predict_house.py` |
+| `data/macro/fred/*.csv` | CPI YoY, unemployment from FRED | `predict_house.py` |
+| `data/macro/gas_prices.csv` | Weekly retail gas prices | `predict_house.py` (informational) |
+| `data/elections_extra/house_elections.csv` | U.S. House results 1976–2024 (MIT Election Lab) | `predict_house.py` |
+| `data/elections_extra/chamber_control.csv` | President's-party flag per year | `predict_house.py` |
+| `data/elections_extra/house_retirements_features.csv` | House retirements 1996–2026 | `predict_house.py` |
+| `chroma_db/` | ChromaDB vector store with ~22k dataset chunks | `context_search`, RAG-only config |
+| `models/distilbert-router/` | Fine-tuned tool-routing classifier | `fixed_routing` config |
+
+`Prediction_Data/` (538 approval archives + Silver Bulletin generic ballot) is already in the repo.
+
+**3. Configure environment.** Copy the template and fill in your OpenAI API key:
+```bash
+cp .env.example .env
+# Edit .env, set OPENAI_API_KEY=sk-...
+```
+
+To use PostgreSQL instead of the bundled SQLite, also set `DATABASE_URL` in `.env`. SQLite is the default fallback.
+
+**4. Verify the forecast pipeline works** (the cheapest end-to-end check — no LLM call, no DB query, just reads CSVs):
+```bash
+python predict_house.py
+# Expect: "R net seat change = -33.3   95% PI [-70.6, -8.9]"
+```
+
+If you see a `FileNotFoundError`, one of the `data/` CSVs is missing — re-check Step 2.
+
+**5. Launch the chat UI.**
+```bash
+python -m streamlit run app.py
+```
+Open http://localhost:8501. If the agent crashes with a `sqlite3.OperationalError` on first question, the DB isn't found — check `elections.db` is in the repo root, or set `DATABASE_URL` for Postgres.
+
+**Optional: rebuild from scratch** (only if you don't have the bundle and want to reconstruct it from upstream sources):
+```bash
+python build_db.py            # Israeli DB — needs raw Knesset CSVs in data/raw/
+python build_us_db.py         # U.S. DB — needs MIT Election Lab + NCHS data
+python build_vectorstore.py   # ChromaDB — needs elections.db built first
+python train_classifier.py    # DistilBERT router — needs labeled training data
+```
+
+These scripts read raw upstream files from `data/raw/` and write to the gitignored runtime paths. Contact the team for the upstream-source bundle if you need to reconstruct from scratch.
+
+---
+
 ### Streamlit (primary UI)
 
 ```bash
