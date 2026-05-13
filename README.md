@@ -162,7 +162,7 @@ Stock markets, indices, bonds, commodities, FX, weather, climate, sports, biogra
 ## Architecture
 
 ```mermaid
-graph LR
+flowchart TB
     User --> UI
     UI --> Agent
     Agent --> Router
