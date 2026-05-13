@@ -214,22 +214,47 @@ Current pass rate on the judged 49 queries is 89.8%. The five remaining failures
 
 ## 2026 House forecast
 
-`predict_house.py` builds a fundamentals OLS on 12 midterm cycles (1978–2022), compares three candidate specs by leave-one-out cross-validation, and emits `forecast_2026_house.json`.
+`predict_house.py` builds a fundamentals model on 12 midterm cycles (1978–2022), runs an 8-spec × 2-estimator LOOCV grid (16 fits), picks the lowest-LOOCV-MAE combination, and emits `forecast_2026_house.json` with a residual-bootstrap prediction interval.
 
 ### Method
 
 - **Target**: president's-party net House seat change vs. prior cycle, derived from `house_elections.csv` with fusion-ticket aggregation (NY DEM + WORKING FAMILIES summed per district winner).
-- **Inputs read live**: Trump approval (last 30 days from `data/macro/approval/trump_approval_raw.csv`), CPI YoY, unemployment, gas (informational).
-- **Specs compared**: `approval_only` (winner, LOOCV MAE 14.14 seats), `macro_only` (21.0), `approval_plus_macro` (16.0).
+- **Inputs read live for 2026**: Trump approval (last 30 days from `data/macro/approval/trump_approval_raw.csv`), CPI YoY, unemployment, House seat exposure (R seats coming out of the 2024 House election = 220), pres-party retirement share (from `house_retirements_features.csv` 2026 row = 0.61), and gas (informational).
+- **Feature spec search** (8 candidates):
+  - `approval_only`, `macro_only` (CPI + unrate), `approval_plus_macro`
+  - `exposure_only`, `approval_plus_exposure` — uses `pres_party_seats_t_minus_2` (the chamber size the president's party is defending)
+  - `retire_only`, `approval_plus_retire` — uses `pres_party_retire_pct` (share of midterm-year retirements that are pres party). These specs train on the post-1996 n=7 subset because the retirements panel starts in 1996
+  - `approval_only_post96` — approval-only re-fit on the same n=7 subset, as the apples-to-apples baseline for the retirement specs
+- **Estimator search**: each spec is fit twice — OLS (`LinearRegression`) and robust Huber (`HuberRegressor(epsilon=1.35)`). Huber downweights observations >1.35σ from the fit, so high-loss midterms like 1994 (−54) and 2010 (−59) can't unilaterally pull the slope.
+- **Selection**: argmin LOOCV MAE across all 16 fits.
+- **Prediction interval**: 2000-draw residual bootstrap. Refit the winning estimator on (X, fitted_y + resampled_residuals) each draw, predict on the new x, and add an independent residual draw to produce a PI rather than a CI. With n=12 the textbook z=1.96 formula understates upper-tail variance because the residuals aren't actually normal; empirical 2.5 / 97.5 percentiles are honest.
 - **Generic ballot** read live from Silver Bulletin's 2025–2026 daily series; recorded in the output JSON as a convergent sanity check, not a model feature (historical coverage in `generic_topline_historical.csv` only covers 5 of our 12 training midterms).
 
-### Current forecast (2026-05-12)
+### Spec-search results (LOOCV MAE, seats)
 
-- **Republican net change: −36 seats (point estimate), 95% PI [−71, −1]**.
-- Coefficient: 0.68 seats per net-approval point.
-- Intercept: −25.9.
+| Spec | n | OLS | Huber |
+|---|---|---|---|
+| **`approval_only`** | **12** | 14.14 | **13.97** ← selected |
+| `approval_plus_macro` | 12 | 15.96 | 17.83 |
+| `approval_plus_exposure` | 12 | 17.05 | 17.64 |
+| `exposure_only` | 12 | 18.78 | 20.66 |
+| `macro_only` | 12 | 21.01 | 23.34 |
+| `approval_only_post96` | 7 | 17.01 | 15.78 |
+| `approval_plus_retire` | 7 | 22.73 | 21.73 |
+| `retire_only` | 7 | 27.69 | 26.98 |
+
+**Approval is the only feature that survives.** Adding CPI + unrate, seat exposure, or retirement share *all* increase LOOCV MAE — the auxiliary variables are informationally redundant with net approval. On the apples-to-apples post-1996 n=7 subset, approval-plus-retirements scores 21.73 vs approval-only's 15.78 (+5.95 MAE), which is strong evidence retirement share is *downstream* of approval (when a president looks doomed, his party retires) rather than an independent leading indicator.
+
+Huber edges OLS by only 0.17 MAE seats on the winning spec — 1994 and 2010 are *consistent with* the approval-driven loss expectation, not true outliers, so robustness gain is small.
+
+### Current forecast (2026-05-13)
+
+- **Republican net change: −33.3 seats (point estimate), 95% PI [−70.6, −8.9]**.
+- Winning estimator: Huber. Winning spec: `approval_only`. Training n=12.
+- Coefficient: 0.646 seats per net-approval point.
+- Intercept: −23.79.
 - Net approval input: −14.67 (Trump, last-30-day average through 2026-03-31).
-- Convergent generic-ballot check: D+5.87 (7-day SB average) × 5 seats/pt ≈ R−29, consistent with the model's R−36.
+- Convergent generic-ballot check: D+5.87 (7-day SB average) × 5 seats/pt ≈ R−29, consistent with the model's R−33.
 
 See `predict_house.py --help` for what-if scenarios and [Appendix A](#appendix-a-map-assumption-for-the-2026-forecast) for the redistricting disclosure.
 
@@ -277,7 +302,7 @@ The residual five failures are gpt-4o-mini training-prior collapses on recently-
 - **2024 U.S. presidential data** is blocked rather than fixed. The permanent fix is to re-run `build_us_db.py` for 2024 county data with a unique-row guard before the SUM-into-county-fips step. Until that lands, the precinct table has correct 2024 data but doesn't cover all 50 states.
 - **Coalition synthesizer** is 0/6 soft-match across all four benchmarked configs. The brute-force enumerator is correct (verified by Python unit test); the synthesizer is fed a long enumeration list rather than a rubric-shaped subset, so the answer format doesn't match the rubric.
 - **Multi-step queries** are framed as an open problem in agentic SQL: 30–40% accuracy across configs. Config 5's plan-and-execute is the proposed approach but hasn't been benchmarked yet.
-- **Vote prediction model** is *Beta* — n=12 training sample, no out-of-sample backtest beyond LOOCV, no redistricting layer (see Appendix A), not yet wired as an agent tool. Treat the point estimate as a fundamentals-conditional baseline.
+- **Vote prediction model** is *Beta* — n=12 training sample (n=7 for retirement-feature variants), 8-spec × 2-estimator LOOCV grid, residual-bootstrap PI. Approval is the only feature that survives the spec search; macro, exposure, and retirement share all increase LOOCV MAE. No out-of-sample backtest beyond LOOCV, no redistricting layer (see Appendix A), not yet wired as an agent tool. Treat the point estimate as a fundamentals-conditional baseline.
 - **LLM-as-judge** is the headline metric; soft match is too strict for comparative multi-step answers.
 - **Web search residual hallucinations** affect officeholders that changed post-October-2023 (gpt-4o-mini's training cutoff). 89.8% pass rate on the 50-query test.
 

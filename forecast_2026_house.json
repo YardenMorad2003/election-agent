@@ -1,0 +1,366 @@
+{
+  "generated_at": "2026-05-13T09:16:06",
+  "forecast_year": 2026,
+  "presidents_party": "R",
+  "selected_model": "approval_only__huber",
+  "selected_estimator": "huber",
+  "features_used": [
+    "net_approval"
+  ],
+  "coefficients": {
+    "net_approval": 0.646
+  },
+  "intercept": -23.7857,
+  "training_n": 12,
+  "training_years": [
+    1978,
+    1982,
+    1986,
+    1990,
+    1994,
+    1998,
+    2002,
+    2006,
+    2010,
+    2014,
+    2018,
+    2022
+  ],
+  "loocv_results": {
+    "approval_only__ols": {
+      "features": [
+        "net_approval"
+      ],
+      "estimator": "ols",
+      "n_train": 12,
+      "loocv_mae_seats": 14.14
+    },
+    "macro_only__ols": {
+      "features": [
+        "cpi_yoy",
+        "unrate"
+      ],
+      "estimator": "ols",
+      "n_train": 12,
+      "loocv_mae_seats": 21.01
+    },
+    "approval_plus_macro__ols": {
+      "features": [
+        "net_approval",
+        "cpi_yoy",
+        "unrate"
+      ],
+      "estimator": "ols",
+      "n_train": 12,
+      "loocv_mae_seats": 15.96
+    },
+    "approval_plus_exposure__ols": {
+      "features": [
+        "net_approval",
+        "pres_party_seats_t_minus_2"
+      ],
+      "estimator": "ols",
+      "n_train": 12,
+      "loocv_mae_seats": 17.05
+    },
+    "exposure_only__ols": {
+      "features": [
+        "pres_party_seats_t_minus_2"
+      ],
+      "estimator": "ols",
+      "n_train": 12,
+      "loocv_mae_seats": 18.78
+    },
+    "approval_only_post96__ols": {
+      "features": [
+        "net_approval"
+      ],
+      "estimator": "ols",
+      "n_train": 7,
+      "loocv_mae_seats": 17.01
+    },
+    "retire_only__ols": {
+      "features": [
+        "pres_party_retire_pct"
+      ],
+      "estimator": "ols",
+      "n_train": 7,
+      "loocv_mae_seats": 27.69
+    },
+    "approval_plus_retire__ols": {
+      "features": [
+        "net_approval",
+        "pres_party_retire_pct"
+      ],
+      "estimator": "ols",
+      "n_train": 7,
+      "loocv_mae_seats": 22.73
+    },
+    "approval_only__huber": {
+      "features": [
+        "net_approval"
+      ],
+      "estimator": "huber",
+      "n_train": 12,
+      "loocv_mae_seats": 13.97
+    },
+    "macro_only__huber": {
+      "features": [
+        "cpi_yoy",
+        "unrate"
+      ],
+      "estimator": "huber",
+      "n_train": 12,
+      "loocv_mae_seats": 23.34
+    },
+    "approval_plus_macro__huber": {
+      "features": [
+        "net_approval",
+        "cpi_yoy",
+        "unrate"
+      ],
+      "estimator": "huber",
+      "n_train": 12,
+      "loocv_mae_seats": 17.83
+    },
+    "approval_plus_exposure__huber": {
+      "features": [
+        "net_approval",
+        "pres_party_seats_t_minus_2"
+      ],
+      "estimator": "huber",
+      "n_train": 12,
+      "loocv_mae_seats": 17.64
+    },
+    "exposure_only__huber": {
+      "features": [
+        "pres_party_seats_t_minus_2"
+      ],
+      "estimator": "huber",
+      "n_train": 12,
+      "loocv_mae_seats": 20.66
+    },
+    "approval_only_post96__huber": {
+      "features": [
+        "net_approval"
+      ],
+      "estimator": "huber",
+      "n_train": 7,
+      "loocv_mae_seats": 15.78
+    },
+    "retire_only__huber": {
+      "features": [
+        "pres_party_retire_pct"
+      ],
+      "estimator": "huber",
+      "n_train": 7,
+      "loocv_mae_seats": 26.98
+    },
+    "approval_plus_retire__huber": {
+      "features": [
+        "net_approval",
+        "pres_party_retire_pct"
+      ],
+      "estimator": "huber",
+      "n_train": 7,
+      "loocv_mae_seats": 21.73
+    }
+  },
+  "inputs_2026": {
+    "net_approval": -14.67,
+    "approval_asof": "2026-03-31",
+    "cpi_yoy": 2.75,
+    "cpi_asof": "2026-12-31",
+    "unrate": 4.4,
+    "unrate_asof": "2026-02-01",
+    "gas_price": 4.126,
+    "gas_asof": "2026-03-30",
+    "pres_party_seats_t_minus_2": 220,
+    "pres_party_retire_pct": 0.6140350877192983
+  },
+  "forecast": {
+    "point_seat_change": -33.3,
+    "ci95_low": -70.6,
+    "ci95_high": -8.9,
+    "historical_midterm_mean": -21.2
+  },
+  "generic_ballot_2026_reference": {
+    "margin_d_minus_r_today": 6.05,
+    "margin_d_minus_r_7d_avg": 5.87,
+    "asof": "2026-05-08",
+    "rows_used_in_7d_avg": 7,
+    "source": "Silver Bulletin (Nate Silver) \u2014 2026 generic congressional ballot average",
+    "source_url": "https://www.natesilver.net/p/generic-ballot-average-2026-nate-silver-bulletin-congress-polls",
+    "note": "Reference value, not a model feature. Historical generic-ballot coverage in this repo (1995-2016) is too shallow for the 1978-2022 training sample."
+  },
+  "training_frame": [
+    {
+      "year": 1978,
+      "pres_party": "D",
+      "D_seats_t": 278.0,
+      "D_seats_t_minus_2": 292.0,
+      "pres_party_seats_t_minus_2": 292,
+      "pres_party_seat_change": -14,
+      "R_seats_t": NaN,
+      "R_seats_t_minus_2": NaN,
+      "net_approval": 7.75,
+      "cpi_yoy": 7.614,
+      "unrate": 5.8,
+      "pres_party_retire_pct": NaN
+    },
+    {
+      "year": 1982,
+      "pres_party": "R",
+      "D_seats_t": NaN,
+      "D_seats_t_minus_2": NaN,
+      "pres_party_seats_t_minus_2": 192,
+      "pres_party_seat_change": -27,
+      "R_seats_t": 165.0,
+      "R_seats_t_minus_2": 192.0,
+      "net_approval": -5.5,
+      "cpi_yoy": 6.189,
+      "unrate": 10.4,
+      "pres_party_retire_pct": NaN
+    },
+    {
+      "year": 1986,
+      "pres_party": "R",
+      "D_seats_t": NaN,
+      "D_seats_t_minus_2": NaN,
+      "pres_party_seats_t_minus_2": 182,
+      "pres_party_seat_change": -5,
+      "R_seats_t": 177.0,
+      "R_seats_t_minus_2": 182.0,
+      "net_approval": 36.0,
+      "cpi_yoy": 1.95,
+      "unrate": 7.0,
+      "pres_party_retire_pct": NaN
+    },
+    {
+      "year": 1990,
+      "pres_party": "R",
+      "D_seats_t": NaN,
+      "D_seats_t_minus_2": NaN,
+      "pres_party_seats_t_minus_2": 175,
+      "pres_party_seat_change": -8,
+      "R_seats_t": 167.0,
+      "R_seats_t_minus_2": 175.0,
+      "net_approval": 35.2,
+      "cpi_yoy": 5.414,
+      "unrate": 5.9,
+      "pres_party_retire_pct": NaN
+    },
+    {
+      "year": 1994,
+      "pres_party": "D",
+      "D_seats_t": 198.0,
+      "D_seats_t_minus_2": 252.0,
+      "pres_party_seats_t_minus_2": 252,
+      "pres_party_seat_change": -54,
+      "R_seats_t": NaN,
+      "R_seats_t_minus_2": NaN,
+      "net_approval": -8.167,
+      "cpi_yoy": 2.595,
+      "unrate": 5.8,
+      "pres_party_retire_pct": NaN
+    },
+    {
+      "year": 1998,
+      "pres_party": "D",
+      "D_seats_t": 205.0,
+      "D_seats_t_minus_2": 203.0,
+      "pres_party_seats_t_minus_2": 203,
+      "pres_party_seat_change": 2,
+      "R_seats_t": NaN,
+      "R_seats_t_minus_2": NaN,
+      "net_approval": 30.727,
+      "cpi_yoy": 1.547,
+      "unrate": 4.5,
+      "pres_party_retire_pct": 0.515
+    },
+    {
+      "year": 2002,
+      "pres_party": "R",
+      "D_seats_t": NaN,
+      "D_seats_t_minus_2": NaN,
+      "pres_party_seats_t_minus_2": 221,
+      "pres_party_seat_change": 8,
+      "R_seats_t": 229.0,
+      "R_seats_t_minus_2": 221.0,
+      "net_approval": 37.778,
+      "cpi_yoy": 1.595,
+      "unrate": 5.7,
+      "pres_party_retire_pct": 0.629
+    },
+    {
+      "year": 2006,
+      "pres_party": "R",
+      "D_seats_t": NaN,
+      "D_seats_t_minus_2": NaN,
+      "pres_party_seats_t_minus_2": 232,
+      "pres_party_seat_change": -31,
+      "R_seats_t": 201.0,
+      "R_seats_t_minus_2": 232.0,
+      "net_approval": -17.4,
+      "cpi_yoy": 3.233,
+      "unrate": 4.4,
+      "pres_party_retire_pct": 0.63
+    },
+    {
+      "year": 2010,
+      "pres_party": "D",
+      "D_seats_t": 193.0,
+      "D_seats_t_minus_2": 252.0,
+      "pres_party_seats_t_minus_2": 252,
+      "pres_party_seat_change": -59,
+      "R_seats_t": NaN,
+      "R_seats_t_minus_2": NaN,
+      "net_approval": -2.533,
+      "cpi_yoy": 1.641,
+      "unrate": 9.4,
+      "pres_party_retire_pct": 0.472
+    },
+    {
+      "year": 2014,
+      "pres_party": "D",
+      "D_seats_t": 185.0,
+      "D_seats_t_minus_2": 200.0,
+      "pres_party_seats_t_minus_2": 200,
+      "pres_party_seat_change": -15,
+      "R_seats_t": NaN,
+      "R_seats_t_minus_2": NaN,
+      "net_approval": -11.603,
+      "cpi_yoy": 1.617,
+      "unrate": 5.7,
+      "pres_party_retire_pct": 0.405
+    },
+    {
+      "year": 2018,
+      "pres_party": "R",
+      "D_seats_t": NaN,
+      "D_seats_t_minus_2": NaN,
+      "pres_party_seats_t_minus_2": 241,
+      "pres_party_seat_change": -41,
+      "R_seats_t": 200.0,
+      "R_seats_t_minus_2": 241.0,
+      "net_approval": -9.56,
+      "cpi_yoy": 2.44,
+      "unrate": 3.8,
+      "pres_party_retire_pct": 0.673
+    },
+    {
+      "year": 2022,
+      "pres_party": "D",
+      "D_seats_t": 212.0,
+      "D_seats_t_minus_2": 223.0,
+      "pres_party_seats_t_minus_2": 223,
+      "pres_party_seat_change": -11,
+      "R_seats_t": NaN,
+      "R_seats_t_minus_2": NaN,
+      "net_approval": -10.459,
+      "cpi_yoy": 7.998,
+      "unrate": 3.6,
+      "pres_party_retire_pct": 0.6
+    }
+  ]
+}
