@@ -706,9 +706,6 @@ def _enrich_top_result(items: list[dict], question: str = "") -> tuple[list[dict
     return out, hint
 
 
-WEB_SYNTHESIS_MODEL = "gpt-4o-mini"
-
-
 def _format_fact_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
     items = parsed.get("items", [])
     if not items:
@@ -742,8 +739,7 @@ def _format_fact_answer(question: str, parsed: dict, llm: ChatOpenAI) -> str:
             "verbatim — incorporate the name naturally into your answer.)"
         )
     today = datetime.now().strftime("%Y-%m-%d")
-    synth_llm = get_llm(WEB_SYNTHESIS_MODEL, 0)
-    resp = synth_llm.invoke([
+    resp = llm.invoke([
         SystemMessage(content=(
             f"Today's date is {today}. Your training data is outdated for current officeholders "
             "and recent events. The search results below are from the live web and authoritative. "
@@ -785,8 +781,7 @@ def _format_background_answer(question: str, parsed: dict, llm: ChatOpenAI) -> s
         excerpt_blocks.append("\n".join(block_lines))
     tool_excerpt = "\n\n".join(excerpt_blocks)
     today = datetime.now().strftime("%Y-%m-%d")
-    synth_llm = get_llm(WEB_SYNTHESIS_MODEL, 0)
-    resp = synth_llm.invoke([
+    resp = llm.invoke([
         SystemMessage(content=(
             f"Today's date is {today}. Your training data is older than today and may be outdated; "
             "the search results below reflect the current world. Trust them over your memory. "

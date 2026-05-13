@@ -105,11 +105,11 @@ def _strip_json_fences(text: str) -> str:
     return text.strip()
 
 
-def _generate_suggestions(messages: list[ChatMessage]) -> list[str]:
+def _generate_suggestions(messages: list[ChatMessage], model: str = "gpt-4o-mini") -> list[str]:
     if not messages:
         return []
     try:
-        llm = get_llm(model="gpt-4o-mini", temperature=0.7)
+        llm = get_llm(model=model, temperature=0.7)
         recent = messages[-4:]
         convo = "\n".join(
             f"{'User' if msg.role == 'user' else 'Assistant'}: {msg.content[:200]}"
@@ -166,7 +166,7 @@ def ask(payload: AskRequest) -> AskResponse:
             answer=answer,
             time=elapsed,
             comparison=_normalize_comparison(results),
-            suggestions=_generate_suggestions(augmented_messages),
+            suggestions=_generate_suggestions(augmented_messages, model=payload.model),
         )
 
     try:
@@ -189,5 +189,5 @@ def ask(payload: AskRequest) -> AskResponse:
         trace=_string_list(result.get("trace", [])),
         chart_urls=_chart_urls(result.get("chart_paths", [])),
         time=elapsed,
-        suggestions=_generate_suggestions(augmented_messages),
+        suggestions=_generate_suggestions(augmented_messages, model=payload.model),
     )
