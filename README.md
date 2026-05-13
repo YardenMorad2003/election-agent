@@ -108,25 +108,25 @@ Stock markets, indices, bonds, commodities, FX, weather, climate, sports, biogra
 
 ```mermaid
 graph LR
-    U[User] --> UI[Streamlit or Next.js UI]
-    UI --> A[Agent]
-    A --> R[Router]
-    R --> C1[Single-Pass]
-    R --> C2[RAG-Only]
-    R --> C3[Fixed Routing]
-    R --> C4[Dynamic Routing]
-    R --> C5[Plan-and-Execute]
-    C3 --> T[Tools]
-    C4 --> T
-    C5 --> T
-    T --> DQ[data_query]
-    T --> CO[coalition_calculator]
-    T --> WS[web_search]
-    T --> CH[create_chart]
-    T --> CS[context_search]
-    DQ --> DB[PostgreSQL or SQLite]
-    CS --> VS[ChromaDB]
-    WS --> EXT[News and Web]
+    User --> UI
+    UI --> Agent
+    Agent --> Router
+    Router --> SinglePass
+    Router --> RAGOnly
+    Router --> FixedRouting
+    Router --> DynamicRouting
+    Router --> PlanAndExecute
+    FixedRouting --> Tools
+    DynamicRouting --> Tools
+    PlanAndExecute --> Tools
+    Tools --> data_query
+    Tools --> coalition_calculator
+    Tools --> web_search
+    Tools --> create_chart
+    Tools --> context_search
+    data_query --> Database
+    context_search --> VectorStore
+    web_search --> Web
 ```
 
 The router decides whether to (a) refuse on scope grounds, (b) take a fast direct-web-lookup path for simple factual web queries, (c) hand to the ReAct agent with the full tool kit. Conversation history is passed in for all paths; topic carry-over for vague follow-ups ("any updates on that?") is resolved via a one-shot LLM rewrite before search.
