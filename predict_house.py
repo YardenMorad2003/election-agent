@@ -43,17 +43,21 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import LeaveOneOut
 
 ROOT = Path(__file__).resolve().parent
-HOUSE = ROOT / "data/elections_extra/house_elections.csv"
-CHAMBER = ROOT / "data/elections_extra/chamber_control.csv"
-APPROVAL = ROOT / "data/macro/approval/pres_approval_data.csv"
+# All forecast inputs live under Prediction_Data/ (tracked in the repo so the
+# script runs out-of-the-box from a fresh clone). data/ is the gitignored
+# local-dev mirror; we used to read from there, but Prediction_Data/ is the
+# canonical in-repo location.
+HOUSE = ROOT / "Prediction_Data/house_elections.csv"
+CHAMBER = ROOT / "Prediction_Data/chamber_control.csv"
+APPROVAL = ROOT / "Prediction_Data/Approval_Data/pres_approval_data.csv"
 TRUMP1_APPROVAL = ROOT / "Prediction_Data/Approval_Data/trump1_approval_polls_538.csv"
 BIDEN_APPROVAL = ROOT / "Prediction_Data/Approval_Data/biden_approval_topline_538.csv"
-TRUMP_APPROVAL = ROOT / "data/macro/approval/trump_approval_raw.csv"
+TRUMP_APPROVAL = ROOT / "Prediction_Data/Approval_Data/trump_approval_raw.csv"
 GENERIC_BALLOT_SB = ROOT / "Prediction_Data/silverbulletin_generic_ballot_2025_2026.csv"
-CPI = ROOT / "data/macro/fred/fred_cpi.csv"
-UNRATE = ROOT / "data/macro/fred/fred_unrate.csv"
-GAS = ROOT / "data/macro/gas_prices.csv"
-RETIREMENTS = ROOT / "data/elections_extra/house_retirements_features.csv"
+CPI = ROOT / "Prediction_Data/FRED_Data/fred_cpi.csv"
+UNRATE = ROOT / "Prediction_Data/FRED_Data/fred_unrate.csv"
+GAS = ROOT / "Prediction_Data/gas_prices.csv"
+RETIREMENTS = ROOT / "Prediction_Data/house_retirements_features.csv"
 OUT = ROOT / "forecast_2026_house.json"
 
 MIDTERMS = [1978, 1982, 1986, 1990, 1994, 1998, 2002, 2006, 2010, 2014, 2018, 2022]
