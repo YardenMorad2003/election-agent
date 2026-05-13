@@ -107,27 +107,26 @@ Stock markets, indices, bonds, commodities, FX, weather, climate, sports, biogra
 ## Architecture
 
 ```mermaid
-flowchart LR
-    U[User] --> UI{UI}
-    UI -- Streamlit --> A[Agent]
-    UI -- "Next.js + FastAPI" --> A
+graph LR
+    U[User] --> UI[Streamlit or Next.js UI]
+    UI --> A[Agent]
     A --> R[Router]
     R --> C1[Single-Pass]
     R --> C2[RAG-Only]
     R --> C3[Fixed Routing]
     R --> C4[Dynamic Routing]
     R --> C5[Plan-and-Execute]
-    C3 --> T
+    C3 --> T[Tools]
     C4 --> T
     C5 --> T
-    T[Tools] --> DQ[data_query]
+    T --> DQ[data_query]
     T --> CO[coalition_calculator]
     T --> WS[web_search]
     T --> CH[create_chart]
     T --> CS[context_search]
-    DQ --> DB[(PostgreSQL / SQLite)]
-    CS --> VS[(ChromaDB)]
-    WS --> EXT[Google News RSS / DuckDuckGo / Wikipedia]
+    DQ --> DB[PostgreSQL or SQLite]
+    CS --> VS[ChromaDB]
+    WS --> EXT[News and Web]
 ```
 
 The router decides whether to (a) refuse on scope grounds, (b) take a fast direct-web-lookup path for simple factual web queries, (c) hand to the ReAct agent with the full tool kit. Conversation history is passed in for all paths; topic carry-over for vague follow-ups ("any updates on that?") is resolved via a one-shot LLM rewrite before search.
