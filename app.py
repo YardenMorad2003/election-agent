@@ -106,7 +106,7 @@ with st.sidebar:
 
 # ── Header ──
 st.title("Agentic Electoral Analyst")
-st.caption("U.S. federal elections (2000-2024) · Israeli Knesset elections (1996-2022)")
+st.caption("U.S. federal elections (2000-2020) · Israeli Knesset elections (1996-2022)")
 
 
 # ── Helpers ──

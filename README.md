@@ -27,6 +27,61 @@ An LLM-powered analyst for **U.S. federal elections (2000–2020)** and **Israel
 
 ## Quick start
 
+### Prerequisites
+
+- **Python 3.14** (`python --version`). Earlier versions break on `langgraph==1.1.10`.
+- **Node.js 18+** — only if you also want the Next.js UI. Streamlit doesn't need it.
+- **OpenAI API key** with access to `gpt-4o-mini` (default). For the model selector to upgrade to `gpt-4o` or `gpt-4.1`, your key must have access to those models too.
+
+### First-time setup
+
+The repo ships **with all forecast data already included** (`Prediction_Data/`). Only the large runtime artifacts — the SQLite DB, the vector store, and the DistilBERT classifier — are gitignored. They're available on the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0).
+
+**1. Install Python deps.**
+```bash
+pip install -r requirements.txt
+```
+
+**2. Smoke-test the forecast** (no downloads needed — reads CSVs that are already in `Prediction_Data/`):
+```bash
+python predict_house.py
+# Expect: R net seat change = -33.3   95% PI [-70.6, -8.9]
+```
+If this works, your Python environment is healthy. If you get `FileNotFoundError`, something deleted `Prediction_Data/` — re-clone.
+
+**3. Download the chatbot runtime files** from the [v1.0 release](https://github.com/YardenMorad2003/election-agent/releases/tag/v1.0) into the repo root:
+
+| File | Size | Where to put it | Used by |
+|------|------|-----------------|---------|
+| [`elections.db`](https://github.com/YardenMorad2003/election-agent/releases/download/v1.0/elections.db) | 1.2 GB | repo root, as-is | `data_query`, `coalition_calculator`, `create_chart` |
+| [`chroma_db.tar.gz`](https://github.com/YardenMorad2003/election-agent/releases/download/v1.0/chroma_db.tar.gz) | 47 MB | extract: `tar -xzf chroma_db.tar.gz` | `context_search`, RAG-only config |
+| [`distilbert-router.tar.gz`](https://github.com/YardenMorad2003/election-agent/releases/download/v1.0/distilbert-router.tar.gz) | 235 MB | extract: `mkdir -p models && tar -xzf distilbert-router.tar.gz -C models/` | `fixed_routing` config |
+
+**4. Configure environment.** Copy the template and fill in your OpenAI API key:
+```bash
+cp .env.example .env
+# Edit .env, set OPENAI_API_KEY=sk-...
+```
+
+To use PostgreSQL instead of the bundled SQLite (recommended for performance), set `DATABASE_URL` in `.env` and run `python migrate_to_postgres.py` once. SQLite is the default fallback.
+
+**5. Launch the chat UI.**
+```bash
+python -m streamlit run app.py
+```
+Open http://localhost:8501. If the agent crashes with `sqlite3.OperationalError` on the first question, the DB isn't found — confirm `elections.db` is in the repo root, or set `DATABASE_URL` for Postgres.
+
+**Optional: rebuild from scratch.** If you need to reconstruct the DB / vector store / classifier from raw upstream sources rather than the v1.0 release:
+```bash
+python build_db.py            # Israeli DB — needs raw Knesset CSVs in data/raw/
+python build_us_db.py         # U.S. DB — needs MIT Election Lab + NCHS data
+python build_vectorstore.py   # ChromaDB — needs elections.db built first
+python train_classifier.py    # DistilBERT router — needs labeled training data
+```
+These scripts read raw upstream files from `data/raw/` (gitignored). Contact the team for the upstream-source bundle if you need to reconstruct from scratch.
+
+---
+
 ### Streamlit (primary UI)
 
 ```bash
@@ -214,22 +269,47 @@ Current pass rate on the judged 49 queries is 89.8%. The five remaining failures
 
 ## 2026 House forecast
 
-`predict_house.py` builds a fundamentals OLS on 12 midterm cycles (1978–2022), compares three candidate specs by leave-one-out cross-validation, and emits `forecast_2026_house.json`.
+`predict_house.py` builds a fundamentals model on 12 midterm cycles (1978–2022), runs an 8-spec × 2-estimator LOOCV grid (16 fits), picks the lowest-LOOCV-MAE combination, and emits `forecast_2026_house.json` with a residual-bootstrap prediction interval.
 
 ### Method
 
 - **Target**: president's-party net House seat change vs. prior cycle, derived from `house_elections.csv` with fusion-ticket aggregation (NY DEM + WORKING FAMILIES summed per district winner).
-- **Inputs read live**: Trump approval (last 30 days from `data/macro/approval/trump_approval_raw.csv`), CPI YoY, unemployment, gas (informational).
-- **Specs compared**: `approval_only` (winner, LOOCV MAE 14.14 seats), `macro_only` (21.0), `approval_plus_macro` (16.0).
+- **Inputs read live for 2026**: Trump approval (last 30 days from `data/macro/approval/trump_approval_raw.csv`), CPI YoY, unemployment, House seat exposure (R seats coming out of the 2024 House election = 220), pres-party retirement share (from `house_retirements_features.csv` 2026 row = 0.61), and gas (informational).
+- **Feature spec search** (8 candidates):
+  - `approval_only`, `macro_only` (CPI + unrate), `approval_plus_macro`
+  - `exposure_only`, `approval_plus_exposure` — uses `pres_party_seats_t_minus_2` (the chamber size the president's party is defending)
+  - `retire_only`, `approval_plus_retire` — uses `pres_party_retire_pct` (share of midterm-year retirements that are pres party). These specs train on the post-1996 n=7 subset because the retirements panel starts in 1996
+  - `approval_only_post96` — approval-only re-fit on the same n=7 subset, as the apples-to-apples baseline for the retirement specs
+- **Estimator search**: each spec is fit twice — OLS (`LinearRegression`) and robust Huber (`HuberRegressor(epsilon=1.35)`). Huber downweights observations >1.35σ from the fit, so high-loss midterms like 1994 (−54) and 2010 (−59) can't unilaterally pull the slope.
+- **Selection**: argmin LOOCV MAE across all 16 fits.
+- **Prediction interval**: 2000-draw residual bootstrap. Refit the winning estimator on (X, fitted_y + resampled_residuals) each draw, predict on the new x, and add an independent residual draw to produce a PI rather than a CI. With n=12 the textbook z=1.96 formula understates upper-tail variance because the residuals aren't actually normal; empirical 2.5 / 97.5 percentiles are honest.
 - **Generic ballot** read live from Silver Bulletin's 2025–2026 daily series; recorded in the output JSON as a convergent sanity check, not a model feature (historical coverage in `generic_topline_historical.csv` only covers 5 of our 12 training midterms).
 
-### Current forecast (2026-05-12)
+### Spec-search results (LOOCV MAE, seats)
 
-- **Republican net change: −36 seats (point estimate), 95% PI [−71, −1]**.
-- Coefficient: 0.68 seats per net-approval point.
-- Intercept: −25.9.
+| Spec | n | OLS | Huber |
+|---|---|---|---|
+| **`approval_only`** | **12** | 14.14 | **13.97** ← selected |
+| `approval_plus_macro` | 12 | 15.96 | 17.83 |
+| `approval_plus_exposure` | 12 | 17.05 | 17.64 |
+| `exposure_only` | 12 | 18.78 | 20.66 |
+| `macro_only` | 12 | 21.01 | 23.34 |
+| `approval_only_post96` | 7 | 17.01 | 15.78 |
+| `approval_plus_retire` | 7 | 22.73 | 21.73 |
+| `retire_only` | 7 | 27.69 | 26.98 |
+
+**Approval is the only feature that survives.** Adding CPI + unrate, seat exposure, or retirement share *all* increase LOOCV MAE — the auxiliary variables are informationally redundant with net approval. On the apples-to-apples post-1996 n=7 subset, approval-plus-retirements scores 21.73 vs approval-only's 15.78 (+5.95 MAE), which is strong evidence retirement share is *downstream* of approval (when a president looks doomed, his party retires) rather than an independent leading indicator.
+
+Huber edges OLS by only 0.17 MAE seats on the winning spec — 1994 and 2010 are *consistent with* the approval-driven loss expectation, not true outliers, so robustness gain is small.
+
+### Current forecast (2026-05-13)
+
+- **Republican net change: −33.3 seats (point estimate), 95% PI [−70.6, −8.9]**.
+- Winning estimator: Huber. Winning spec: `approval_only`. Training n=12.
+- Coefficient: 0.646 seats per net-approval point.
+- Intercept: −23.79.
 - Net approval input: −14.67 (Trump, last-30-day average through 2026-03-31).
-- Convergent generic-ballot check: D+5.87 (7-day SB average) × 5 seats/pt ≈ R−29, consistent with the model's R−36.
+- Convergent generic-ballot check: D+5.87 (7-day SB average) × 5 seats/pt ≈ R−29, consistent with the model's R−33.
 
 See `predict_house.py --help` for what-if scenarios and [Appendix A](#appendix-a-map-assumption-for-the-2026-forecast) for the redistricting disclosure.
 
@@ -276,8 +356,8 @@ The residual five failures are gpt-4o-mini training-prior collapses on recently-
 
 - **2024 U.S. presidential data** is blocked rather than fixed. The permanent fix is to re-run `build_us_db.py` for 2024 county data with a unique-row guard before the SUM-into-county-fips step. Until that lands, the precinct table has correct 2024 data but doesn't cover all 50 states.
 - **Coalition synthesizer** is 0/6 soft-match across all four benchmarked configs. The brute-force enumerator is correct (verified by Python unit test); the synthesizer is fed a long enumeration list rather than a rubric-shaped subset, so the answer format doesn't match the rubric.
-- **Multi-step queries** are framed as an open problem in agentic SQL: 30–40% accuracy across configs. Config 5's plan-and-execute is the proposed approach but hasn't been benchmarked yet.
-- **Vote prediction model** is *Beta* — n=12 training sample, no out-of-sample backtest beyond LOOCV, no redistricting layer (see Appendix A), not yet wired as an agent tool. Treat the point estimate as a fundamentals-conditional baseline.
+- **Multi-step queries** are the hardest category — soft-match is 0–10% across all four benchmarked configs (judge scores 2.0–3.6). Framed as an open problem in agentic SQL: the planner can decompose correctly (Q22 swing-states is the canonical case) but `data_query` writes a buggy SQL step that the planner can't catch. Config 5's plan-and-execute is the proposed remedy but hasn't been benchmarked end-to-end yet.
+- **Vote prediction model** is *Beta* — n=12 training sample (n=7 for retirement-feature variants), 8-spec × 2-estimator LOOCV grid, residual-bootstrap PI. Approval is the only feature that survives the spec search; macro, exposure, and retirement share all increase LOOCV MAE. No out-of-sample backtest beyond LOOCV, no redistricting layer (see Appendix A), not yet wired as an agent tool. Treat the point estimate as a fundamentals-conditional baseline.
 - **LLM-as-judge** is the headline metric; soft match is too strict for comparative multi-step answers.
 - **Web search residual hallucinations** affect officeholders that changed post-October-2023 (gpt-4o-mini's training cutoff). 89.8% pass rate on the 50-query test.
 
@@ -348,4 +428,4 @@ The fundamentals model produces a **national** seat estimate; it doesn't have a 
 
 1. **2024 → 2026 map differences are not modeled.** Any state with a new congressional map (court-ordered or legislatively redrawn) introduces an unmodeled delta on top of the fundamentals.
 2. **Virginia, May 2026.** On 2026-05-08 the Virginia Supreme Court of Appeals (SCOVA) ruled 4–3 to strike down the redistricting amendment passed in 2020. The current 6–5 D map stays in effect for 2026. A SCOTUS appeal is pending; if it succeeds and a new map is imposed before filing deadlines, actual 2026 D seat count could be ~4 higher than the fundamentals model implies.
-3. **Framing.** Treat the point estimate as a **fundamentals-conditional national signal, not a literal seat count**. The wide 95% PI [−71, −1] is real, not a placeholder — it reflects the variance of midterm seat-swing predictions from a 12-cycle training set.
+3. **Framing.** Treat the point estimate as a **fundamentals-conditional national signal, not a literal seat count**. The 95% PI [−70.6, −8.9] is real, not a placeholder — it's a 2000-draw residual bootstrap interval reflecting the variance of midterm seat-swing predictions from a 12-cycle training set.
